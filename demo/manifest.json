@@ -1,0 +1,10 @@
+{
+  "name": "AppsForHire Demo",
+  "short_name": "AFH Demo",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1a1f36",
+  "theme_color": "#1a1f36",
+  "description": "AppsForHire demo environment — try our apps before you buy."
+}

@@ -190,6 +190,54 @@
     .step h3 { font-size: 1.1rem; font-weight: 700; color: var(--gray900); margin-bottom: .5rem; }
     .step p { font-size: .9rem; color: var(--gray600); line-height: 1.6; }
 
+    /* ── Try Demo Section ── */
+    .demo-section { background: var(--gray50); }
+    .demo-split {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 3.5rem; align-items: center;
+    }
+    @media (max-width: 720px) { .demo-split { grid-template-columns: 1fr; gap: 2rem; } }
+    .demo-split h2 { margin-bottom: .75rem; }
+    .demo-split p { font-size: 1rem; color: var(--gray600); line-height: 1.75; margin-bottom: 1.5rem; }
+    .demo-rules-list {
+      display: flex; flex-direction: column; gap: .6rem; margin-bottom: 2rem;
+    }
+    .demo-rule {
+      display: flex; align-items: center; gap: .75rem;
+      font-size: .9rem; color: var(--gray700);
+    }
+    .demo-rule-icon {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: var(--gray100); display: flex; align-items: center;
+      justify-content: center; font-size: .95rem;
+    }
+    .demo-cards-preview {
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .demo-preview-card {
+      background: var(--white); border: 1.5px solid var(--gray200);
+      border-radius: 14px; padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .demo-preview-card:hover { border-color: var(--sky); box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+    .demo-preview-icon {
+      width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+    }
+    .icon-bg-teal { background: #ccfbf1; }
+    .icon-bg-violet { background: #ede9fe; }
+    .demo-preview-card h4 { font-size: .95rem; font-weight: 700; color: var(--gray900); margin-bottom: .15rem; }
+    .demo-preview-card p { font-size: .8rem; color: var(--gray600); }
+    .demo-preview-tier {
+      margin-left: auto; flex-shrink: 0;
+      font-size: .7rem; font-weight: 700; letter-spacing: .04em;
+      padding: .2rem .55rem; border-radius: 6px; text-transform: uppercase;
+    }
+    .demo-cta-note {
+      margin-top: 1.25rem; font-size: .82rem; color: var(--gray400);
+    }
+
     /* ── byoAI Section ── */
     .byo-section { background: var(--white); }
     .byo-grid {
@@ -477,6 +525,7 @@
   </a>
   <ul class="nav-links">
     <li><a href="#how">How it Works</a></li>
+    <li><a href="#demo">Try Demo</a></li>
     <li><a href="#byo">byoAI & byoAPI</a></li>
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="#examples">Examples</a></li>
@@ -523,6 +572,50 @@
         <div class="step-num">3</div>
         <h3>You use it, we host it</h3>
         <p>Your app goes live on a secure, 2FA-protected link. Monthly hosting keeps it running and supported. Cancel anytime. Buy it out anytime. It's your app.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Try Demo ── -->
+<section class="demo-section" id="demo">
+  <div class="section-inner">
+    <div class="demo-split">
+      <div>
+        <span class="section-label">Try Before You Buy</span>
+        <h2>Kick the Tires.<br>Then Decide.</h2>
+        <p>Not sure if a PWA is right for your business? Try two real demo apps before spending a dollar. Same security, same code quality, same "install on your phone" magic — just seeded with generic data instead of yours.</p>
+        <div class="demo-rules-list">
+          <div class="demo-rule"><div class="demo-rule-icon">⏳</div> 7-day access window — enough time to actually live with it</div>
+          <div class="demo-rule"><div class="demo-rule-icon">🔟</div> 10 runs per demo app before the upgrade prompt appears</div>
+          <div class="demo-rule"><div class="demo-rule-icon">🔐</div> Full 2FA login, just like your real app would have</div>
+          <div class="demo-rule"><div class="demo-rule-icon">📱</div> Installable on your phone — try the home screen experience</div>
+        </div>
+        <a href="#contact" class="btn btn-primary" style="font-size:.95rem;">Request Demo Access →</a>
+        <p class="demo-cta-note">Fill out the contact form below and mention you want demo access — we'll send you the link within one business day.</p>
+      </div>
+      <div>
+        <div class="demo-cards-preview">
+          <div class="demo-preview-card">
+            <div class="demo-preview-icon icon-bg-teal">📋</div>
+            <div>
+              <h4>The Daily Checklist</h4>
+              <p>Shift checklist app — tasks, progress, reset for next shift</p>
+            </div>
+            <span class="demo-preview-tier tier-starter">Starter</span>
+          </div>
+          <div class="demo-preview-card">
+            <div class="demo-preview-icon icon-bg-violet">📊</div>
+            <div>
+              <h4>The Corner Tracker</h4>
+              <p>Inventory tracker with daily log — stock levels, alerts, notes</p>
+            </div>
+            <span class="demo-preview-tier tier-custom">Custom</span>
+          </div>
+        </div>
+        <div style="margin-top:1.5rem;padding:1.1rem 1.25rem;background:var(--white);border:1px solid var(--gray200);border-radius:12px;font-size:.85rem;color:var(--gray600);line-height:1.7;">
+          <strong style="color:var(--gray900);">After the demo:</strong> If you move forward, you get your own app on your own subdomain — built around your actual workflow. Demo access is removed either way (7 days is 7 days). It's a preview, not a permanent free tier.
+        </div>
       </div>
     </div>
   </div>

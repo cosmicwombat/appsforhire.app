@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Corner Tracker — AppsForHire Demo</title>
+  <meta name="theme-color" content="#6d28d9"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --brand: #6d28d9; --brand-light: #7c3aed;
+      --sky: #0ea5e9; --mint: #10b981; --amber: #f59e0b; --coral: #ef4444;
+      --gray50: #f8fafc; --gray100: #f1f5f9; --gray200: #e2e8f0;
+      --gray400: #94a3b8; --gray600: #475569; --gray700: #334155; --gray900: #0f172a;
+      --white: #ffffff;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray50); color: var(--gray700);
+      -webkit-font-smoothing: antialiased; min-height: 100vh;
+    }
+
+    /* ── Demo Overlay ── */
+    #demoOverlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,.92);
+      align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    #demoOverlay.show { display: flex; }
+    .overlay-card {
+      background: var(--white); border-radius: 20px;
+      padding: 2.5rem; max-width: 420px; width: 100%; text-align: center;
+    }
+    .overlay-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .overlay-card h2 { font-size: 1.5rem; font-weight: 800; color: var(--gray900); margin-bottom: .6rem; }
+    .overlay-card p { font-size: .95rem; color: var(--gray600); line-height: 1.7; margin-bottom: 1.75rem; }
+    .overlay-cta {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--sky); color: var(--white);
+      padding: .9rem 1.75rem; border-radius: 12px;
+      font-weight: 700; font-size: 1rem; text-decoration: none; margin-bottom: .85rem;
+    }
+    .overlay-back { display: block; font-size: .82rem; color: var(--gray400); text-decoration: none; margin-top: .5rem; }
+    .overlay-back:hover { color: var(--gray700); }
+
+    /* ── Run Badge ── */
+    #runBadge {
+      position: fixed; top: 4.5rem; right: 1rem; z-index: 100;
+      background: rgba(245,158,11,.15); border: 1px solid rgba(245,158,11,.4);
+      color: var(--amber); padding: .3rem .75rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+    }
+    #runBadge.warning { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.4); color: #ef4444; }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--brand), var(--brand-light));
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+    header p { font-size: .78rem; color: rgba(255,255,255,.7); }
+    .header-badge {
+      background: rgba(255,255,255,.15); color: var(--white);
+      padding: .3rem .75rem; border-radius: 8px; font-size: .8rem; font-weight: 600;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+      border-bottom: 2px solid var(--gray200);
+      background: var(--white); padding: 0 1rem;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      padding: .85rem 1.1rem; font-size: .88rem; font-weight: 600;
+      color: var(--gray600); cursor: pointer; white-space: nowrap;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: color .2s, border-color .2s;
+    }
+    .tab.active { color: var(--brand); border-color: var(--brand); }
+
+    /* ── Main ── */
+    main { max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 5rem; }
+    .demo-banner {
+      background: #fffbeb; border: 1px solid #fcd34d;
+      border-radius: 10px; padding: .75rem 1rem;
+      font-size: .82rem; color: #92400e; margin-bottom: 1.5rem;
+    }
+
+    /* ── Stats Row ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: .75rem; margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 12px; padding: 1rem;
+      text-align: center;
+    }
+    .stat-card .num { font-size: 1.6rem; font-weight: 800; color: var(--gray900); }
+    .stat-card .lbl { font-size: .75rem; color: var(--gray400); margin-top: .1rem; }
+
+    /* ── Form ── */
+    .add-form {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem;
+    }
+    .add-form h3 { font-size: .9rem; font-weight: 700; color: var(--gray900); margin-bottom: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+    @media(max-width: 400px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: .3rem; }
+    label { font-size: .78rem; font-weight: 600; color: var(--gray700); }
+    input, select {
+      padding: .65rem .85rem; border: 1.5px solid var(--gray200);
+      border-radius: 9px; font-size: .9rem; color: var(--gray900);
+      background: var(--white); outline: none; font-family: inherit;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus { border-color: var(--brand); }
+    .submit-btn {
+      background: linear-gradient(135deg, var(--brand), var(--brand-light));
+      color: var(--white); border: none; width: 100%;
+      padding: .75rem; border-radius: 10px;
+      font-weight: 700; font-size: .95rem; cursor: pointer;
+      transition: opacity .2s;
+    }
+    .submit-btn:hover { opacity: .9; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 400px; }
+    th {
+      font-size: .75rem; font-weight: 700; color: var(--gray600);
+      letter-spacing: .04em; text-transform: uppercase;
+      padding: .6rem .75rem; text-align: left;
+      border-bottom: 2px solid var(--gray200);
+    }
+    td {
+      padding: .75rem; font-size: .88rem; color: var(--gray700);
+      border-bottom: 1px solid var(--gray100);
+    }
+    tr:hover td { background: var(--gray50); }
+    .badge {
+      display: inline-block; padding: .15rem .55rem; border-radius: 6px;
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-amber { background: #fef9c3; color: #854d0e; }
+    .badge-red   { background: #fee2e2; color: #991b1b; }
+    .del-btn { background: none; border: none; cursor: pointer; color: var(--gray400); font-size: .9rem; }
+    .del-btn:hover { color: #ef4444; }
+    .empty-msg { text-align: center; padding: 3rem 1rem; color: var(--gray400); font-size: .9rem; }
+
+    /* ── Sections ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Log ── */
+    .log-entry {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 12px; padding: 1rem 1.1rem;
+      margin-bottom: .6rem;
+    }
+    .log-entry .log-time { font-size: .75rem; color: var(--gray400); margin-bottom: .25rem; }
+    .log-entry .log-text { font-size: .9rem; color: var(--gray700); }
+  </style>
+</head>
+<body>
+
+<div id="demoOverlay">
+  <div class="overlay-card">
+    <div class="overlay-icon">📊</div>
+    <h2>Nice. You've been tracking.</h2>
+    <p>You've used your 10 demo runs for this app. A real Custom-tier app would connect to your actual data sources — Shopify, QuickBooks, Google Sheets, whatever you use. Want one?</p>
+    <a class="overlay-cta" href="https://appsforhire.app/#contact">Build Mine →</a>
+    <a class="overlay-back" href="../">← Back to Demo Home</a>
+  </div>
+</div>
+
+<div id="runBadge">Demo: — / 10 runs</div>
+
+<header>
+  <div>
+    <h1>📊 The Corner Tracker</h1>
+    <p>AppsForHire Demo App — Custom Tier</p>
+  </div>
+  <div class="header-badge" id="dateDisplay"></div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPanel('inventory', this)">Inventory</div>
+  <div class="tab" onclick="showPanel('log', this)">Daily Log</div>
+</div>
+
+<main>
+
+  <div class="demo-banner">
+    🧪 <strong>Demo app.</strong> Data is stored locally on this device. This is what a Custom-tier tracking app looks like — <a href="https://appsforhire.app/#contact" style="color:#92400e;font-weight:700;">get one connected to your real data →</a>
+  </div>
+
+  <!-- ── Inventory Panel ── -->
+  <div id="panel-inventory" class="panel active">
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="num" id="statTotal">0</div>
+        <div class="lbl">Total Items</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="statLow" style="color:var(--amber)">0</div>
+        <div class="lbl">Low Stock</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="statOut" style="color:var(--coral)">0</div>
+        <div class="lbl">Out of Stock</div>
+      </div>
+    </div>
+
+    <div class="add-form">
+      <h3>Add / Update Item</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Item Name</label>
+          <input id="itemName" type="text" placeholder="e.g. Paper Bags"/>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input id="itemQty" type="number" min="0" placeholder="0"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="itemCat">
+            <option value="Supplies">Supplies</option>
+            <option value="Food">Food</option>
+            <option value="Beverage">Beverage</option>
+            <option value="Equipment">Equipment</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Low Stock Alert At</label>
+          <input id="itemAlert" type="number" min="0" placeholder="5"/>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="addItem()">Add to Inventory</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Category</th>
+            <th>Qty</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="inventoryTable">
+        </tbody>
+      </table>
+      <div id="inventoryEmpty" class="empty-msg" style="display:none;">
+        No items yet — add your first item above.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Log Panel ── -->
+  <div id="panel-log" class="panel">
+    <div class="add-form">
+      <h3>Add Log Entry</h3>
+      <div class="form-group" style="margin-bottom:.75rem;">
+        <label>Note</label>
+        <input id="logNote" type="text" placeholder="e.g. Received shipment, adjusted stock..."/>
+      </div>
+      <button class="submit-btn" onclick="addLog()">Add Entry</button>
+    </div>
+    <div id="logList"></div>
+    <div id="logEmpty" class="empty-msg">No log entries yet.</div>
+  </div>
+
+</main>
+
+<script>
+  const APP_KEY = 'demo_runs_app2';
+  const INV_KEY = 'demo_inventory';
+  const LOG_KEY = 'demo_log';
+  const DEMO_LIMIT = 10;
+
+  // ── Run counter ─────────────────────────────────────────────────────────────
+  let runCount = parseInt(localStorage.getItem(APP_KEY) || '0') + 1;
+  localStorage.setItem(APP_KEY, runCount);
+  const badge = document.getElementById('runBadge');
+  badge.textContent = `Demo: ${runCount} / 10 runs`;
+  if (runCount >= 9) badge.classList.add('warning');
+  if (runCount > DEMO_LIMIT) document.getElementById('demoOverlay').classList.add('show');
+
+  // ── Date ───────────────────────────────────────────────────────────────────
+  document.getElementById('dateDisplay').textContent =
+    new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+  function showPanel(name, el) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    el.classList.add('active');
+  }
+
+  // ── Inventory ──────────────────────────────────────────────────────────────
+  function loadInventory() {
+    try { return JSON.parse(localStorage.getItem(INV_KEY)) || []; }
+    catch { return []; }
+  }
+  function saveInventory(items) { localStorage.setItem(INV_KEY, JSON.stringify(items)); }
+
+  function statusBadge(qty, alert) {
+    if (qty === 0)       return '<span class="badge badge-red">Out</span>';
+    if (qty <= alert)    return '<span class="badge badge-amber">Low</span>';
+    return                      '<span class="badge badge-green">OK</span>';
+  }
+
+  function renderInventory() {
+    const items = loadInventory();
+    const tbody = document.getElementById('inventoryTable');
+    const empty = document.getElementById('inventoryEmpty');
+
+    if (items.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = '';
+    } else {
+      empty.style.display = 'none';
+      tbody.innerHTML = items.map(item => `
+        <tr>
+          <td><strong>${escapeHTML(item.name)}</strong></td>
+          <td>${escapeHTML(item.cat)}</td>
+          <td>
+            <input type="number" value="${item.qty}" min="0" style="width:60px;padding:.3rem .5rem;border:1.5px solid var(--gray200);border-radius:6px;font-size:.85rem;"
+              onchange="updateQty('${item.id}', this.value)"/>
+          </td>
+          <td>${statusBadge(item.qty, item.alert)}</td>
+          <td><button class="del-btn" onclick="deleteItem('${item.id}')">✕</button></td>
+        </tr>`).join('');
+    }
+
+    // Stats
+    const total = items.length;
+    const low   = items.filter(i => i.qty > 0 && i.qty <= i.alert).length;
+    const out   = items.filter(i => i.qty === 0).length;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statLow').textContent   = low;
+    document.getElementById('statOut').textContent   = out;
+  }
+
+  function addItem() {
+    const name  = document.getElementById('itemName').value.trim();
+    const qty   = parseInt(document.getElementById('itemQty').value) || 0;
+    const cat   = document.getElementById('itemCat').value;
+    const alert = parseInt(document.getElementById('itemAlert').value) || 5;
+    if (!name) return;
+    const items = loadInventory();
+    items.push({ id: Date.now().toString(), name, qty, cat, alert });
+    saveInventory(items);
+    document.getElementById('itemName').value = '';
+    document.getElementById('itemQty').value  = '';
+    addLog(`Added "${name}" to inventory (qty: ${qty})`);
+    renderInventory();
+  }
+
+  function updateQty(id, val) {
+    const items = loadInventory();
+    const item  = items.find(i => i.id === id);
+    if (item) { item.qty = parseInt(val) || 0; saveInventory(items); }
+    renderInventory();
+  }
+
+  function deleteItem(id) {
+    saveInventory(loadInventory().filter(i => i.id !== id));
+    renderInventory();
+  }
+
+  // ── Log ────────────────────────────────────────────────────────────────────
+  function loadLog() {
+    try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function addLog(text) {
+    if (typeof text !== 'string') {
+      text = document.getElementById('logNote').value.trim();
+      if (!text) return;
+      document.getElementById('logNote').value = '';
+    }
+    const log = loadLog();
+    log.unshift({ id: Date.now().toString(), text, time: new Date().toLocaleString() });
+    localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, 50)));
+    renderLog();
+  }
+
+  function renderLog() {
+    const log = loadLog();
+    const list = document.getElementById('logList');
+    const empty = document.getElementById('logEmpty');
+    if (log.length === 0) {
+      list.innerHTML = ''; empty.style.display = '';
+    } else {
+      empty.style.display = 'none';
+      list.innerHTML = log.map(e => `
+        <div class="log-entry">
+          <div class="log-time">${e.time}</div>
+          <div class="log-text">${escapeHTML(e.text)}</div>
+        </div>`).join('');
+    }
+  }
+
+  function escapeHTML(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Seed demo data ─────────────────────────────────────────────────────────
+  if (loadInventory().length === 0) {
+    const seed = [
+      { id:'1', name:'Paper Bags (sm)', qty: 48, cat:'Supplies', alert: 10 },
+      { id:'2', name:'Paper Bags (lg)', qty:  3, cat:'Supplies', alert: 10 },
+      { id:'3', name:'Coffee Cups',     qty:  0, cat:'Supplies', alert: 20 },
+      { id:'4', name:'Napkins',         qty: 200, cat:'Supplies', alert: 50 },
+      { id:'5', name:'Whole Milk (qt)', qty:  8, cat:'Food',     alert:  5 },
+    ];
+    saveInventory(seed);
+    addLog('Demo data loaded — edit quantities or add your own items');
+  }
+
+  renderInventory();
+  renderLog();
+</script>
+</body>
+</html>
