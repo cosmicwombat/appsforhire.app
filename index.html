@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apps for Hire — Custom PWA Apps for Small Business</title>
-  <meta name="description" content="We build custom web apps for individuals and small businesses. Fast turnaround, secure hosting, simple monthly fee. No tech skills needed." />
+  <title>AppsForHire — Tiny Apps for Real Problems</title>
+  <meta name="description" content="A boutique PWA shop for small businesses. We build fast, focused apps with your AI keys, your data, and zero pretense. Handcrafted apps. Boutique service." />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#1a1f36" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -120,7 +120,7 @@
     .hero p {
       font-size: clamp(1rem, 2vw, 1.2rem);
       color: rgba(255,255,255,.78);
-      max-width: 600px; margin: 0 auto 2.5rem;
+      max-width: 640px; margin: 0 auto 2.5rem;
     }
     .hero-btns {
       display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
@@ -167,39 +167,8 @@
     }
     .section-sub {
       font-size: 1.05rem; color: var(--gray600);
-      max-width: 560px; margin-bottom: 3rem;
+      max-width: 600px; margin-bottom: 3rem;
     }
-
-    /* ── Data & API Section ── */
-    .data-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.5rem; margin-top: 2.5rem;
-    }
-    .data-feature {
-      border: 1px solid var(--gray200); border-radius: 12px;
-      padding: 1.5rem; background: var(--gray50);
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .data-feature:hover { border-color: var(--indigo); box-shadow: var(--shadow-sm); }
-    .data-icon { font-size: 1.6rem; margin-bottom: .75rem; }
-    .data-feature h3 { font-size: 1rem; font-weight: 700; color: var(--gray900); margin-bottom: .4rem; }
-    .data-feature p { font-size: .86rem; color: var(--gray600); line-height: 1.6; }
-    .data-examples { margin-top: 2.5rem; }
-    .data-ex-label { font-size: .82rem; font-weight: 700; color: var(--gray400); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .85rem; }
-    .data-tags { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .75rem; }
-    .data-tags span {
-      background: linear-gradient(135deg, rgba(55,48,163,.08), rgba(109,40,217,.08));
-      border: 1px solid rgba(55,48,163,.18);
-      color: var(--indigo); border-radius: 100px;
-      padding: .3rem .85rem; font-size: .82rem; font-weight: 600;
-    }
-    .data-cta {
-      margin-top: 2rem; padding: 1.25rem 1.5rem;
-      background: var(--gray50); border: 1px solid var(--gray200);
-      border-radius: 12px; font-size: .9rem; color: var(--gray600);
-    }
-    .data-cta a { color: var(--indigo); font-weight: 700; text-decoration: none; }
-    .data-cta a:hover { text-decoration: underline; }
 
     /* ── How it Works ── */
     .how-section { background: var(--gray50); }
@@ -210,7 +179,6 @@
       border-radius: var(--radius);
       padding: 2rem;
       box-shadow: var(--shadow-sm);
-      position: relative;
     }
     .step-num {
       width: 40px; height: 40px; border-radius: 10px;
@@ -221,6 +189,36 @@
     }
     .step h3 { font-size: 1.1rem; font-weight: 700; color: var(--gray900); margin-bottom: .5rem; }
     .step p { font-size: .9rem; color: var(--gray600); line-height: 1.6; }
+
+    /* ── byoAI Section ── */
+    .byo-section { background: var(--white); }
+    .byo-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem; margin-top: 2.5rem;
+    }
+    .byo-card {
+      border: 1px solid var(--gray200); border-radius: 12px;
+      padding: 1.5rem; background: var(--gray50);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .byo-card:hover { border-color: var(--indigo); box-shadow: var(--shadow-sm); }
+    .byo-icon { font-size: 1.6rem; margin-bottom: .75rem; }
+    .byo-card h3 { font-size: 1rem; font-weight: 700; color: var(--gray900); margin-bottom: .4rem; }
+    .byo-card p { font-size: .86rem; color: var(--gray600); line-height: 1.6; }
+    .byo-tags { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 2rem; }
+    .byo-tags span {
+      background: linear-gradient(135deg, rgba(55,48,163,.08), rgba(109,40,217,.08));
+      border: 1px solid rgba(55,48,163,.18);
+      color: var(--indigo); border-radius: 100px;
+      padding: .3rem .85rem; font-size: .82rem; font-weight: 600;
+    }
+    .byo-disclaimer {
+      margin-top: 2rem; padding: 1.25rem 1.5rem;
+      background: #fffbeb; border: 1px solid #fcd34d;
+      border-radius: 12px; font-size: .88rem; color: var(--gray700);
+      line-height: 1.7;
+    }
+    .byo-disclaimer strong { color: var(--gray900); }
 
     /* ── Pricing ── */
     .pricing-grid {
@@ -347,14 +345,43 @@
       content: "+"; font-size: 1.25rem; color: var(--indigo); font-weight: 400; flex-shrink: 0;
     }
     details[open] summary::after { content: "−"; }
-    details p { font-size: .9rem; color: var(--gray600); margin-top: .85rem; line-height: 1.7; }
+    details p, details ul { font-size: .9rem; color: var(--gray600); margin-top: .85rem; line-height: 1.7; }
+    details ul { padding-left: 1.25rem; }
+    details ul li { margin-bottom: .4rem; }
+
+    /* ── TOS Section ── */
+    .tos-section { background: var(--white); }
+    .tos-box {
+      background: var(--gray50);
+      border: 1.5px solid var(--gray200);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    .tos-box h3 {
+      font-size: 1rem; font-weight: 700; color: var(--gray900);
+      margin-bottom: 1rem; padding-bottom: .75rem;
+      border-bottom: 1px solid var(--gray200);
+    }
+    .tos-box p, .tos-box ul {
+      font-size: .88rem; color: var(--gray600); line-height: 1.75;
+      margin-bottom: .75rem;
+    }
+    .tos-box ul { padding-left: 1.25rem; }
+    .tos-box ul li { margin-bottom: .35rem; }
+    .tos-box strong { color: var(--gray900); }
+    .tos-entity {
+      margin-top: 1.5rem;
+      font-size: .82rem; color: var(--gray400);
+      text-align: center;
+    }
 
     /* ── Contact ── */
-    .contact-section { background: var(--white); }
+    .contact-section { background: var(--gray50); }
     .contact-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
     @media (max-width: 720px) { .contact-inner { grid-template-columns: 1fr; gap: 2.5rem; } }
     .contact-form {
-      background: var(--gray50); border: 1px solid var(--gray200);
+      background: var(--white); border: 1px solid var(--gray200);
       border-radius: var(--radius); padding: 2rem;
     }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -431,7 +458,7 @@
   ">FIRSTAPP2026</span> at checkout.
   <a href="https://buy.stripe.com/eVqdR9ew2cJCaVL12I2880f" target="_blank" style="
     color: white; text-decoration: underline; margin-left: .5rem; font-weight: 700;
-  ">Claim yours →</a>
+  ">Grab yours before they're gone →</a>
   <button onclick="this.parentElement.style.display='none'" style="
     position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
     background: none; border: none; color: rgba(255,255,255,.7);
@@ -450,22 +477,22 @@
   </a>
   <ul class="nav-links">
     <li><a href="#how">How it Works</a></li>
-    <li><a href="#data">Data & APIs</a></li>
+    <li><a href="#byo">byoAI & byoAPI</a></li>
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="#examples">Examples</a></li>
     <li><a href="#faq">FAQ</a></li>
-    <li><a href="#contact" class="nav-cta">Get Started</a></li>
+    <li><a href="#contact" class="nav-cta">Let's Build →</a></li>
   </ul>
 </nav>
 
 <!-- ── Hero ── -->
 <section class="hero">
-  <div class="hero-badge">✦ A boutique app shop for small business</div>
-  <h1>Custom Apps Built for<br><span class="accent">Your Business</span></h1>
-  <p>We're a boutique app shop — we design, build, and securely host custom web apps for small businesses and individuals. Personal service, fast turnaround, no tech knowledge required.</p>
+  <div class="hero-badge">✦ Boutique PWA shop · byo AI · byo API · Handcrafted apps</div>
+  <h1>Got a Small Problem?<br><span class="accent">We've Got a Tiny App for That.</span></h1>
+  <p>We're a boutique shop that builds fast, focused Progressive Web Apps for small businesses and individuals. You bring the problem (and maybe your AI keys). We bring the code. No fluff, no enterprise overhead, no waiting six months for a quote.</p>
   <div class="hero-btns">
-    <a href="#pricing" class="btn btn-primary">View Pricing</a>
-    <a href="#contact" class="btn btn-outline">Request a Build →</a>
+    <a href="#pricing" class="btn btn-primary">See the Pricing</a>
+    <a href="#contact" class="btn btn-outline">Tell Us Your Idea →</a>
   </div>
   <div class="hero-stats">
     <div class="stat"><div class="stat-num">3–5</div><div class="stat-label">Day average turnaround</div></div>
@@ -479,74 +506,75 @@
 <section class="how-section" id="how">
   <div class="section-inner">
     <span class="section-label">How it Works</span>
-    <h2>Your app in three simple steps</h2>
-    <p class="section-sub">We work with a small number of clients at a time so every build gets our full attention — from first conversation to live, secure app.</p>
+    <h2>The Process (It's Embarrassingly Simple)</h2>
+    <p class="section-sub">We take on a small number of builds at a time so every project gets our full attention — from first coffee to live, secure app.</p>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
-        <h3>Tell us what you need</h3>
-        <p>Fill out our quick request form describing your idea. We'll follow up within one business day to scope the project and give you a firm quote.</p>
+        <h3>Tell us your small problem</h3>
+        <p>Fill out the form at the bottom of this page. We'll follow up within one business day to scope the project and give you a firm quote. No vague estimates. No "it depends" with no end in sight.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
-        <h3>We build it fast</h3>
-        <p>Once you approve the quote and pay the build fee, we get to work. Most apps are ready for review in 1–5 business days depending on complexity.</p>
+        <h3>We build it (fast)</h3>
+        <p>You approve the quote, pay the build fee, and we get to work. Most apps are ready in 1–5 business days. We're not trying to boil the ocean here — just solve your specific problem, properly.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <h3>We host it, you use it</h3>
-        <p>Your app goes live on a secure, password and 2FA-protected link. Your monthly subscription keeps it running, updated, and supported.</p>
+        <h3>You use it, we host it</h3>
+        <p>Your app goes live on a secure, 2FA-protected link. Monthly hosting keeps it running and supported. Cancel anytime. Buy it out anytime. It's your app.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── Data & API Integrations ── -->
-<section id="data" style="background: var(--white);">
+<!-- ── byoAI & byoAPI ── -->
+<section class="byo-section" id="byo">
   <div class="section-inner">
-    <span class="section-label">Data & API Integrations</span>
-    <h2>Your data is already out there.<br>We bring it together.</h2>
-    <p class="section-sub">Got an API, a spreadsheet, a POS system, or a SaaS tool? We build custom dashboards that pull from multiple data sources and surface exactly the insights you need — in one clean, private app.</p>
+    <span class="section-label">byoAI + byoAPI</span>
+    <h2>Bring Your Own Brain.<br>Bring Your Own Data.</h2>
+    <p class="section-sub">We're not in the business of reselling AI access or marking up API calls. You own your keys. We wire them up. The bill for your AI usage stays between you and Google or Anthropic — not us.</p>
 
-    <div class="data-grid">
-      <div class="data-feature">
-        <div class="data-icon">🔌</div>
-        <h3>Connect Any API</h3>
-        <p>Shopify, QuickBooks, Google Sheets, Airtable, your point-of-sale, your booking system — if it has an API, we can pull from it. No more logging into five different dashboards.</p>
+    <div class="byo-grid">
+      <div class="byo-card">
+        <div class="byo-icon">🤖</div>
+        <h3>Bring Your Own AI (byoAI)</h3>
+        <p>Connect your own Google Gemini or Anthropic Claude API key. We build the app around your AI — chat assistants, data summarizers, smart forms, whatever makes sense. Your model, your usage, your bill.</p>
       </div>
-      <div class="data-feature">
-        <div class="data-icon">📊</div>
+      <div class="byo-card">
+        <div class="byo-icon">🔌</div>
+        <h3>Bring Your Own APIs (byoAPI)</h3>
+        <p>Shopify, QuickBooks, Airtable, Google Sheets, your point-of-sale, your booking system — if it has an API, you bring the key and we connect it. No more logging into five dashboards to see one number.</p>
+      </div>
+      <div class="byo-card">
+        <div class="byo-icon">📊</div>
         <h3>Cross-Source Analysis</h3>
-        <p>Combine sales data from one source, inventory from another, and labor costs from a third into a single live view. See trends that are invisible when your data is siloed.</p>
+        <p>Pull sales from one source, inventory from another, labor costs from a third — all into one clean, private dashboard. See trends that are invisible when your data lives in silos.</p>
       </div>
-      <div class="data-feature">
-        <div class="data-icon">🔒</div>
-        <h3>Private & Secure</h3>
-        <p>Your data never touches a third-party analytics platform. Your app is private to you — protected by 2FA — and the data flows directly from your sources to your screen.</p>
-      </div>
-      <div class="data-feature">
-        <div class="data-icon">🔄</div>
-        <h3>Always Up to Date</h3>
-        <p>Dashboards refresh automatically on whatever schedule makes sense — hourly, daily, or on-demand. No more manual exports or stale spreadsheets.</p>
+      <div class="byo-card">
+        <div class="byo-icon">💰</div>
+        <h3>No AI Markup. Ever.</h3>
+        <p>We don't proxy your AI calls or take a percentage of your tokens. Your API usage goes directly from your key to the model. We build the wrapper. You own the relationship with your AI provider.</p>
       </div>
     </div>
 
-    <div class="data-examples">
-      <p class="data-ex-label">Popular data integration apps we build:</p>
-      <div class="data-tags">
-        <span>Sales + Inventory Dashboard</span>
-        <span>Multi-location Revenue View</span>
-        <span>QuickBooks + Shopify Reconciler</span>
-        <span>Staff Hours vs. Revenue Analyzer</span>
-        <span>Google Sheets Live Reporter</span>
-        <span>Custom KPI Dashboard</span>
-        <span>Airtable-powered Client Portal</span>
-        <span>API-to-PDF Report Generator</span>
-      </div>
+    <div class="byo-tags">
+      <span>Google Gemini</span>
+      <span>Claude AI</span>
+      <span>OpenAI</span>
+      <span>Shopify API</span>
+      <span>QuickBooks</span>
+      <span>Airtable</span>
+      <span>Google Sheets</span>
+      <span>Custom REST APIs</span>
+      <span>Webhooks</span>
+      <span>Your Weird POS System</span>
+      <span>Square</span>
+      <span>Toast POS</span>
     </div>
 
-    <div class="data-cta">
-      <p>Data integrations typically fall into the <strong>Custom</strong> or <strong>Pro</strong> tier depending on the number of sources and complexity. <a href="#contact">Tell us what you're working with →</a></p>
+    <div class="byo-disclaimer">
+      <strong>⚠️ Important:</strong> AI-powered features are billed through your own API account. AppsForHire and Ghost Kitchen LI LLC do not provide, proxy, or subsidize AI usage. API costs depend entirely on your usage and the rates set by your AI provider (Google, Anthropic, OpenAI, etc.). Both Google Gemini and Anthropic Claude offer free API tiers — many small apps will stay within free limits entirely.
     </div>
   </div>
 </section>
@@ -555,8 +583,8 @@
 <section id="pricing">
   <div class="section-inner">
     <span class="section-label">Pricing</span>
-    <h2>Simple, transparent pricing</h2>
-    <p class="section-sub">One-time build fee + low monthly hosting. Own it outright anytime with our buyout option.</p>
+    <h2>What It Costs (Less Than You Think)</h2>
+    <p class="section-sub">One-time build fee + low monthly hosting. Own it outright anytime. No subscriptions hiding inside other subscriptions. No gotchas.</p>
 
     <div class="pricing-grid">
 
@@ -568,7 +596,7 @@
           <span class="plan-price-suffix">– $500 build fee</span>
         </div>
         <div class="plan-hosting"><span class="dot"></span> $15 / month hosting</div>
-        <div class="plan-buyout">Buyout available — $300 flat</div>
+        <div class="plan-buyout">Buyout available — $300 flat, code and all</div>
         <hr class="plan-divider"/>
         <ul class="plan-features">
           <li>Template-based, ready-to-customize app</li>
@@ -576,10 +604,11 @@
           <li>Password + 2FA protected access</li>
           <li>Mobile-first, installable PWA</li>
           <li>30 days of post-launch support</li>
+          <li>byoAI & byoAPI ready (your keys)</li>
         </ul>
         <p class="plan-examples">Great for: menus, directories, event calendars, simple calculators, booking displays</p>
         <a href="#contact" class="btn btn-ghost">Get a Starter Quote</a>
-        <a href="https://buy.stripe.com/aFafZh2Nk24Ye7X7r62880c" target="_blank" class="plan-hosting-link">Already a customer? Start hosting subscription →</a>
+        <a href="https://buy.stripe.com/aFafZh2Nk24Ye7X7r62880c" target="_blank" class="plan-hosting-link">Already a customer? Start hosting →</a>
       </div>
 
       <!-- Custom (featured) -->
@@ -594,16 +623,17 @@
         <div class="plan-buyout">Buyout = your build fee (own it fully)</div>
         <hr class="plan-divider"/>
         <ul class="plan-features">
-          <li>Bespoke single-purpose app built for you</li>
+          <li>Bespoke single-purpose app, built for you</li>
           <li>3–5 business day turnaround</li>
           <li>Password + 2FA protected access</li>
           <li>Mobile-first, installable PWA</li>
           <li>60 days of post-launch support</li>
           <li>One free revision round</li>
+          <li>byoAI & byoAPI ready (your keys)</li>
         </ul>
-        <p class="plan-examples">Great for: client portals, intake forms, staff tools, inventory trackers, custom dashboards</p>
+        <p class="plan-examples">Great for: client portals, intake forms, staff tools, inventory trackers, AI-powered dashboards</p>
         <a href="#contact" class="btn btn-indigo">Get a Custom Quote</a>
-        <a href="https://buy.stripe.com/9B628r5ZwdNG5BrcLq2880d" target="_blank" class="plan-hosting-link">Already a customer? Start hosting subscription →</a>
+        <a href="https://buy.stripe.com/9B628r5ZwdNG5BrcLq2880d" target="_blank" class="plan-hosting-link">Already a customer? Start hosting →</a>
       </div>
 
       <!-- Pro -->
@@ -624,10 +654,11 @@
           <li>90 days of post-launch support</li>
           <li>Two free revision rounds</li>
           <li>Priority support response</li>
+          <li>byoAI & byoAPI ready (your keys)</li>
         </ul>
-        <p class="plan-examples">Great for: multi-user tools, full business workflows, complex data entry apps, customer-facing portals</p>
+        <p class="plan-examples">Great for: multi-user tools, full business workflows, multi-source AI apps, complex data pipelines</p>
         <a href="#contact" class="btn btn-ghost">Get a Pro Quote</a>
-        <a href="https://buy.stripe.com/14AaEX73A24Yfc1bHm2880e" target="_blank" class="plan-hosting-link">Already a customer? Start hosting subscription →</a>
+        <a href="https://buy.stripe.com/14AaEX73A24Yfc1bHm2880e" target="_blank" class="plan-hosting-link">Already a customer? Start hosting →</a>
       </div>
 
     </div>
@@ -638,38 +669,38 @@
 <section class="included-section">
   <div class="section-inner">
     <span class="section-label">Every App Includes</span>
-    <h2>Enterprise security. Small business price.</h2>
-    <p class="section-sub">Every app we build comes with the same security and quality baseline — no matter the tier.</p>
+    <h2>Enterprise Security. Small Business Price. No Nonsense.</h2>
+    <p class="section-sub">Doesn't matter which tier — every app ships with the same security and quality foundation. We build it right or we don't build it.</p>
     <div class="included-grid">
       <div class="included-item">
         <div class="included-icon">🔐</div>
         <h4>Password + 2FA Login</h4>
-        <p>Your app is protected by Cloudflare Access — the same zero-trust platform used by Fortune 500 companies.</p>
+        <p>Protected by Cloudflare Access — the same zero-trust platform Fortune 500 companies pay big money for. You get it with every app.</p>
       </div>
       <div class="included-item">
         <div class="included-icon">📱</div>
         <h4>Installable on Any Device</h4>
-        <p>PWAs work on iPhone, Android, Mac, and PC. Add to home screen for a native app feel — no App Store needed.</p>
+        <p>iPhone, Android, Mac, PC — add to home screen for a native app feel. No App Store, no download, no update prompts at 3am.</p>
       </div>
       <div class="included-item">
         <div class="included-icon">⚡</div>
         <h4>Fast & Offline-Ready</h4>
-        <p>Apps load instantly and work even with spotty connections, with automatic data sync when back online.</p>
+        <p>Apps load instantly and handle spotty connections gracefully. Because you're busy and spotty WiFi is a fact of life.</p>
       </div>
       <div class="included-item">
         <div class="included-icon">🔒</div>
         <h4>HTTPS Everywhere</h4>
-        <p>All traffic is encrypted end-to-end. Your data stays yours — we never sell or share customer information.</p>
+        <p>All traffic encrypted end-to-end. Your data stays yours. We never sell, share, or snoop. That's just not how we operate.</p>
       </div>
       <div class="included-item">
         <div class="included-icon">🛠️</div>
         <h4>Ongoing Maintenance</h4>
-        <p>We keep your app updated and running. Hosting subscribers get priority support and regular health checks.</p>
+        <p>We keep your app alive and updated. Hosting subscribers get priority support and regular health checks so problems get caught before they become your problem.</p>
       </div>
       <div class="included-item">
         <div class="included-icon">📦</div>
         <h4>You Own Your Data</h4>
-        <p>Buy out your app anytime and take it anywhere — you get full source code, no strings attached.</p>
+        <p>Buy out your app anytime — you get the full source code, no strings attached, no vendor lock-in speech required.</p>
       </div>
     </div>
   </div>
@@ -679,8 +710,8 @@
 <section id="examples">
   <div class="section-inner">
     <span class="section-label">Example Apps</span>
-    <h2>What can we build for you?</h2>
-    <p class="section-sub">Here's a sample of the kinds of apps we build. If you don't see your idea, ask — if it runs in a browser, we can probably build it.</p>
+    <h2>Small Apps for Real Problems</h2>
+    <p class="section-sub">Some people think "small app" means low quality. Those people have never had exactly the right tool at exactly the right moment. If it runs in a browser, we can probably build it.</p>
     <div class="examples-grid">
       <div class="example-card">
         <div class="example-emoji">🍽️</div>
@@ -703,43 +734,55 @@
       <div class="example-card">
         <div class="example-emoji">📦</div>
         <h4>Inventory Tracker</h4>
-        <p>Track stock levels, get low-inventory alerts, and manage reorder lists.</p>
+        <p>Track stock levels, low-inventory alerts, and reorder lists without a spreadsheet you'll forget to open.</p>
         <span class="example-tier tier-custom">Custom</span>
       </div>
       <div class="example-card">
         <div class="example-emoji">💼</div>
         <h4>Staff Dashboard</h4>
-        <p>Internal tool for your team — task lists, shift notes, checklists, and logs.</p>
+        <p>Internal tool for your team — task lists, shift notes, checklists, and logs. For humans who aren't software engineers.</p>
         <span class="example-tier tier-custom">Custom</span>
       </div>
       <div class="example-card">
         <div class="example-emoji">🧾</div>
         <h4>Quote Calculator</h4>
-        <p>Interactive pricing tool that gives customers instant estimates for your services.</p>
+        <p>Interactive pricing tool that gives customers instant estimates for your services. No more back-and-forth emails about ballparks.</p>
         <span class="example-tier tier-custom">Custom</span>
+      </div>
+      <div class="example-card">
+        <div class="example-emoji">🤖</div>
+        <h4>AI FAQ Assistant</h4>
+        <p>Hook up your Claude or Gemini API key and let AI answer your customer questions 24/7. You train it, you own the bill.</p>
+        <span class="example-tier tier-custom">Custom</span>
+      </div>
+      <div class="example-card">
+        <div class="example-emoji">📡</div>
+        <h4>API Data Dashboard</h4>
+        <p>Pull live data from Shopify, QuickBooks, your POS, or any API into one private, secure dashboard. Finally.</p>
+        <span class="example-tier tier-custom">Custom</span>
+      </div>
+      <div class="example-card">
+        <div class="example-emoji">🧠</div>
+        <h4>AI Data Summarizer</h4>
+        <p>Feed it your Airtable or Google Sheets data; let Gemini or Claude write you a plain-English daily briefing.</p>
+        <span class="example-tier tier-pro">Pro</span>
       </div>
       <div class="example-card">
         <div class="example-emoji">🏢</div>
         <h4>Customer Portal</h4>
-        <p>Multi-user portal where clients log in to view projects, invoices, and updates.</p>
+        <p>Multi-user portal where clients log in to view projects, invoices, and updates. Looks like you spent way more than you did.</p>
         <span class="example-tier tier-pro">Pro</span>
       </div>
       <div class="example-card">
         <div class="example-emoji">🗂️</div>
         <h4>Business Workflow App</h4>
-        <p>End-to-end custom workflow — from lead intake to job completion tracking.</p>
+        <p>End-to-end custom workflow — from lead intake to job completion. The app that finally kills the spreadsheet.</p>
         <span class="example-tier tier-pro">Pro</span>
       </div>
       <div class="example-card">
-        <div class="example-emoji">📡</div>
-        <h4>API Data Dashboard</h4>
-        <p>Pull live data from Shopify, QuickBooks, your POS, or any API into one private dashboard.</p>
-        <span class="example-tier tier-custom">Custom</span>
-      </div>
-      <div class="example-card">
-        <div class="example-emoji">🧠</div>
+        <div class="example-emoji">🔗</div>
         <h4>Multi-Source Analyzer</h4>
-        <p>Combine data from multiple platforms — sales, inventory, labor — into cross-source insight views.</p>
+        <p>Combine data from multiple platforms — sales, inventory, labor costs — into one cross-source insight view with AI commentary.</p>
         <span class="example-tier tier-pro">Pro</span>
       </div>
     </div>
@@ -750,36 +793,104 @@
 <section class="faq-section" id="faq">
   <div class="section-inner">
     <span class="section-label">FAQ</span>
-    <h2>Questions answered</h2>
+    <h2>Questions People Have Actually Asked</h2>
     <div class="faq-list">
       <details>
-        <summary>What is a PWA?</summary>
-        <p>A Progressive Web App (PWA) is a website that behaves like a native app. It works on any device, can be installed on your home screen, loads instantly, and can even work offline. The advantage: there's no App Store, no downloads, and no app approval process. Your users just visit a link.</p>
+        <summary>What is a PWA, exactly?</summary>
+        <p>A Progressive Web App is a website that behaves like a native app. It works on any device, can be installed on your home screen, loads instantly, and can even work offline. The advantage: no App Store, no downloads, no $99/year Apple developer account. Your users just visit a link — that's it.</p>
+      </details>
+      <details>
+        <summary>What does "byoAI" actually mean in practice?</summary>
+        <p>It means you supply your own AI API key — either from Google (Gemini) or Anthropic (Claude). We build the app that uses it. When a user interacts with the AI features in your app, those API calls are billed directly to your account by Google or Anthropic. We never touch the billing. Both providers offer free tiers that cover light usage — many small apps will never cost you a penny in AI fees.</p>
+      </details>
+      <details>
+        <summary>Do I need to know how to code or manage API keys?</summary>
+        <p>Nope. We'll walk you through getting an API key from Google or Anthropic — it takes about five minutes and is free to start. We handle all the wiring. You just tell us what you want the AI to do.</p>
       </details>
       <details>
         <summary>How does the 2FA protection work?</summary>
-        <p>We use Cloudflare Access — the same zero-trust security platform used by major corporations — to protect your app's URL. Users log in with their email and a one-time code (no password to remember or lose). You control who has access.</p>
+        <p>We use Cloudflare Access to protect your app's URL. Users log in with their email address and receive a one-time code — no password to remember, forget, or get phished. You control who has access to your app. It's the same zero-trust platform used by major enterprises, and it comes with every app we build.</p>
       </details>
       <details>
         <summary>What if I want changes after the app is built?</summary>
-        <p>Minor changes (text, colors, labels) during your included support window are covered. For new features or significant changes, we'll scope and quote the work separately. Hosting subscribers get discounted rates on updates.</p>
+        <p>Minor changes (text, colors, labels) during your included support window are covered at no extra charge. For new features or significant additions, we'll scope and quote the work separately. Hosting subscribers get discounted rates on updates — it's one of the perks of staying on the plan.</p>
       </details>
       <details>
         <summary>What does "buyout" mean?</summary>
-        <p>If you want to own the app outright — host it yourself, have a developer continue it, or just keep the code — you can buy out your app at any time. You'll receive the full source code and we'll help you migrate it wherever you want.</p>
+        <p>If you decide you want to take your app somewhere else — host it yourself, hand it to another developer, just have the code — you can buy it out at any time. You'll receive the full source code and we'll help you migrate it wherever you want. No exit fees, no data held hostage.</p>
       </details>
       <details>
-        <summary>What happens if I cancel hosting?</summary>
-        <p>Your app goes offline, but your data and code are preserved. You can resume hosting anytime, or buy out the app to self-host. We'll never delete your work without 30 days notice.</p>
+        <summary>What happens if I cancel my hosting subscription?</summary>
+        <p>Your app goes offline, but your data and code are safe. You can restart hosting anytime, or buy out the app to self-host. We will never delete your work without 30 days' notice and explicit confirmation from you.</p>
       </details>
       <details>
-        <summary>Do I need a domain name?</summary>
-        <p>No — by default your app lives on a secure subdomain we provide (e.g., yourname.appsforhire.com). If you have your own domain and want to use it, we can set that up as part of your build for no extra charge.</p>
+        <summary>Do I need my own domain name?</summary>
+        <p>Nope — your app lives on a secure subdomain we provide (like yourname.appsforhire.app). If you have your own domain and want to use it, we can set that up as part of the build at no extra charge.</p>
       </details>
       <details>
         <summary>How do I pay?</summary>
-        <p>Build fees are collected upfront via Stripe before development begins. Monthly hosting is billed automatically via Stripe subscription. We accept all major credit and debit cards.</p>
+        <p>Build fees are collected upfront via Stripe before development begins. Monthly hosting is billed automatically via Stripe subscription. We accept all major credit and debit cards. No weird payment portals. No wire transfers. No invoices "due in 30 days" that you'll lose in your inbox.</p>
       </details>
+      <details>
+        <summary>What are the limits here? What do you <em>not</em> build?</summary>
+        <p>We're a boutique shop — we build focused, single-purpose apps that solve specific problems. We're not the right fit for full SaaS products, apps requiring dedicated server infrastructure, or anything needing real-time multi-user collaboration at scale. If your idea sounds like it needs a 10-person engineering team, we'll tell you honestly and point you in the right direction.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ── Terms of Service ── -->
+<section class="tos-section" id="tos">
+  <div class="section-inner">
+    <span class="section-label">The Fine Print</span>
+    <h2>Terms, Disclaimers & The Part Where We Get Serious for a Minute</h2>
+    <p class="section-sub">We believe in being straightforward. Here's what you're agreeing to when you work with us — no legalese fog, just plain English.</p>
+
+    <div class="tos-box">
+      <h3>📋 What AppsForHire Is (and Isn't)</h3>
+      <p>AppsForHire is a <strong>rapid development service</strong> for small, focused Progressive Web Apps. Our apps are designed to solve <strong>specific, bounded problems quickly</strong> — not to power enterprise workflows or replace major business systems. If you have a small problem that needs a clean, private app, we're your people. If you need a multi-tenant SaaS platform with complex backend infrastructure, we're probably not the right fit and we'll tell you so up front.</p>
+
+      <h3 style="margin-top:1.5rem;">⚠️ No Warranty. Seriously.</h3>
+      <p>Apps are delivered <strong>"as is"</strong> and <strong>"as available."</strong> AppsForHire, under Ghost Kitchen LI LLC, makes no warranties — express, implied, or statutory — including but not limited to warranties of merchantability, fitness for a particular purpose, or uninterrupted availability.</p>
+      <p>Software is software. APIs change. Browsers update. AI models get new versions. Third-party services go down. We will fix what we broke, and we take pride in our work — but we cannot guarantee that every app will work perfectly under every condition in perpetuity.</p>
+
+      <h3 style="margin-top:1.5rem;">🛡️ Limitation of Liability & Hold Harmless</h3>
+      <p>By engaging our services and/or using any app built by AppsForHire, you agree to <strong>hold Ghost Kitchen LI LLC, its members, employees, and contractors harmless</strong> for any reason whatsoever, including but not limited to:</p>
+      <ul>
+        <li>Loss of data, revenue, or business opportunity</li>
+        <li>Downtime, errors, or bugs in any delivered application</li>
+        <li>Changes or failures in third-party APIs, AI providers, or hosting platforms</li>
+        <li>AI outputs that are inaccurate, incomplete, or unhelpful</li>
+        <li>Unauthorized access or data breaches not caused by our direct negligence</li>
+      </ul>
+      <p>In no event shall Ghost Kitchen LI LLC's liability exceed the total amount you paid for the specific app or service in question in the preceding three months.</p>
+
+      <h3 style="margin-top:1.5rem;">🤖 byoAI — Your AI, Your Bill, Your Responsibility</h3>
+      <p>For any app that includes AI features (byoAI), the following applies:</p>
+      <ul>
+        <li>You are responsible for obtaining your own API keys from Google (Gemini), Anthropic (Claude), OpenAI, or any other AI provider</li>
+        <li>You are responsible for all API usage costs incurred through your keys, regardless of usage volume</li>
+        <li>You are responsible for complying with your AI provider's terms of service and acceptable use policies</li>
+        <li>AppsForHire does not guarantee the accuracy, safety, or appropriateness of any AI-generated content</li>
+        <li>We are not liable for outputs generated by AI models using your keys</li>
+      </ul>
+
+      <h3 style="margin-top:1.5rem;">🔌 byoAPI — Your Data, Your Keys, Your Connections</h3>
+      <p>For any app that connects to external APIs (byoAPI), the following applies:</p>
+      <ul>
+        <li>You are responsible for providing valid API credentials for all third-party data sources</li>
+        <li>You are responsible for maintaining your API keys and ensuring they remain valid</li>
+        <li>AppsForHire is not responsible for data loss, corruption, or exposure arising from third-party API failures, rate limiting, or credential revocation</li>
+        <li>We never store your API keys beyond the scope of your active engagement with us</li>
+      </ul>
+
+      <h3 style="margin-top:1.5rem;">📄 Agreement</h3>
+      <p>By submitting a build request, paying a build fee, or subscribing to hosting, you acknowledge that you have read and agree to these terms. These terms may be updated from time to time — the current version will always be on this page.</p>
+
+      <div class="tos-entity">
+        AppsForHire is a service of <strong>Ghost Kitchen LI LLC</strong> · Long Island, NY · hello@appsforhire.app
+        <br>Last updated: March 2026
+      </div>
     </div>
   </div>
 </section>
@@ -789,29 +900,29 @@
   <div class="section-inner">
     <div class="contact-inner">
       <div class="contact-info">
-        <span class="section-label">Get Started</span>
-        <h3>Tell us what you need</h3>
-        <p>We take on a limited number of builds each week — so every client gets our full attention from first conversation to launch. Fill out the form and we'll get back to you within one business day.</p>
+        <span class="section-label">Let's Build Something</span>
+        <h3>Tell us what's annoying you</h3>
+        <p>We take on a limited number of builds each week — small enough that every client gets our full attention from first conversation to launch. Fill out the form and we'll get back to you within one business day. No sales pitch, just a conversation.</p>
         <div class="trust-items">
           <div class="trust-item">
             <div class="trust-icon">💬</div>
             <div>
               <h4>Response within 1 business day</h4>
-              <p>We'll follow up with questions or a quote quickly.</p>
+              <p>We'll follow up with questions or a quote quickly. Real responses, not autoresponders.</p>
             </div>
           </div>
           <div class="trust-item">
             <div class="trust-icon">🔒</div>
             <div>
               <h4>No spam, ever</h4>
-              <p>Your contact info is only used to reply to your request.</p>
+              <p>Your contact info is only used to reply to your request. That's it. Full stop.</p>
             </div>
           </div>
           <div class="trust-item">
             <div class="trust-icon">💳</div>
             <div>
               <h4>No payment until you approve the quote</h4>
-              <p>We scope first, you decide — zero pressure.</p>
+              <p>We scope first, you decide. Zero pressure, zero obligation.</p>
             </div>
           </div>
         </div>
@@ -838,17 +949,17 @@
             <input type="text" id="business" name="business" placeholder="Smith's Bakery" />
           </div>
           <div class="form-group">
-            <label for="tier">Which tier are you interested in?</label>
+            <label for="tier">Which tier are you thinking?</label>
             <select id="tier" name="tier">
-              <option value="">Not sure yet — help me decide</option>
+              <option value="">Not sure yet — help me figure it out</option>
               <option value="starter">Starter ($200–$500)</option>
               <option value="custom">Custom ($500–$1,500)</option>
               <option value="pro">Pro ($1,500–$2,500+)</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="idea">Describe your app idea</label>
-            <textarea id="idea" name="idea" placeholder="Tell us what you want the app to do. The more detail the better — but even rough ideas are welcome." required></textarea>
+            <label for="idea">What's the problem you want to solve?</label>
+            <textarea id="idea" name="idea" placeholder="Describe what you want the app to do. The more detail the better — but rough ideas are totally welcome too." required></textarea>
           </div>
           <button type="submit" class="form-submit">Send My Request →</button>
           <p class="form-note">No spam. No commitment. We'll reply within 1 business day.</p>
@@ -861,9 +972,11 @@
 <!-- ── Footer ── -->
 <footer>
   <div class="footer-inner">
-    <span>© 2026 AppsForHire &nbsp;·&nbsp; Handcrafted apps. Boutique service.</span>
+    <span>© 2026 AppsForHire · A service of <strong style="color:rgba(255,255,255,.75)">Ghost Kitchen LI LLC</strong> · Handcrafted apps. Boutique service.</span>
     <div class="footer-links">
       <a href="#pricing">Pricing</a>
+      <a href="#byo">byoAI & byoAPI</a>
+      <a href="#tos">Terms</a>
       <a href="#faq">FAQ</a>
       <a href="#contact">Contact</a>
     </div>
@@ -879,22 +992,18 @@
   const toast = document.getElementById('toast');
 
   form.addEventListener('submit', async (e) => {
-    // Only intercept if Formspree not yet configured
-    const action = form.getAttribute('action');
-    if (action.includes('YOUR_FORM_ID')) {
-      e.preventDefault();
-      showToast();
-      form.reset();
-      return;
-    }
-    // Real Formspree submission
     e.preventDefault();
     const data = new FormData(form);
-    const res = await fetch(form.action, {
-      method: 'POST', body: data,
-      headers: { 'Accept': 'application/json' }
-    });
-    if (res.ok) { showToast(); form.reset(); }
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST', body: data,
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) { showToast(); form.reset(); }
+    } catch(err) {
+      showToast();
+      form.reset();
+    }
   });
 
   function showToast() {
