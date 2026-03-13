@@ -28,7 +28,7 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 // ── AI config ─────────────────────────────────────────────────────────────────
-const CLAUDE_MODEL   = "claude-3-5-haiku-20241022"; // fast + cheap, great for demos
+const CLAUDE_MODEL   = "claude-haiku-4-5-20251001"; // fast + cheap, great for demos
 const GEMINI_MODEL   = "gemini-1.5-flash";
 const DEMO_AI_LIMIT  = 10;   // AI calls per IP per 7-day window
 const DEMO_AI_TTL    = 7 * 24 * 60 * 60; // 7 days in seconds
