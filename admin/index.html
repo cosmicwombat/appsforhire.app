@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — AppsForHire</title>
+  <meta name="theme-color" content="#1a1f36" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #1a1f36;
+      --indigo:  #4f46e5;
+      --violet:  #7c3aed;
+      --sky:     #0ea5e9;
+      --mint:    #10b981;
+      --amber:   #f59e0b;
+      --coral:   #ef4444;
+      --gray50:  #f8fafc;
+      --gray100: #f1f5f9;
+      --gray200: #e2e8f0;
+      --gray400: #94a3b8;
+      --gray500: #64748b;
+      --gray700: #334155;
+      --gray900: #0f172a;
+      --white:   #ffffff;
+      --radius:  12px;
+      --shadow:  0 2px 12px rgba(0,0,0,.07);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray50);
+      color: var(--gray700);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    aside {
+      width: 220px; flex-shrink: 0;
+      background: var(--navy);
+      display: flex; flex-direction: column;
+      padding: 1.5rem 1rem;
+      position: sticky; top: 0; height: 100vh;
+    }
+    .aside-logo {
+      display: flex; align-items: center; gap: .5rem;
+      color: white; font-weight: 800; font-size: 1rem;
+      letter-spacing: -.02em; margin-bottom: 2rem;
+      text-decoration: none;
+    }
+    .aside-logo svg { flex-shrink: 0; }
+    .aside-logo em { color: var(--sky); font-style: normal; }
+    .aside-label {
+      font-size: .67rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: rgba(255,255,255,.3);
+      margin-bottom: .5rem; padding: 0 .5rem;
+    }
+    .aside-nav { display: flex; flex-direction: column; gap: .15rem; }
+    .nav-item {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .55rem .75rem; border-radius: 8px;
+      color: rgba(255,255,255,.65); font-size: .88rem; font-weight: 500;
+      cursor: pointer; border: none; background: none;
+      text-align: left; width: 100%; text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: rgba(255,255,255,.1); color: white;
+    }
+    .nav-item .ni { font-size: .95rem; }
+    .aside-bottom {
+      margin-top: auto; padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .aside-version {
+      font-size: .72rem; color: rgba(255,255,255,.3);
+      padding: .4rem .5rem;
+    }
+
+    /* ── Main ── */
+    .main { flex: 1; min-width: 0; padding: 2rem 1.75rem; }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-title { font-size: 1.4rem; font-weight: 800; color: var(--gray900); letter-spacing: -.025em; }
+    .page-date { font-size: .82rem; color: var(--gray400); }
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .55rem 1.1rem; border-radius: 8px;
+      font-weight: 700; font-size: .85rem; cursor: pointer;
+      border: none; text-decoration: none; transition: opacity .15s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn-primary { background: linear-gradient(135deg, var(--indigo), var(--violet)); color: white; }
+    .btn-sm { padding: .35rem .75rem; font-size: .78rem; }
+    .btn-ghost { background: var(--gray100); color: var(--gray700); }
+
+    /* ── Stat Cards ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem; margin-bottom: 1.75rem;
+    }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: var(--radius); padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+    .stat-label { font-size: .75rem; font-weight: 700; color: var(--gray400); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .4rem; }
+    .stat-val { font-size: 1.9rem; font-weight: 800; color: var(--gray900); letter-spacing: -.04em; line-height: 1.1; }
+    .stat-sub { font-size: .75rem; color: var(--gray400); margin-top: .25rem; }
+    .stat-card.highlight { border-color: var(--indigo); }
+    .stat-card.highlight .stat-val { color: var(--indigo); }
+
+    /* ── Capacity Bar ── */
+    .capacity-bar {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: var(--radius); padding: 1.25rem;
+      box-shadow: var(--shadow); margin-bottom: 1.75rem;
+    }
+    .cap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+    .cap-title { font-size: .82rem; font-weight: 700; color: var(--gray700); }
+    .cap-count { font-size: .82rem; color: var(--gray400); }
+    .bar-track {
+      height: 8px; background: var(--gray200); border-radius: 100px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, var(--indigo), var(--violet));
+      transition: width .6s ease;
+    }
+    .bar-fill.warn { background: linear-gradient(90deg, var(--amber), #f97316); }
+    .bar-fill.danger { background: linear-gradient(90deg, var(--coral), #dc2626); }
+
+    /* ── Section ── */
+    .section { margin-bottom: 1.75rem; }
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: .85rem; flex-wrap: wrap; gap: .5rem;
+    }
+    .section-title { font-size: .95rem; font-weight: 800; color: var(--gray900); }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    th {
+      background: var(--gray100); color: var(--gray500);
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; padding: .65rem 1rem; text-align: left;
+      border-bottom: 1px solid var(--gray200);
+    }
+    td { padding: .85rem 1rem; border-bottom: 1px solid var(--gray100); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--gray50); }
+
+    .badge {
+      display: inline-block; padding: .2rem .6rem; border-radius: 100px;
+      font-size: .7rem; font-weight: 700; white-space: nowrap;
+    }
+    .badge-starter { background: #dcfce7; color: #15803d; }
+    .badge-custom  { background: #dbeafe; color: #1d4ed8; }
+    .badge-pro     { background: #f3e8ff; color: #7e22ce; }
+    .badge-active  { background: #dcfce7; color: #15803d; }
+    .badge-paused  { background: #fef9c3; color: #a16207; }
+
+    .color-dot {
+      display: inline-block; width: 10px; height: 10px;
+      border-radius: 50%; margin-right: .4rem; vertical-align: middle;
+    }
+    .client-name { font-weight: 700; color: var(--gray900); }
+    .subdomain-link {
+      color: var(--indigo); text-decoration: none; font-size: .8rem;
+    }
+    .subdomain-link:hover { text-decoration: underline; }
+    .actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+    /* ── Checklist ── */
+    .checklist {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: var(--radius); padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+    .check-item {
+      display: flex; align-items: flex-start; gap: .75rem;
+      padding: .65rem 0; border-bottom: 1px solid var(--gray100);
+      font-size: .86rem;
+    }
+    .check-item:last-child { border-bottom: none; }
+    .check-num {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--indigo), var(--violet));
+      color: white; font-size: .72rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .check-text { color: var(--gray700); line-height: 1.5; }
+    .check-text strong { color: var(--gray900); }
+
+    /* ── Empty ── */
+    .empty-row td {
+      text-align: center; padding: 2.5rem;
+      color: var(--gray400); font-size: .88rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      aside { display: none; }
+      .main { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside>
+    <a class="aside-logo" href="https://appsforhire.app" target="_blank">
+      <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="8" fill="#0ea5e9"/>
+        <path d="M7 14L12 19L21 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Apps<em>ForHire</em>
+    </a>
+
+    <div class="aside-label">Menu</div>
+    <nav class="aside-nav">
+      <a class="nav-item active" href="#">
+        <span class="ni">📊</span> Dashboard
+      </a>
+      <a class="nav-item" href="https://appsforhire.app" target="_blank">
+        <span class="ni">🌐</span> Marketing Site
+      </a>
+      <a class="nav-item" href="https://github.com/cosmicwombat" target="_blank">
+        <span class="ni">📁</span> GitHub Repos
+      </a>
+      <a class="nav-item" href="https://dashboard.stripe.com" target="_blank">
+        <span class="ni">💳</span> Stripe
+      </a>
+      <a class="nav-item" href="https://one.dash.cloudflare.com" target="_blank">
+        <span class="ni">🔒</span> Cloudflare
+      </a>
+      <a class="nav-item" href="https://formspree.io/forms" target="_blank">
+        <span class="ni">📬</span> Formspree
+      </a>
+    </nav>
+
+    <div class="aside-bottom">
+      <div class="aside-version" id="lastUpdated">Loading...</div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Admin Dashboard</div>
+        <div class="page-date" id="pageDate">—</div>
+      </div>
+      <a href="https://appsforhire.app/#contact" target="_blank" class="btn btn-primary">
+        + New Lead
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card highlight">
+        <div class="stat-label">Monthly Recurring</div>
+        <div class="stat-val" id="mrrVal">$0</div>
+        <div class="stat-sub">MRR from hosting</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Customers</div>
+        <div class="stat-val" id="totalVal">0</div>
+        <div class="stat-sub">Active subscriptions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Starter</div>
+        <div class="stat-val" id="starterVal">0</div>
+        <div class="stat-sub">@ $15/mo each</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Custom</div>
+        <div class="stat-val" id="customVal">0</div>
+        <div class="stat-sub">@ $20/mo each</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pro</div>
+        <div class="stat-val" id="proVal">0</div>
+        <div class="stat-sub">@ $29/mo each</div>
+      </div>
+    </div>
+
+    <!-- Capacity Bar -->
+    <div class="capacity-bar">
+      <div class="cap-header">
+        <span class="cap-title">🏪 Boutique Capacity</span>
+        <span class="cap-count" id="capCount">0 / 100 slots used</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="barFill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Customer Table -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Customers</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Tier</th>
+              <th>App URL</th>
+              <th>Status</th>
+              <th>Since</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customerTable">
+            <tr class="empty-row"><td colspan="6">Loading customers...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- New Customer Checklist -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">New Customer Checklist</div>
+      </div>
+      <div class="checklist">
+        <div class="check-item">
+          <div class="check-num">1</div>
+          <div class="check-text"><strong>Run setup script</strong> — <code>python3 scripts/new_customer.py</code> from your app_for_hire folder. Creates GitHub repo, pushes template, enables Pages.</div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">2</div>
+          <div class="check-text"><strong>Cloudflare DNS</strong> — Add CNAME record: <code>[slug] → cosmicwombat.github.io</code> with proxy <strong>ON</strong> (orange cloud).</div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">3</div>
+          <div class="check-text"><strong>Cloudflare Access</strong> — Zero Trust → Access controls → Applications → Add Self-hosted app. Add policy in the <strong>Policies tab</strong> with client's email. ⚠️ Policy must be inside the app, not standalone.</div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">4</div>
+          <div class="check-text"><strong>GitHub Pages</strong> — Set custom domain to <code>[slug].appsforhire.app</code> and enforce HTTPS in the repo Settings → Pages.</div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">5</div>
+          <div class="check-text"><strong>Send Stripe link</strong> — Email the client their hosting subscription link and confirm the app is working end-to-end before billing starts.</div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">6</div>
+          <div class="check-text"><strong>Push data update</strong> — Run <code>python3 scripts/update_admin_data.py</code> then <code>git add . && git commit -m "Add [client] customer data" && git push</code> to update this dashboard.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // Set date
+  document.getElementById('pageDate').textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  const tierHosting = { starter: 15, custom: 20, pro: 29 };
+  const tierColors  = { starter: 'badge-starter', custom: 'badge-custom', pro: 'badge-pro' };
+
+  fetch('data.json')
+    .then(r => r.json())
+    .then(data => {
+      const customers = data.customers || [];
+      const active    = customers.filter(c => c.status === 'active');
+      const capacity  = data.capacity || 100;
+      const mrr       = active.reduce((s, c) => s + (tierHosting[c.tier] || 0), 0);
+      const byTier    = t => active.filter(c => c.tier === t).length;
+      const pct       = Math.round((active.length / capacity) * 100);
+
+      // Stats
+      document.getElementById('mrrVal').textContent     = `$${mrr}`;
+      document.getElementById('totalVal').textContent   = active.length;
+      document.getElementById('starterVal').textContent = byTier('starter');
+      document.getElementById('customVal').textContent  = byTier('custom');
+      document.getElementById('proVal').textContent     = byTier('pro');
+
+      // Capacity bar
+      document.getElementById('capCount').textContent = `${active.length} / ${capacity} slots used`;
+      const fill = document.getElementById('barFill');
+      fill.style.width = pct + '%';
+      if (pct >= 90) fill.classList.add('danger');
+      else if (pct >= 70) fill.classList.add('warn');
+
+      // Last updated
+      document.getElementById('lastUpdated').textContent = `Data: ${data.generated || '—'}`;
+
+      // Customer table
+      const tbody = document.getElementById('customerTable');
+      if (!customers.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No customers yet — run new_customer.py to add your first!</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = customers.map(c => `
+        <tr>
+          <td>
+            <span class="color-dot" style="background:${c.theme_color || '#6366f1'}"></span>
+            <span class="client-name">${c.client_name}</span>
+          </td>
+          <td><span class="badge ${tierColors[c.tier] || 'badge-starter'}">${c.tier}</span></td>
+          <td>
+            <a href="https://${c.subdomain}" target="_blank" class="subdomain-link">
+              ${c.subdomain}
+            </a>
+          </td>
+          <td>
+            <span class="badge ${c.status === 'active' ? 'badge-active' : 'badge-paused'}">
+              ${c.status}
+            </span>
+          </td>
+          <td style="color:var(--gray500); font-size:.8rem">${c.created}</td>
+          <td>
+            <div class="actions">
+              <a href="https://${c.subdomain}" target="_blank" class="btn btn-sm btn-ghost">App ↗</a>
+              <a href="https://${c.subdomain}/portal/" target="_blank" class="btn btn-sm btn-ghost">Portal ↗</a>
+              <a href="${c.repo}" target="_blank" class="btn btn-sm btn-ghost">Repo ↗</a>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    })
+    .catch(() => {
+      document.getElementById('customerTable').innerHTML =
+        '<tr class="empty-row"><td colspan="6">⚠️ Could not load data.json — push the latest customers file to GitHub.</td></tr>';
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "customers": [
+    {
+      "client_name": "Smith Bakery",
+      "client_slug": "smithbakery",
+      "subdomain": "smithbakery.appsforhire.app",
+      "repo": "https://github.com/cosmicwombat/client-smithbakery",
+      "tier": "starter",
+      "theme_color": "#0d9488",
+      "created": "2026-03-12",
+      "stripe_hosting": null,
+      "status": "active"
+    }
+  ],
+  "mrr": 15,
+  "capacity": 100,
+  "generated": "2026-03-13"
+}
