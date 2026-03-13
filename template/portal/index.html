@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Apps — AppsForHire</title>
+  <meta name="description" content="Your secure app portal — powered by AppsForHire." />
+  <meta name="theme-color" content="#1a1f36" />
+  <script src="customer-config.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #1a1f36;
+      --indigo:  #4f46e5;
+      --violet:  #7c3aed;
+      --sky:     #0ea5e9;
+      --mint:    #10b981;
+      --amber:   #f59e0b;
+      --gray100: #f1f5f9;
+      --gray200: #e2e8f0;
+      --gray400: #94a3b8;
+      --gray500: #64748b;
+      --gray700: #334155;
+      --gray900: #0f172a;
+      --white:   #ffffff;
+      --radius:  14px;
+      --shadow:  0 4px 16px rgba(0,0,0,.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f8fafc;
+      color: var(--gray700);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--navy) 0%, #2d1b69 100%);
+      color: white;
+      padding: 2rem 1.5rem 3.5rem;
+    }
+    .header-inner {
+      max-width: 960px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .header-brand {
+      display: flex; align-items: center; gap: .6rem;
+      text-decoration: none;
+    }
+    .header-brand svg { flex-shrink: 0; }
+    .header-brand span {
+      font-size: .9rem; font-weight: 700; color: rgba(255,255,255,.7);
+    }
+    .header-brand em { color: var(--sky); font-style: normal; }
+    .header-greeting {
+      margin-top: 1.5rem;
+    }
+    .header-greeting h1 {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 800; letter-spacing: -.025em;
+      margin-bottom: .35rem;
+    }
+    .header-greeting p {
+      font-size: .92rem; color: rgba(255,255,255,.65);
+    }
+    .tier-badge {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 100px; padding: .35rem .9rem;
+      font-size: .78rem; font-weight: 700;
+      letter-spacing: .05em; text-transform: uppercase;
+      color: var(--sky);
+    }
+
+    /* ── Main ── */
+    main {
+      max-width: 960px; margin: -1.5rem auto 0;
+      padding: 0 1.25rem 3rem;
+    }
+
+    /* ── Section ── */
+    .section-label {
+      font-size: .75rem; font-weight: 700; color: var(--gray400);
+      text-transform: uppercase; letter-spacing: .07em;
+      margin-bottom: .85rem; margin-top: 2rem;
+    }
+
+    /* ── App Cards ── */
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .app-card {
+      background: var(--white);
+      border: 1.5px solid var(--gray200);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column;
+      transition: border-color .2s, transform .15s, box-shadow .15s;
+    }
+    .app-card:hover {
+      border-color: var(--indigo);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    }
+    .app-card.coming-soon { opacity: .65; }
+    .app-card-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .app-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: var(--gray100);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; flex-shrink: 0;
+    }
+    .app-status {
+      display: inline-flex; align-items: center; gap: .3rem;
+      padding: .2rem .6rem; border-radius: 100px;
+      font-size: .7rem; font-weight: 700;
+    }
+    .status-active    { background: #dcfce7; color: #15803d; }
+    .status-maintenance { background: #fef9c3; color: #a16207; }
+    .status-coming    { background: #e0e7ff; color: #3730a3; }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .status-active .status-dot    { background: #15803d; }
+    .status-maintenance .status-dot { background: #a16207; }
+    .status-coming .status-dot    { background: #3730a3; }
+    .app-name {
+      font-size: 1.05rem; font-weight: 700; color: var(--gray900);
+      margin-bottom: .3rem;
+    }
+    .app-desc {
+      font-size: .85rem; color: var(--gray500); line-height: 1.55;
+      flex: 1; margin-bottom: 1.25rem;
+    }
+    .app-meta {
+      font-size: .75rem; color: var(--gray400); margin-bottom: 1rem;
+    }
+    .app-open {
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
+      background: linear-gradient(135deg, var(--indigo), var(--violet));
+      color: white; padding: .65rem 1rem; border-radius: 9px;
+      font-weight: 700; font-size: .88rem; text-decoration: none;
+      transition: opacity .15s;
+    }
+    .app-open:hover { opacity: .9; }
+    .app-open.disabled {
+      background: var(--gray200); color: var(--gray500);
+      pointer-events: none;
+    }
+
+    /* ── Info Cards ── */
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+    }
+    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+    .info-card {
+      background: var(--white);
+      border: 1px solid var(--gray200);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .info-card h3 {
+      font-size: .9rem; font-weight: 700; color: var(--gray900);
+      margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .info-card h3 .icon { font-size: 1rem; }
+    .plan-name {
+      font-size: 1.4rem; font-weight: 800; color: var(--indigo);
+      letter-spacing: -.02em; margin-bottom: .25rem;
+    }
+    .plan-detail {
+      font-size: .82rem; color: var(--gray500); margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+    .info-link {
+      display: inline-flex; align-items: center; gap: .35rem;
+      color: var(--indigo); font-weight: 700; font-size: .85rem;
+      text-decoration: none; border: 1.5px solid var(--indigo);
+      padding: .5rem 1rem; border-radius: 8px;
+      transition: background .15s;
+    }
+    .info-link:hover { background: #eff6ff; }
+    .support-list {
+      display: flex; flex-direction: column; gap: .65rem;
+    }
+    .support-item {
+      display: flex; gap: .6rem; align-items: flex-start;
+      font-size: .85rem; color: var(--gray700);
+    }
+    .support-item .si-icon {
+      font-size: .9rem; flex-shrink: 0; margin-top: .05rem;
+    }
+    .support-item a {
+      color: var(--indigo); text-decoration: none; font-weight: 600;
+    }
+    .support-item a:hover { text-decoration: underline; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 2rem 1rem;
+      border-top: 1px solid var(--gray200);
+      font-size: .78rem; color: var(--gray400);
+    }
+    footer a { color: var(--indigo); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="header-brand" href="https://appsforhire.app" target="_blank">
+      <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="8" fill="#0ea5e9"/>
+        <path d="M7 14L12 19L21 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Apps<em>ForHire</em></span>
+    </a>
+  </div>
+  <div class="header-inner" style="margin-top: 1rem;">
+    <div class="header-greeting">
+      <h1 id="greeting">Welcome back</h1>
+      <p id="subgreeting">Here are your secure apps — click any card to open.</p>
+    </div>
+    <div id="tierBadge" class="tier-badge">⭐ Starter Plan</div>
+  </div>
+</header>
+
+<main>
+  <div class="section-label">Your Apps</div>
+  <div class="apps-grid" id="appsGrid">
+    <!-- Populated by JavaScript -->
+  </div>
+
+  <div class="section-label" style="margin-top: 2.5rem;">Account & Support</div>
+  <div class="info-grid">
+
+    <div class="info-card">
+      <h3><span class="icon">💳</span> Your Plan</h3>
+      <div class="plan-name" id="planName">Starter</div>
+      <div class="plan-detail" id="planDetail">
+        Secure hosting · 2FA protection · Priority support<br>
+        Customer since <span id="customerSince">—</span>
+      </div>
+      <a id="manageLink" href="#" class="info-link" target="_blank">
+        Manage Subscription →
+      </a>
+    </div>
+
+    <div class="info-card">
+      <h3><span class="icon">🛠️</span> Support & Updates</h3>
+      <div class="support-list">
+        <div class="support-item">
+          <span class="si-icon">📧</span>
+          <span>Email us anytime at <a id="supportEmail" href="#">hello@appsforhire.app</a> — we respond within 1 business day.</span>
+        </div>
+        <div class="support-item">
+          <span class="si-icon">🔧</span>
+          <span>Need a change or a new feature? Just email us — hosting subscribers get discounted update rates.</span>
+        </div>
+        <div class="support-item">
+          <span class="si-icon">📱</span>
+          <span>Install any app to your home screen — open it, tap Share → Add to Home Screen on iPhone, or the install prompt on Android.</span>
+        </div>
+        <div class="support-item">
+          <span class="si-icon">➕</span>
+          <span>Want to add another app? <a href="https://appsforhire.app/#contact" target="_blank">Request a build →</a></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <p>Secured by <a href="https://appsforhire.app" target="_blank">AppsForHire</a> &nbsp;·&nbsp; Handcrafted apps. Boutique service. &nbsp;·&nbsp; Protected by Cloudflare</p>
+</footer>
+
+<script>
+  // Populate from customer-config.js
+  document.getElementById('greeting').textContent    = `Welcome, ${CUSTOMER.name}`;
+  document.getElementById('planName').textContent    = CUSTOMER.tier.charAt(0).toUpperCase() + CUSTOMER.tier.slice(1);
+  document.getElementById('customerSince').textContent = CUSTOMER.since;
+  document.getElementById('manageLink').href         = CUSTOMER.stripe_portal;
+  document.getElementById('supportEmail').href       = `mailto:${CUSTOMER.support_email}`;
+  document.getElementById('supportEmail').textContent = CUSTOMER.support_email;
+
+  const tierLabels = { starter: '⭐ Starter Plan', custom: '✦ Custom Plan', pro: '🚀 Pro Plan' };
+  document.getElementById('tierBadge').textContent = tierLabels[CUSTOMER.tier] || CUSTOMER.tier;
+
+  // Render app cards
+  const grid = document.getElementById('appsGrid');
+  CUSTOMER.apps.forEach(app => {
+    const isActive = app.status === 'active';
+    const isComing = app.status === 'coming_soon';
+    const statusMap = {
+      active:       ['status-active',      'Active'],
+      maintenance:  ['status-maintenance', 'Maintenance'],
+      coming_soon:  ['status-coming',      'Coming Soon'],
+    };
+    const [statusClass, statusLabel] = statusMap[app.status] || ['status-active', 'Active'];
+
+    grid.innerHTML += `
+      <div class="app-card ${isComing ? 'coming-soon' : ''}">
+        <div class="app-card-top">
+          <div class="app-icon">${app.icon}</div>
+          <span class="app-status ${statusClass}">
+            <span class="status-dot"></span>${statusLabel}
+          </span>
+        </div>
+        <div class="app-name">${app.name}</div>
+        <div class="app-desc">${app.description}</div>
+        <div class="app-meta">Launched: ${app.launched}</div>
+        <a href="${app.url}" class="app-open ${isComing ? 'disabled' : ''}"
+           ${isActive ? 'target="_blank"' : ''}>
+          ${isComing ? 'Coming Soon' : '↗ Open App'}
+        </a>
+      </div>
+    `;
+  });
+
+  // Greet by time of day
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('subgreeting').textContent =
+    `${timeGreeting}, ${CUSTOMER.name}. Here are your secure apps — click any card to open.`;
+</script>
+
+</body>
+</html>
