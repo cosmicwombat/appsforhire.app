@@ -23,7 +23,7 @@ compatibility_date = "2024-01-01"
 # Paste the returned id below.
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id      = "PASTE_KV_NAMESPACE_ID_HERE"
+id      = "bf759cd2061a4370b93f0bbbd0a5aea5"
 
 # ── Secrets — set each one with: npx wrangler secret put <NAME> ──────────────
 #
