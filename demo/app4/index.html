@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Daily Weird — AppsForHire Demo</title>
+  <meta name="theme-color" content="#d97706"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --brand: #d97706; --brand-light: #f59e0b;
+      --sky: #0ea5e9; --mint: #10b981; --coral: #ef4444; --indigo: #4f46e5;
+      --gray50: #f8fafc; --gray100: #f1f5f9; --gray200: #e2e8f0;
+      --gray400: #94a3b8; --gray600: #475569; --gray700: #334155; --gray900: #0f172a;
+      --white: #ffffff;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray50); color: var(--gray700);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Demo Overlay ── */
+    #demoOverlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,.92);
+      align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    #demoOverlay.show { display: flex; }
+    .overlay-card {
+      background: var(--white); border-radius: 20px;
+      padding: 2.5rem; max-width: 420px; width: 100%; text-align: center;
+    }
+    .overlay-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .overlay-card h2 { font-size: 1.5rem; font-weight: 800; color: var(--gray900); margin-bottom: .6rem; }
+    .overlay-card p { font-size: .95rem; color: var(--gray600); line-height: 1.7; margin-bottom: 1.75rem; }
+    .overlay-cta {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--sky); color: var(--white);
+      padding: .9rem 1.75rem; border-radius: 12px;
+      font-weight: 700; font-size: 1rem; text-decoration: none;
+    }
+    .overlay-back { display: block; font-size: .82rem; color: var(--gray400); text-decoration: none; margin-top: 1rem; }
+    .overlay-back:hover { color: var(--gray700); }
+
+    /* ── AI Limit Modal ── */
+    #limitModal {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(15,23,42,.7);
+      align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    #limitModal.show { display: flex; }
+    .limit-card {
+      background: var(--white); border-radius: 20px;
+      padding: 2rem; max-width: 400px; width: 100%; text-align: center;
+    }
+    .limit-card h3 { font-size: 1.2rem; font-weight: 800; color: var(--gray900); margin-bottom: .5rem; }
+    .limit-card p { font-size: .9rem; color: var(--gray600); line-height: 1.6; margin-bottom: 1.5rem; }
+    .limit-cta {
+      display: inline-block; background: var(--sky); color: var(--white);
+      padding: .75rem 1.5rem; border-radius: 10px;
+      font-weight: 700; font-size: .95rem; text-decoration: none;
+    }
+    .limit-close {
+      display: block; margin-top: .75rem; font-size: .8rem;
+      color: var(--gray400); cursor: pointer; background: none; border: none;
+      font-family: inherit;
+    }
+
+    /* ── Run Badge ── */
+    #runBadge {
+      position: fixed; top: 4.5rem; right: 1rem; z-index: 100;
+      background: rgba(245,158,11,.15); border: 1px solid rgba(245,158,11,.4);
+      color: var(--brand-light); padding: .3rem .75rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+    }
+    #runBadge.warning { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.4); color: #ef4444; }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #92400e, var(--brand));
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+    header p  { font-size: .78rem; color: rgba(255,255,255,.7); }
+    .header-right { display: flex; align-items: center; gap: .6rem; }
+    .refresh-btn {
+      background: rgba(255,255,255,.15); color: var(--white); border: none;
+      padding: .35rem .8rem; border-radius: 8px; font-size: .8rem;
+      font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: background .2s;
+    }
+    .refresh-btn:hover { background: rgba(255,255,255,.25); }
+    .refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Main ── */
+    main { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+    .demo-banner {
+      background: #fffbeb; border: 1px solid #fcd34d;
+      border-radius: 10px; padding: .75rem 1rem;
+      font-size: .82rem; color: #92400e; margin-bottom: 1.5rem;
+    }
+
+    /* ── Loading state ── */
+    #loadingState {
+      text-align: center; padding: 3rem 1rem; color: var(--gray400);
+    }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid var(--gray200);
+      border-top-color: var(--brand); border-radius: 50%;
+      animation: spin .8s linear infinite; margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Data header ── */
+    #dataSection { display: none; }
+    .data-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem; flex-wrap: wrap; gap: .5rem;
+    }
+    .data-title { font-size: .8rem; color: var(--gray600); }
+    .data-title strong { color: var(--gray900); }
+    .last-updated { font-size: .72rem; color: var(--gray400); }
+
+    /* ── Stats ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: .75rem; margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 12px; padding: 1rem; text-align: center;
+    }
+    .stat-num  { font-size: 1.8rem; font-weight: 800; color: var(--gray900); line-height: 1; }
+    .stat-lbl  { font-size: .72rem; color: var(--gray400); margin-top: .3rem; }
+    .stat-sub  { font-size: .72rem; color: var(--gray600); margin-top: .2rem; font-weight: 600; }
+
+    /* ── AI Button ── */
+    .ai-btn {
+      display: flex; align-items: center; gap: .75rem;
+      background: linear-gradient(135deg, var(--indigo), #7c3aed);
+      color: var(--white); border: none; width: 100%;
+      padding: .9rem 1.25rem; border-radius: 12px;
+      cursor: pointer; margin-bottom: 1.5rem;
+      text-align: left; font-family: inherit;
+      transition: opacity .2s;
+    }
+    .ai-btn:hover { opacity: .92; }
+    .ai-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .ai-btn-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .ai-btn-text h4 { font-size: .9rem; font-weight: 800; }
+    .ai-btn-text p  { font-size: .75rem; opacity: .8; margin-top: .1rem; }
+    .ai-btn-arrow  { margin-left: auto; font-size: 1.1rem; opacity: .7; }
+
+    /* ── AI Response Panel ── */
+    .ai-response {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem;
+      display: none;
+    }
+    .ai-response.show { display: block; }
+    .ai-response-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: .85rem;
+    }
+    .ai-response-header h3 {
+      font-size: .9rem; font-weight: 800; color: var(--gray900);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .ai-calls-left { font-size: .75rem; color: var(--gray400); }
+    #aiObservations {
+      font-size: .92rem; line-height: 1.75; color: var(--gray700);
+      white-space: pre-wrap;
+    }
+    #aiObservations.loading { color: var(--gray400); font-style: italic; }
+
+    /* ── Earthquake Table ── */
+    .section-label {
+      font-size: .75rem; font-weight: 700; color: var(--gray400);
+      letter-spacing: .06em; text-transform: uppercase;
+      margin-bottom: .75rem;
+    }
+    .quake-table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 380px; }
+    th {
+      font-size: .72rem; font-weight: 700; color: var(--gray600);
+      letter-spacing: .04em; text-transform: uppercase;
+      padding: .5rem .75rem; text-align: left;
+      border-bottom: 2px solid var(--gray200);
+    }
+    td {
+      padding: .65rem .75rem; font-size: .85rem; color: var(--gray700);
+      border-bottom: 1px solid var(--gray100);
+    }
+    tr:hover td { background: var(--gray50); }
+    .mag-badge {
+      display: inline-block; padding: .15rem .55rem; border-radius: 6px;
+      font-size: .75rem; font-weight: 800;
+    }
+    .mag-minor  { background: #f1f5f9; color: #475569; }
+    .mag-light  { background: #fef9c3; color: #854d0e; }
+    .mag-moderate { background: #fee2e2; color: #991b1b; }
+    .mag-strong { background: #7f1d1d; color: #ffffff; }
+    .place-text { font-size: .82rem; color: var(--gray700); }
+    .time-text  { font-size: .75rem; color: var(--gray400); white-space: nowrap; }
+
+    /* ── Error ── */
+    .error-state {
+      background: #fee2e2; border: 1px solid #fca5a5;
+      border-radius: 12px; padding: 1.25rem; color: #991b1b;
+      font-size: .9rem; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="demoOverlay">
+  <div class="overlay-card">
+    <div class="overlay-icon">🌍</div>
+    <h2>The earth will keep shaking.</h2>
+    <p>You've used your 10 demo runs. A real app built for your business would analyze YOUR data — sales trends, customer patterns, inventory anomalies — with Claude. No limits. Your API key, your cost.</p>
+    <a class="overlay-cta" href="https://appsforhire.app/#contact">Build Mine →</a>
+    <a class="overlay-back" href="../">← Back to Demo Home</a>
+  </div>
+</div>
+
+<div id="limitModal">
+  <div class="limit-card">
+    <div style="font-size:2rem;margin-bottom:.75rem">⚡</div>
+    <h3>AI calls used up</h3>
+    <p>You've hit the 10-call demo limit. A real app uses your own Claude API key — unlimited calls, your cost, full control.</p>
+    <a class="limit-cta" href="https://appsforhire.app/#contact">Let's build yours →</a>
+    <button class="limit-close" onclick="document.getElementById('limitModal').classList.remove('show')">Dismiss</button>
+  </div>
+</div>
+
+<div id="runBadge">Demo: — / 10 runs</div>
+
+<header>
+  <div>
+    <h1>🌍 The Daily Weird</h1>
+    <p>AppsForHire Demo — Live Data + byoAI</p>
+  </div>
+  <div class="header-right">
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻ Refresh</button>
+  </div>
+</header>
+
+<main>
+
+  <div class="demo-banner">
+    🧪 <strong>Demo app.</strong> This pulls <strong>live earthquake data</strong> from the USGS right now and feeds it to Claude for analysis. In a real app, Claude would analyze <em>your</em> data — sales, inventory, bookings, anything. <a href="https://appsforhire.app/#byo" style="color:#92400e;font-weight:700;">byoAI →</a>
+  </div>
+
+  <div id="loadingState">
+    <div class="spinner"></div>
+    <p>Fetching today's earthquake data from USGS...</p>
+  </div>
+
+  <div id="errorState" style="display:none">
+    <div class="error-state">
+      ⚠️ Could not load earthquake data. Check your connection and
+      <button onclick="loadData()" style="background:none;border:none;color:#991b1b;font-weight:700;cursor:pointer;font-size:inherit">try again →</button>
+    </div>
+  </div>
+
+  <div id="dataSection">
+
+    <div class="data-header">
+      <div class="data-title">
+        <strong id="quakeHeadline">—</strong>
+        <div class="last-updated" id="lastUpdated"></div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="statTotal">—</div>
+        <div class="stat-lbl">Earthquakes</div>
+        <div class="stat-sub">past 24 hours</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statBiggest" style="color:var(--coral)">—</div>
+        <div class="stat-lbl">Biggest</div>
+        <div class="stat-sub" id="statBiggestPlace">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statHotspot" style="color:var(--brand)">—</div>
+        <div class="stat-lbl">Most Active</div>
+        <div class="stat-sub" id="statHotspotName">region</div>
+      </div>
+    </div>
+
+    <button class="ai-btn" id="aiBtn" onclick="getAITake()">
+      <span class="ai-btn-icon">🤖</span>
+      <span class="ai-btn-text">
+        <h4>Get Claude's Take</h4>
+        <p>Let Claude make some interesting (and possibly ridiculous) observations about today's data</p>
+      </span>
+      <span class="ai-btn-arrow">›</span>
+    </button>
+
+    <div class="ai-response" id="aiResponse">
+      <div class="ai-response-header">
+        <h3>🤖 Claude's Observations</h3>
+        <span class="ai-calls-left" id="aiCallsLeft"></span>
+      </div>
+      <div id="aiObservations" class="loading"></div>
+    </div>
+
+    <div class="section-label" style="margin-top:.5rem">Top Earthquakes Today</div>
+    <div class="quake-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Magnitude</th>
+            <th>Location</th>
+            <th>Time (local)</th>
+          </tr>
+        </thead>
+        <tbody id="quakeTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+  const APP_KEY    = 'demo_runs_app4';
+  const DEMO_LIMIT = 10;
+  const WORKER_URL = 'https://worker.appsforhire.app/ai';
+  const USGS_URL   = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
+
+  // ── Run counter ─────────────────────────────────────────────────────────────
+  let runCount = parseInt(localStorage.getItem(APP_KEY) || '0') + 1;
+  localStorage.setItem(APP_KEY, runCount);
+  const badge = document.getElementById('runBadge');
+  badge.textContent = `Demo: ${runCount} / 10 runs`;
+  if (runCount >= 9) badge.classList.add('warning');
+  if (runCount > DEMO_LIMIT) document.getElementById('demoOverlay').classList.add('show');
+
+  let quakeData = null;
+
+  // ── Load earthquake data ─────────────────────────────────────────────────────
+  async function loadData() {
+    const loading = document.getElementById('loadingState');
+    const error   = document.getElementById('errorState');
+    const section = document.getElementById('dataSection');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    loading.style.display = '';
+    error.style.display   = 'none';
+    section.style.display = 'none';
+    refreshBtn.disabled   = true;
+
+    // Hide previous AI response on refresh
+    document.getElementById('aiResponse').classList.remove('show');
+
+    try {
+      const res  = await fetch(USGS_URL);
+      const data = await res.json();
+      quakeData  = data.features;
+
+      if (!quakeData || quakeData.length === 0) {
+        loading.style.display = 'none';
+        error.style.display   = '';
+        error.querySelector('.error-state').textContent = 'No earthquake data available right now. The earth is apparently having a quiet day.';
+        return;
+      }
+
+      renderData(quakeData);
+      loading.style.display = 'none';
+      section.style.display = '';
+    } catch (err) {
+      loading.style.display = 'none';
+      error.style.display   = '';
+    } finally {
+      refreshBtn.disabled = false;
+    }
+  }
+
+  function renderData(features) {
+    const sorted = [...features].sort((a, b) => b.properties.mag - a.properties.mag);
+    const top10  = sorted.slice(0, 15);
+
+    // Stats
+    document.getElementById('statTotal').textContent = features.length;
+
+    const biggest = sorted[0].properties;
+    document.getElementById('statBiggest').textContent      = biggest.mag?.toFixed(1) ?? '—';
+    document.getElementById('statBiggestPlace').textContent = shortPlace(biggest.place);
+
+    // Most active region (simple: extract region from place strings)
+    const regions = {};
+    features.forEach(f => {
+      const region = extractRegion(f.properties.place);
+      if (region) regions[region] = (regions[region] || 0) + 1;
+    });
+    const topRegion = Object.entries(regions).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById('statHotspot').textContent      = topRegion ? topRegion[1] : '—';
+    document.getElementById('statHotspotName').textContent  = topRegion ? topRegion[0] : '—';
+
+    document.getElementById('quakeHeadline').textContent =
+      `${features.length} earthquakes (M2.5+) in the past 24 hours`;
+    document.getElementById('lastUpdated').textContent =
+      `Last updated: ${new Date().toLocaleTimeString()}`;
+
+    // Table
+    const tbody = document.getElementById('quakeTable');
+    tbody.innerHTML = top10.map(f => {
+      const p   = f.properties;
+      const mag = p.mag ?? 0;
+      const cls = mag >= 6 ? 'mag-strong' : mag >= 5 ? 'mag-moderate' : mag >= 4 ? 'mag-light' : 'mag-minor';
+      const t   = new Date(p.time).toLocaleString('en-US', {
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+      });
+      return `
+        <tr>
+          <td><span class="mag-badge ${cls}">${mag?.toFixed(1)}</span></td>
+          <td class="place-text">${escapeHTML(p.place || 'Unknown location')}</td>
+          <td class="time-text">${t}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  function shortPlace(place) {
+    if (!place) return '—';
+    const parts = place.split(',');
+    return parts[parts.length - 1].trim().slice(0, 16) || place.slice(0, 16);
+  }
+
+  function extractRegion(place) {
+    if (!place) return null;
+    const parts = place.split(',');
+    const region = parts[parts.length - 1].trim();
+    // Clean up common suffixes
+    return region.replace(/^of\s+/i, '').slice(0, 20) || null;
+  }
+
+  function escapeHTML(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── AI Analysis ──────────────────────────────────────────────────────────────
+  async function getAITake() {
+    if (!quakeData) return;
+
+    const btn      = document.getElementById('aiBtn');
+    const response = document.getElementById('aiResponse');
+    const content  = document.getElementById('aiObservations');
+
+    btn.disabled = true;
+    response.classList.add('show');
+    content.className = 'loading';
+    content.textContent = 'Claude is reviewing today\'s seismic activity...';
+    document.getElementById('aiCallsLeft').textContent = '';
+    response.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Build data summary for Claude
+    const sorted   = [...quakeData].sort((a, b) => b.properties.mag - a.properties.mag);
+    const top5     = sorted.slice(0, 5).map(f => {
+      const p = f.properties;
+      return `- M${p.mag?.toFixed(1)} at ${p.place}`;
+    }).join('\n');
+
+    const regions  = {};
+    quakeData.forEach(f => {
+      const r = extractRegion(f.properties.place);
+      if (r) regions[r] = (regions[r] || 0) + 1;
+    });
+    const topRegions = Object.entries(regions)
+      .sort((a, b) => b[1] - a[1]).slice(0, 5)
+      .map(([r, n]) => `${r}: ${n} quakes`).join(', ');
+
+    const magBuckets = {
+      '2.5–3.5': quakeData.filter(f => f.properties.mag >= 2.5 && f.properties.mag < 3.5).length,
+      '3.5–5.0': quakeData.filter(f => f.properties.mag >= 3.5 && f.properties.mag < 5.0).length,
+      '5.0+':    quakeData.filter(f => f.properties.mag >= 5.0).length,
+    };
+
+    const summary = `Today's earthquake summary (M2.5+, past 24 hours):
+Total: ${quakeData.length} earthquakes
+
+Magnitude breakdown:
+- M2.5–3.5: ${magBuckets['2.5–3.5']}
+- M3.5–5.0: ${magBuckets['3.5–5.0']}
+- M5.0+: ${magBuckets['5.0+']}
+
+Top 5 biggest:
+${top5}
+
+Most active regions: ${topRegions}`;
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          model:  'claude',
+          system: 'You are a witty but accurate data analyst who finds both genuinely interesting patterns and delightfully absurd observations in data. Mix real insight with dry humor. You love geology but don\'t take yourself too seriously.',
+          message: `Here is today's USGS earthquake data:\n\n${summary}\n\nGive me 4–5 observations. Mix genuinely interesting insights (patterns, anomalies, what the data actually means) with at least 1–2 that are funny or surprisingly absurd. Each observation should be 1–3 sentences. No bullet points — write them as short numbered items. End with a one-sentence "bottom line" about what today's earth is up to.`,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 429) {
+        content.className = '';
+        content.textContent = '⚡ You\'ve hit the 10-call AI demo limit. The data is still live though — hit Refresh for fresh earthquakes anytime.';
+        document.getElementById('limitModal').classList.add('show');
+      } else if (!res.ok) {
+        content.className = '';
+        content.textContent = 'Could not reach Claude right now. The data above is still live from USGS.';
+      } else {
+        content.className = '';
+        content.textContent = data.response || 'No response received.';
+        const rem = data.calls_remaining ?? '';
+        document.getElementById('aiCallsLeft').textContent =
+          rem !== '' ? `${rem} demo AI call${rem === 1 ? '' : 's'} remaining` : '';
+      }
+
+    } catch (err) {
+      content.className = '';
+      content.textContent = 'Network error — make sure you\'re online and try again.';
+    }
+
+    btn.disabled = false;
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  loadData();
+</script>
+</body>
+</html>

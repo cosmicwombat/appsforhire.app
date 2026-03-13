@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Route Runner — AppsForHire Demo</title>
+  <meta name="theme-color" content="#0ea5e9"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --brand: #0ea5e9; --brand-dark: #0284c7;
+      --sky: #0ea5e9; --mint: #10b981; --amber: #f59e0b; --coral: #ef4444;
+      --indigo: #4f46e5;
+      --gray50: #f8fafc; --gray100: #f1f5f9; --gray200: #e2e8f0;
+      --gray400: #94a3b8; --gray600: #475569; --gray700: #334155; --gray900: #0f172a;
+      --white: #ffffff;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray50); color: var(--gray700);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Demo Overlay ── */
+    #demoOverlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,.92);
+      align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    #demoOverlay.show { display: flex; }
+    .overlay-card {
+      background: var(--white); border-radius: 20px;
+      padding: 2.5rem; max-width: 420px; width: 100%; text-align: center;
+    }
+    .overlay-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .overlay-card h2 { font-size: 1.5rem; font-weight: 800; color: var(--gray900); margin-bottom: .6rem; }
+    .overlay-card p { font-size: .95rem; color: var(--gray600); line-height: 1.7; margin-bottom: 1.75rem; }
+    .overlay-cta {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--sky); color: var(--white);
+      padding: .9rem 1.75rem; border-radius: 12px;
+      font-weight: 700; font-size: 1rem; text-decoration: none;
+    }
+    .overlay-back { display: block; font-size: .82rem; color: var(--gray400); text-decoration: none; margin-top: 1rem; }
+    .overlay-back:hover { color: var(--gray700); }
+
+    /* ── Run Badge ── */
+    #runBadge {
+      position: fixed; top: 4.5rem; right: 1rem; z-index: 100;
+      background: rgba(245,158,11,.15); border: 1px solid rgba(245,158,11,.4);
+      color: var(--amber); padding: .3rem .75rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+    }
+    #runBadge.warning { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.4); color: #ef4444; }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+    header p  { font-size: .78rem; color: rgba(255,255,255,.7); }
+    .header-badge {
+      background: rgba(255,255,255,.15); color: var(--white);
+      padding: .3rem .75rem; border-radius: 8px; font-size: .8rem; font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* ── Main layout ── */
+    main { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+    .demo-banner {
+      background: #fffbeb; border: 1px solid #fcd34d;
+      border-radius: 10px; padding: .75rem 1rem;
+      font-size: .82rem; color: #92400e; margin-bottom: 1.5rem;
+    }
+
+    /* ── Stop Inputs ── */
+    .stops-card {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+    .stops-card h3 {
+      font-size: .9rem; font-weight: 800; color: var(--gray900);
+      margin-bottom: 1rem;
+    }
+    .stop-row {
+      display: flex; align-items: center; gap: .6rem; margin-bottom: .6rem;
+    }
+    .stop-num {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 800; color: var(--white);
+      background: var(--brand);
+    }
+    .stop-input {
+      flex: 1; padding: .65rem .9rem;
+      border: 1.5px solid var(--gray200); border-radius: 9px;
+      font-size: .9rem; color: var(--gray900); background: var(--white);
+      outline: none; font-family: inherit; transition: border-color .2s;
+    }
+    .stop-input:focus { border-color: var(--brand); }
+    .stop-del {
+      background: none; border: none; cursor: pointer;
+      color: var(--gray400); font-size: 1rem; padding: .2rem .4rem;
+      transition: color .15s;
+    }
+    .stop-del:hover { color: var(--coral); }
+
+    .stops-actions {
+      display: flex; gap: .75rem; margin-top: .75rem; flex-wrap: wrap;
+    }
+    .add-stop-btn {
+      background: var(--gray100); color: var(--gray700); border: none;
+      padding: .55rem 1rem; border-radius: 8px; cursor: pointer;
+      font-size: .85rem; font-weight: 600; font-family: inherit;
+      transition: background .2s;
+    }
+    .add-stop-btn:hover { background: var(--gray200); }
+    .add-stop-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .plan-btn {
+      background: linear-gradient(135deg, var(--indigo), var(--brand));
+      color: var(--white); border: none;
+      padding: .65rem 1.5rem; border-radius: 10px; cursor: pointer;
+      font-size: .9rem; font-weight: 700; font-family: inherit;
+      transition: opacity .2s; margin-left: auto;
+    }
+    .plan-btn:hover { opacity: .9; }
+    .plan-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Map ── */
+    #map {
+      width: 100%; height: 320px; border-radius: 14px;
+      border: 1px solid var(--gray200); margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+
+    /* ── AI Panel ── */
+    .ai-panel {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem;
+      display: none;
+    }
+    .ai-panel.show { display: block; }
+    .ai-panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .ai-panel-header h3 {
+      font-size: .9rem; font-weight: 800; color: var(--gray900);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .ai-calls-badge {
+      font-size: .75rem; color: var(--gray400);
+    }
+    #aiRouteContent {
+      font-size: .92rem; line-height: 1.75; color: var(--gray700);
+      white-space: pre-wrap;
+    }
+    #aiRouteContent.loading { color: var(--gray400); font-style: italic; }
+
+    /* ── Share Row ── */
+    .share-row {
+      display: none; align-items: center; gap: .75rem;
+      margin-top: 1rem; padding-top: 1rem;
+      border-top: 1px solid var(--gray100);
+    }
+    .share-row.show { display: flex; }
+    .share-btn {
+      background: var(--mint); color: var(--white); border: none;
+      padding: .55rem 1.1rem; border-radius: 8px; cursor: pointer;
+      font-size: .85rem; font-weight: 700; font-family: inherit;
+      transition: opacity .2s;
+    }
+    .share-btn:hover { opacity: .85; }
+    #shareConfirm {
+      font-size: .8rem; color: var(--mint); font-weight: 600; display: none;
+    }
+    .upgrade-nudge {
+      font-size: .78rem; color: var(--gray400); margin-left: auto;
+    }
+    .upgrade-nudge a { color: var(--sky); font-weight: 700; text-decoration: none; }
+
+    /* ── Status chips ── */
+    .status-row {
+      display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem;
+    }
+    .chip {
+      font-size: .75rem; font-weight: 700; padding: .2rem .65rem;
+      border-radius: 100px;
+    }
+    .chip-blue  { background: #e0f2fe; color: #0369a1; }
+    .chip-green { background: #dcfce7; color: #166534; }
+    .chip-red   { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+
+<div id="demoOverlay">
+  <div class="overlay-card">
+    <div class="overlay-icon">🗺️</div>
+    <h2>You've mapped your limit.</h2>
+    <p>You've used all 10 demo runs. A real app would connect to your live orders, delivery queue, or Google Maps account — and plan every run automatically.</p>
+    <a class="overlay-cta" href="https://appsforhire.app/#contact">Build Mine →</a>
+    <a class="overlay-back" href="../">← Back to Demo Home</a>
+  </div>
+</div>
+
+<div id="runBadge">Demo: — / 10 runs</div>
+
+<header>
+  <div>
+    <h1>🗺️ The Route Runner</h1>
+    <p>AppsForHire Demo — Custom Tier + byoAPI</p>
+  </div>
+  <div class="header-badge">AI Route Planner</div>
+</header>
+
+<main>
+
+  <div class="demo-banner">
+    🧪 <strong>Demo app.</strong> Type any real addresses — Claude will suggest the smartest order. In a real app, your stops would come from your order queue, Google Maps, or delivery system. <a href="https://appsforhire.app/#byo" style="color:#92400e;font-weight:700;">byoAPI →</a>
+  </div>
+
+  <div class="stops-card">
+    <h3>📍 Your Stops</h3>
+    <div id="stopsContainer"></div>
+    <div class="stops-actions">
+      <button class="add-stop-btn" id="addStopBtn" onclick="addStop()">+ Add Stop</button>
+      <button class="plan-btn" id="planBtn" onclick="planRoute()">🤖 Plan My Route</button>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="ai-panel" id="aiPanel">
+    <div class="ai-panel-header">
+      <h3>🤖 Claude's Route Plan</h3>
+      <span class="ai-calls-badge" id="aiCallsBadge"></span>
+    </div>
+    <div id="aiRouteContent" class="loading"></div>
+    <div class="share-row" id="shareRow">
+      <button class="share-btn" onclick="shareRoute()">📋 Copy Share Link</button>
+      <span id="shareConfirm">✓ Copied!</span>
+      <span class="upgrade-nudge">Real app: <a href="https://appsforhire.app/#contact">send via SMS or email →</a></span>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  const APP_KEY    = 'demo_runs_app3';
+  const DEMO_LIMIT = 10;
+  const WORKER_URL = 'https://worker.appsforhire.app/ai';
+
+  // ── Run counter ─────────────────────────────────────────────────────────────
+  let runCount = parseInt(localStorage.getItem(APP_KEY) || '0') + 1;
+  localStorage.setItem(APP_KEY, runCount);
+  const badge = document.getElementById('runBadge');
+  badge.textContent = `Demo: ${runCount} / 10 runs`;
+  if (runCount >= 9) badge.classList.add('warning');
+  if (runCount > DEMO_LIMIT) document.getElementById('demoOverlay').classList.add('show');
+
+  // ── Map init ────────────────────────────────────────────────────────────────
+  const map = L.map('map').setView([40.0, -98.0], 4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  let markers   = [];
+  let routeLine = null;
+
+  function makeIcon(n, color) {
+    const colors = ['#0ea5e9','#f59e0b','#10b981','#ef4444','#8b5cf6'];
+    const c = color || colors[(n - 1) % colors.length];
+    return L.divIcon({
+      html: `<div style="background:${c};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)">${n}</div>`,
+      className: '', iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -18]
+    });
+  }
+
+  // ── Stop management ─────────────────────────────────────────────────────────
+  let stopCount = 0;
+
+  function addStop(value) {
+    if (stopCount >= 5) return;
+    stopCount++;
+    const n = stopCount;
+    const colors = ['#0ea5e9','#f59e0b','#10b981','#ef4444','#8b5cf6'];
+    const c = colors[(n - 1) % colors.length];
+
+    const row = document.createElement('div');
+    row.className = 'stop-row';
+    row.id = `stop-row-${n}`;
+    row.innerHTML = `
+      <div class="stop-num" style="background:${c}">${n}</div>
+      <input class="stop-input" id="stop-${n}" type="text"
+        placeholder="Enter an address or place name..."
+        value="${value || ''}"
+        onkeydown="if(event.key==='Enter') planRoute()"/>
+      ${n > 2 ? `<button class="stop-del" onclick="removeStop(${n})" title="Remove">✕</button>` : '<div style="width:28px"></div>'}
+    `;
+    document.getElementById('stopsContainer').appendChild(row);
+    document.getElementById('addStopBtn').disabled = stopCount >= 5;
+
+    if (stopCount >= 5) {
+      document.getElementById('addStopBtn').textContent = '5 stops max';
+    }
+  }
+
+  function removeStop(n) {
+    const row = document.getElementById(`stop-row-${n}`);
+    if (row) row.remove();
+    stopCount--;
+    document.getElementById('addStopBtn').disabled = false;
+    document.getElementById('addStopBtn').textContent = '+ Add Stop';
+  }
+
+  function getStops() {
+    return Array.from(document.querySelectorAll('.stop-input'))
+      .map(i => i.value.trim())
+      .filter(Boolean);
+  }
+
+  // ── Geocoding via Nominatim ─────────────────────────────────────────────────
+  async function geocode(address) {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1&addressdetails=0`;
+    const res  = await fetch(url, { headers: { 'Accept-Language': 'en-US,en' } });
+    const data = await res.json();
+    if (!data.length) throw new Error(`Could not find: "${address}"`);
+    return {
+      lat:     parseFloat(data[0].lat),
+      lon:     parseFloat(data[0].lon),
+      display: data[0].display_name
+    };
+  }
+
+  async function geocodeAll(stops) {
+    const results = [];
+    for (let i = 0; i < stops.length; i++) {
+      results.push(await geocode(stops[i]));
+      if (i < stops.length - 1) await new Promise(r => setTimeout(r, 300)); // Nominatim rate limit
+    }
+    return results;
+  }
+
+  // ── Map drawing ─────────────────────────────────────────────────────────────
+  function clearMap() {
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+    if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+  }
+
+  function drawRoute(coords, stops) {
+    clearMap();
+    const latlngs = coords.map(c => [c.lat, c.lon]);
+    const colors  = ['#0ea5e9','#f59e0b','#10b981','#ef4444','#8b5cf6'];
+
+    coords.forEach((c, i) => {
+      const m = L.marker([c.lat, c.lon], { icon: makeIcon(i + 1, colors[i % colors.length]) })
+        .addTo(map)
+        .bindPopup(`<strong>Stop ${i + 1}</strong><br>${stops[i]}`);
+      markers.push(m);
+    });
+
+    if (latlngs.length > 1) {
+      routeLine = L.polyline(latlngs, {
+        color: '#4f46e5', weight: 3, dashArray: '8,5', opacity: .75
+      }).addTo(map);
+    }
+
+    const group = L.featureGroup(markers);
+    map.fitBounds(group.getBounds().pad(0.2));
+  }
+
+  // ── Main: plan route ─────────────────────────────────────────────────────────
+  async function planRoute() {
+    const stops = getStops();
+    if (stops.length < 2) {
+      alert('Add at least 2 stops to plan a route.');
+      return;
+    }
+
+    const btn     = document.getElementById('planBtn');
+    const panel   = document.getElementById('aiPanel');
+    const content = document.getElementById('aiRouteContent');
+
+    btn.disabled = true;
+    btn.textContent = 'Planning...';
+    panel.classList.add('show');
+    document.getElementById('shareRow').classList.remove('show');
+    content.className = 'loading';
+    content.textContent = 'Geocoding your stops and asking Claude for the best route...';
+
+    try {
+      // Step 1: Geocode
+      let coords;
+      try {
+        coords = await geocodeAll(stops);
+      } catch (err) {
+        content.className = '';
+        content.textContent = `⚠️ ${err.message}\n\nTip: Try adding a city or state for better results (e.g. "123 Main St, Austin TX").`;
+        return;
+      }
+
+      // Step 2: Draw markers in input order
+      drawRoute(coords, stops);
+
+      // Step 3: Ask Claude
+      content.textContent = 'Asking Claude for the optimal order...';
+
+      const stopList = stops.map((s, i) => `Stop ${i + 1}: ${s} (${coords[i].display.split(',').slice(0,2).join(',')})`).join('\n');
+
+      const res = await fetch(WORKER_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          model:   'claude',
+          system:  'You are a practical route planning assistant. Be concise, direct, and genuinely useful. No fluff.',
+          message: `I need to visit these ${stops.length} stops and want the most efficient driving order:\n\n${stopList}\n\nPlease:\n1. Suggest the optimal driving order by stop number (e.g. "2 → 1 → 3")\n2. Give 2-3 sentences explaining why this order makes sense geographically\n3. One practical tip for this specific route (traffic, parking, timing, etc.)\n\nBe direct and specific.`,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 429) {
+        content.className = '';
+        content.textContent = '⚡ You\'ve used your 10 free AI calls. A real app with your own Claude API key would have no such limit.';
+        document.getElementById('aiCallsBadge').textContent = '0 calls remaining';
+      } else if (!res.ok) {
+        content.className = '';
+        content.textContent = 'Could not reach the AI right now. The map still shows your stops above.';
+      } else {
+        content.className = '';
+        content.textContent = data.response || 'No response received.';
+        const rem = data.calls_remaining ?? '';
+        document.getElementById('aiCallsBadge').textContent =
+          rem !== '' ? `${rem} demo AI call${rem === 1 ? '' : 's'} remaining` : '';
+        document.getElementById('shareRow').classList.add('show');
+      }
+
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🤖 Plan My Route';
+    }
+  }
+
+  // ── Share route ──────────────────────────────────────────────────────────────
+  function shareRoute() {
+    const stops = getStops();
+    if (!stops.length) return;
+    const encoded = encodeURIComponent(JSON.stringify(stops));
+    const url = `${window.location.origin}${window.location.pathname}?stops=${encoded}`;
+    navigator.clipboard.writeText(url).then(() => {
+      const confirm = document.getElementById('shareConfirm');
+      confirm.style.display = 'inline';
+      setTimeout(() => confirm.style.display = 'none', 2500);
+    });
+  }
+
+  // ── Load shared route from URL ───────────────────────────────────────────────
+  function loadFromURL() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const raw    = params.get('stops');
+      if (!raw) return false;
+      const stops = JSON.parse(decodeURIComponent(raw));
+      if (!Array.isArray(stops) || !stops.length) return false;
+      stops.forEach(s => addStop(s));
+      return true;
+    } catch { return false; }
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  if (!loadFromURL()) {
+    // Default example stops — a Ghost Kitchen delivery run on Long Island
+    addStop('Huntington Village, NY');
+    addStop('Melville, NY');
+    addStop('Commack, NY');
+  }
+</script>
+</body>
+</html>

@@ -81,8 +81,17 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.5rem; margin-bottom: 1rem;
     }
-    .icon-teal { background: #ccfbf1; }
+    .icon-teal   { background: #ccfbf1; }
     .icon-violet { background: #ede9fe; }
+    .icon-sky    { background: #e0f2fe; }
+    .icon-amber  { background: #fef9c3; }
+    .ai-tag {
+      display: inline-flex; align-items: center; gap: .3rem;
+      font-size: .7rem; font-weight: 700; letter-spacing: .04em;
+      padding: .15rem .55rem; border-radius: 6px;
+      background: linear-gradient(135deg, #ede9fe, #e0f2fe);
+      color: #4f46e5; margin-left: .4rem;
+    }
     .app-tier {
       display: inline-block; margin-bottom: .75rem;
       font-size: .72rem; font-weight: 700; letter-spacing: .05em;
@@ -157,20 +166,38 @@
 
     <a class="app-card" href="app1/">
       <div class="app-icon icon-teal">📋</div>
-      <span class="app-tier tier-starter">Starter tier example</span>
+      <span class="app-tier tier-starter">Starter tier <span class="ai-tag">🤖 AI</span></span>
       <h2>The Daily Checklist</h2>
-      <p>A shift checklist app for any small business. Create tasks, check them off, reset for the next day. Simple, fast, and installable on your phone.</p>
+      <p>A shift checklist app for any small business. Check off tasks, track progress, reset for the next shift — plus an AI Daily Briefing that reviews your list and sets you up for the day.</p>
       <span class="app-launch">Open App →</span>
       <p class="counter-hint">Your runs: <strong id="runs1">—</strong> / 10</p>
     </a>
 
     <a class="app-card" href="app2/">
       <div class="app-icon icon-violet">📊</div>
-      <span class="app-tier tier-custom">Custom tier example</span>
+      <span class="app-tier tier-custom">Custom tier <span class="ai-tag">🤖 AI</span></span>
       <h2>The Corner Tracker</h2>
-      <p>A simple inventory + daily log tracker. Add items, track quantities, log notes. Shows off the data entry, local storage, and dashboard features we build into Custom apps.</p>
+      <p>Inventory tracking with low-stock alerts and a daily log. Plus AI Inventory Insights — Claude scans your stock levels and tells you exactly what to reorder first.</p>
       <span class="app-launch">Open App →</span>
       <p class="counter-hint">Your runs: <strong id="runs2">—</strong> / 10</p>
+    </a>
+
+    <a class="app-card" href="app3/">
+      <div class="app-icon icon-sky">🗺️</div>
+      <span class="app-tier" style="background:#e0f2fe;color:#0369a1;">byoAPI example <span class="ai-tag">🤖 AI</span></span>
+      <h2>The Route Runner</h2>
+      <p>Type up to 5 stops and Claude figures out the most efficient driving order, explains why, and gives you a practical route tip. Shareable via link. Powered by OpenStreetMap + Claude.</p>
+      <span class="app-launch">Open App →</span>
+      <p class="counter-hint">Your runs: <strong id="runs3">—</strong> / 10</p>
+    </a>
+
+    <a class="app-card" href="app4/">
+      <div class="app-icon icon-amber">🌍</div>
+      <span class="app-tier" style="background:#fef9c3;color:#92400e;">Live Data <span class="ai-tag">🤖 AI</span></span>
+      <h2>The Daily Weird</h2>
+      <p>Pulls live earthquake data from the USGS right now and feeds it to Claude for analysis. Claude finds the interesting patterns — and the ridiculous ones. Refreshes any time.</p>
+      <span class="app-launch">Open App →</span>
+      <p class="counter-hint">Your runs: <strong id="runs4">—</strong> / 10</p>
     </a>
 
   </div>
@@ -190,10 +217,10 @@
 
 <script>
   // Show current run counts on portal
-  const r1 = parseInt(localStorage.getItem('demo_runs_app1') || '0');
-  const r2 = parseInt(localStorage.getItem('demo_runs_app2') || '0');
-  document.getElementById('runs1').textContent = Math.min(r1, 10);
-  document.getElementById('runs2').textContent = Math.min(r2, 10);
+  ['app1','app2','app3','app4'].forEach((key, i) => {
+    const n = parseInt(localStorage.getItem(`demo_runs_${key}`) || '0');
+    document.getElementById(`runs${i+1}`).textContent = Math.min(n, 10);
+  });
 </script>
 </body>
 </html>
