@@ -43,6 +43,50 @@
     .overlay-back { display: block; font-size: .82rem; color: var(--gray400); text-decoration: none; margin-top: .5rem; }
     .overlay-back:hover { color: var(--gray700); }
 
+    /* ── AI Modal ── */
+    #aiModal {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(15,23,42,.7);
+      align-items: flex-end; justify-content: center;
+      padding: 1rem;
+    }
+    #aiModal.show { display: flex; }
+    @media(min-width: 640px) { #aiModal { align-items: center; } }
+    .ai-modal-card {
+      background: var(--white); border-radius: 20px;
+      padding: 1.75rem; max-width: 540px; width: 100%;
+      max-height: 82vh; overflow-y: auto;
+    }
+    .ai-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .ai-modal-header h3 {
+      font-size: 1rem; font-weight: 800; color: var(--gray900);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .ai-close {
+      background: var(--gray100); border: none; cursor: pointer;
+      width: 28px; height: 28px; border-radius: 50%;
+      font-size: .9rem; color: var(--gray600);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #aiContent {
+      font-size: .92rem; line-height: 1.75; color: var(--gray700);
+      white-space: pre-wrap;
+    }
+    #aiContent.loading { color: var(--gray400); font-style: italic; }
+    .ai-footer {
+      margin-top: 1.25rem; padding-top: 1rem;
+      border-top: 1px solid var(--gray100);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .ai-calls-left { font-size: .78rem; color: var(--gray400); }
+    .ai-cta-link {
+      font-size: .78rem; font-weight: 700; color: var(--sky);
+      text-decoration: none;
+    }
+
     /* ── Run Badge ── */
     #runBadge {
       position: fixed; top: 4.5rem; right: 1rem; z-index: 100;
@@ -88,6 +132,24 @@
       border-radius: 10px; padding: .75rem 1rem;
       font-size: .82rem; color: #92400e; margin-bottom: 1.5rem;
     }
+
+    /* ── AI Insights Button ── */
+    .ai-insights-btn {
+      display: flex; align-items: center; gap: .75rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: var(--white); border: none; width: 100%;
+      padding: .9rem 1.25rem; border-radius: 12px;
+      cursor: pointer; margin-bottom: 1.5rem;
+      text-align: left; font-family: inherit;
+      transition: opacity .2s, transform .1s;
+    }
+    .ai-insights-btn:hover { opacity: .92; }
+    .ai-insights-btn:active { transform: scale(.99); }
+    .ai-btn-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .ai-btn-text h4 { font-size: .9rem; font-weight: 800; }
+    .ai-btn-text p { font-size: .75rem; opacity: .8; margin-top: .1rem; }
+    .ai-btn-arrow { margin-left: auto; font-size: 1.1rem; opacity: .7; }
+    .ai-insights-btn:disabled { opacity: .6; cursor: not-allowed; }
 
     /* ── Stats Row ── */
     .stats-row {
@@ -179,6 +241,21 @@
   </div>
 </div>
 
+<!-- AI Insights Modal -->
+<div id="aiModal">
+  <div class="ai-modal-card">
+    <div class="ai-modal-header">
+      <h3>🤖 AI Inventory Insights</h3>
+      <button class="ai-close" onclick="closeAI()">✕</button>
+    </div>
+    <div id="aiContent" class="loading">Analyzing your inventory...</div>
+    <div class="ai-footer">
+      <span class="ai-calls-left" id="aiCallsLeft"></span>
+      <a class="ai-cta-link" href="https://appsforhire.app/#byo">Your API key, your rules →</a>
+    </div>
+  </div>
+</div>
+
 <div id="runBadge">Demo: — / 10 runs</div>
 
 <header>
@@ -202,6 +279,16 @@
 
   <!-- ── Inventory Panel ── -->
   <div id="panel-inventory" class="panel active">
+
+    <!-- AI Insights Button -->
+    <button class="ai-insights-btn" id="aiInsightsBtn" onclick="getAIInsights()">
+      <span class="ai-btn-icon">🤖</span>
+      <span class="ai-btn-text">
+        <h4>AI Inventory Insights</h4>
+        <p>Let Claude review your stock levels and flag what needs attention</p>
+      </span>
+      <span class="ai-btn-arrow">›</span>
+    </button>
 
     <div class="stats-row">
       <div class="stat-card">
@@ -286,10 +373,11 @@
 </main>
 
 <script>
-  const APP_KEY = 'demo_runs_app2';
-  const INV_KEY = 'demo_inventory';
-  const LOG_KEY = 'demo_log';
+  const APP_KEY    = 'demo_runs_app2';
+  const INV_KEY    = 'demo_inventory';
+  const LOG_KEY    = 'demo_log';
   const DEMO_LIMIT = 10;
+  const WORKER_URL = 'https://worker.appsforhire.app/ai';
 
   // ── Run counter ─────────────────────────────────────────────────────────────
   let runCount = parseInt(localStorage.getItem(APP_KEY) || '0') + 1;
@@ -416,6 +504,84 @@
         </div>`).join('');
     }
   }
+
+  // ── AI Inventory Insights ─────────────────────────────────────────────────
+  async function getAIInsights() {
+    const items  = loadInventory();
+    const modal  = document.getElementById('aiModal');
+    const content = document.getElementById('aiContent');
+    const btn    = document.getElementById('aiInsightsBtn');
+
+    content.className = 'loading';
+    content.textContent = 'Analyzing your inventory...';
+    document.getElementById('aiCallsLeft').textContent = '';
+    modal.classList.add('show');
+    btn.disabled = true;
+
+    const today = new Date().toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric'
+    });
+
+    let inventorySummary;
+    if (items.length === 0) {
+      inventorySummary = 'No inventory items have been added yet.';
+    } else {
+      const outOfStock = items.filter(i => i.qty === 0);
+      const lowStock   = items.filter(i => i.qty > 0 && i.qty <= i.alert);
+      const healthy    = items.filter(i => i.qty > i.alert);
+
+      inventorySummary = items.map(i => {
+        const status = i.qty === 0 ? 'OUT OF STOCK' : (i.qty <= i.alert ? `LOW (${i.qty}, alert threshold: ${i.alert})` : `OK (qty: ${i.qty})`);
+        return `- ${i.name} [${i.cat}]: ${status}`;
+      }).join('\n');
+
+      inventorySummary += `\n\nSummary: ${outOfStock.length} out of stock, ${lowStock.length} low stock, ${healthy.length} healthy.`;
+    }
+
+    const userMessage = `Today is ${today}. Here is my current inventory:\n\n${inventorySummary}\n\nPlease give me a concise inventory briefing. Flag anything urgent (out of stock or critically low), suggest reorder priorities, and note any patterns you see. Be direct and practical. Under 150 words.`;
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          model:   'claude',
+          system:  'You are a practical operations advisor for a small business. You review inventory data and give clear, actionable guidance. Be direct and specific — no filler.',
+          message: userMessage,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 429) {
+        content.className = '';
+        content.textContent = '⚡ You\'ve used your 10 free AI calls for this demo. A real app built for your business would use your own Claude API key — unlimited calls, your cost, your control.';
+        document.getElementById('aiCallsLeft').textContent = '0 demo calls remaining';
+      } else if (!res.ok) {
+        content.className = '';
+        content.textContent = 'Could not reach the AI right now. Try again in a moment.';
+      } else {
+        content.className = '';
+        content.textContent = data.response || 'No response received.';
+        const remaining = data.calls_remaining ?? '';
+        document.getElementById('aiCallsLeft').textContent =
+          remaining !== '' ? `${remaining} demo AI call${remaining === 1 ? '' : 's'} remaining` : '';
+      }
+    } catch (err) {
+      content.className = '';
+      content.textContent = 'Network error — make sure you\'re online and try again.';
+    }
+
+    btn.disabled = false;
+  }
+
+  function closeAI() {
+    document.getElementById('aiModal').classList.remove('show');
+  }
+
+  document.getElementById('aiModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAI();
+  });
 
   function escapeHTML(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');

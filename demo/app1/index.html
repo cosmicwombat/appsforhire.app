@@ -11,6 +11,7 @@
       --brand: #0d9488; --brand-dark: #0f766e;
       --navy: #1a1f36; --sky: #0ea5e9;
       --amber: #f59e0b; --mint: #10b981;
+      --purple: #7c3aed;
       --gray50: #f8fafc; --gray100: #f1f5f9; --gray200: #e2e8f0;
       --gray400: #94a3b8; --gray600: #475569; --gray700: #334155; --gray900: #0f172a;
       --white: #ffffff;
@@ -51,6 +52,50 @@
       text-decoration: none; margin-top: .5rem;
     }
     .overlay-back:hover { color: var(--gray700); }
+
+    /* ── AI Modal ── */
+    #aiModal {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(15,23,42,.7);
+      align-items: flex-end; justify-content: center;
+      padding: 1rem;
+    }
+    #aiModal.show { display: flex; }
+    @media(min-width: 560px) { #aiModal { align-items: center; } }
+    .ai-modal-card {
+      background: var(--white); border-radius: 20px;
+      padding: 1.75rem; max-width: 520px; width: 100%;
+      max-height: 80vh; overflow-y: auto;
+    }
+    .ai-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .ai-modal-header h3 {
+      font-size: 1rem; font-weight: 800; color: var(--gray900);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .ai-close {
+      background: var(--gray100); border: none; cursor: pointer;
+      width: 28px; height: 28px; border-radius: 50%;
+      font-size: .9rem; color: var(--gray600);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #aiContent {
+      font-size: .92rem; line-height: 1.75; color: var(--gray700);
+      white-space: pre-wrap;
+    }
+    #aiContent.loading { color: var(--gray400); font-style: italic; }
+    .ai-footer {
+      margin-top: 1.25rem; padding-top: 1rem;
+      border-top: 1px solid var(--gray100);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .ai-calls-left { font-size: .78rem; color: var(--gray400); }
+    .ai-cta-link {
+      font-size: .78rem; font-weight: 700; color: var(--sky);
+      text-decoration: none;
+    }
 
     /* ── Run Counter Badge ── */
     #runBadge {
@@ -95,6 +140,24 @@
       display: flex; justify-content: space-between;
       font-size: .8rem; color: var(--gray600); margin-bottom: .5rem;
     }
+
+    /* ── AI Briefing Button ── */
+    .ai-briefing-btn {
+      display: flex; align-items: center; gap: .75rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: var(--white); border: none; width: 100%;
+      padding: .9rem 1.25rem; border-radius: 12px;
+      cursor: pointer; margin-bottom: 1.5rem;
+      text-align: left; font-family: inherit;
+      transition: opacity .2s, transform .1s;
+    }
+    .ai-briefing-btn:hover { opacity: .92; }
+    .ai-briefing-btn:active { transform: scale(.99); }
+    .ai-btn-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .ai-btn-text h4 { font-size: .9rem; font-weight: 800; }
+    .ai-btn-text p { font-size: .75rem; opacity: .8; margin-top: .1rem; }
+    .ai-btn-arrow { margin-left: auto; font-size: 1.1rem; opacity: .7; }
+    .ai-briefing-btn:disabled { opacity: .6; cursor: not-allowed; }
 
     /* ── Add Item ── */
     .add-form {
@@ -199,6 +262,21 @@
   </div>
 </div>
 
+<!-- AI Briefing Modal -->
+<div id="aiModal">
+  <div class="ai-modal-card">
+    <div class="ai-modal-header">
+      <h3>🤖 AI Daily Briefing</h3>
+      <button class="ai-close" onclick="closeAI()">✕</button>
+    </div>
+    <div id="aiContent" class="loading">Asking Claude about your day...</div>
+    <div class="ai-footer">
+      <span class="ai-calls-left" id="aiCallsLeft"></span>
+      <a class="ai-cta-link" href="https://appsforhire.app/#byo">Your API key, your rules →</a>
+    </div>
+  </div>
+</div>
+
 <!-- Run counter badge -->
 <div id="runBadge">Demo: — / 10 runs</div>
 
@@ -217,6 +295,16 @@
   <div class="demo-banner">
     🧪 <span>This is a live demo app. Your data is saved locally on this device. This is exactly how a real Starter-tier app looks and works — <a href="https://appsforhire.app/#contact" style="color:#92400e;font-weight:700;">get one built for your business →</a></span>
   </div>
+
+  <!-- AI Briefing Button -->
+  <button class="ai-briefing-btn" id="aiBriefingBtn" onclick="getAIBriefing()">
+    <span class="ai-btn-icon">🤖</span>
+    <span class="ai-btn-text">
+      <h4>AI Daily Briefing</h4>
+      <p>Let Claude review your list and give you a smart start to the day</p>
+    </span>
+    <span class="ai-btn-arrow">›</span>
+  </button>
 
   <div class="progress-label">
     <span id="progressText">0 of 0 complete</span>
@@ -257,6 +345,7 @@
   const APP_KEY    = 'demo_runs_app1';
   const TASKS_KEY  = 'demo_tasks_app1';
   const DEMO_LIMIT = 10;
+  const WORKER_URL = 'https://worker.appsforhire.app/ai';
 
   // ── Run counter ────────────────────────────────────────────────────────────
   let runCount = parseInt(localStorage.getItem(APP_KEY) || '0') + 1;
@@ -354,6 +443,80 @@
       render();
     }
   }
+
+  // ── AI Briefing ────────────────────────────────────────────────────────────
+  async function getAIBriefing() {
+    const tasks   = loadTasks();
+    const pending = tasks.filter(t => !t.done);
+    const done    = tasks.filter(t => t.done);
+
+    const modal   = document.getElementById('aiModal');
+    const content = document.getElementById('aiContent');
+    const btn     = document.getElementById('aiBriefingBtn');
+
+    // Show modal in loading state
+    content.className = 'loading';
+    content.textContent = 'Asking Claude about your day...';
+    document.getElementById('aiCallsLeft').textContent = '';
+    modal.classList.add('show');
+    btn.disabled = true;
+
+    const today = new Date().toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric'
+    });
+
+    const taskSummary = tasks.length === 0
+      ? 'No tasks added yet.'
+      : [
+          pending.length ? `Still to do:\n${pending.map(t => `- ${t.text}`).join('\n')}` : '',
+          done.length    ? `Already done:\n${done.map(t => `✓ ${t.text}`).join('\n')}`    : '',
+        ].filter(Boolean).join('\n\n');
+
+    const userMessage = `Today is ${today}. Here is my task list:\n\n${taskSummary}\n\nPlease give me a short, energetic daily briefing. Acknowledge what's been done, motivate me on what's left, and if you spot any tasks that logically go together, suggest a smart order to tackle them. Keep it practical and under 150 words.`;
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          model:   'claude',
+          system:  'You are a sharp, friendly business assistant for a small business owner. Be direct, warm, and genuinely useful. No fluff.',
+          message: userMessage,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 429) {
+        content.className = '';
+        content.textContent = '⚡ You\'ve used your 10 free AI calls for this demo. Imagine having your own Claude-powered app with unlimited calls using your own API key — that\'s exactly what we build.';
+        document.getElementById('aiCallsLeft').textContent = '0 demo calls remaining';
+      } else if (!res.ok) {
+        content.className = '';
+        content.textContent = 'Could not reach the AI right now. Try again in a moment.';
+      } else {
+        content.className = '';
+        content.textContent = data.response || 'No response received.';
+        const remaining = data.calls_remaining ?? '';
+        document.getElementById('aiCallsLeft').textContent =
+          remaining !== '' ? `${remaining} demo AI call${remaining === 1 ? '' : 's'} remaining` : '';
+      }
+    } catch (err) {
+      content.className = '';
+      content.textContent = 'Network error — make sure you\'re online and try again.';
+    }
+
+    btn.disabled = false;
+  }
+
+  function closeAI() {
+    document.getElementById('aiModal').classList.remove('show');
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('aiModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAI();
+  });
 
   // Enter key on input
   document.getElementById('newTask').addEventListener('keydown', e => {

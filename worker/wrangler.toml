@@ -1,0 +1,50 @@
+# ── AppsForHire Cloudflare Worker ────────────────────────────────────────────
+# Handles:
+#   POST /ai       — AI proxy for demo apps (Claude or Gemini)
+#   POST /webhook  — Stripe event handler
+#   GET  /health   — Health check
+
+name             = "appsforhire-worker"
+main             = "worker.js"
+compatibility_date = "2024-01-01"
+
+# ── Custom domain ─────────────────────────────────────────────────────────────
+# After first deploy, go to:
+#   Workers & Pages → appsforhire-worker → Settings → Triggers → Custom Domains
+#   → Add domain → worker.appsforhire.app
+# Cloudflare creates the DNS record automatically.
+#
+# Until then, the worker is reachable at:
+#   https://appsforhire-worker.<your-subdomain>.workers.dev
+
+# ── KV namespace for AI rate limiting ─────────────────────────────────────────
+# Create the namespace first:
+#   npx wrangler kv:namespace create "RATE_LIMIT"
+# Paste the returned id below.
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id      = "PASTE_KV_NAMESPACE_ID_HERE"
+
+# ── Secrets — set each one with: npx wrangler secret put <NAME> ──────────────
+#
+# CLAUDE_API_KEY        Your Anthropic Claude API key
+#                       → console.anthropic.com → API Keys
+#
+# GEMINI_API_KEY        Your Google Gemini API key (optional — Claude is default)
+#                       → aistudio.google.com → Get API Key
+#
+# STRIPE_WEBHOOK_SECRET Signing secret for this specific webhook endpoint
+#                       → Stripe Dashboard → Developers → Webhooks → your endpoint
+#                       Looks like: whsec_xxxxxxxxxxxx
+#
+# RESEND_API_KEY        Email delivery service (free tier: 3,000/mo)
+#                       → resend.com → API Keys
+#
+# ADMIN_EMAIL           Your email for build/subscription notifications
+#                       e.g. cosmicwombat@gmail.com
+#
+# CF_API_TOKEN          Cloudflare API token with Access Edit permission
+#                       (for future auto-revoke on subscription cancel)
+#
+# GITHUB_TOKEN          GitHub PAT
+#                       (for future auto-update of admin dashboard)
