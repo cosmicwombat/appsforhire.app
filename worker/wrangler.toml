@@ -7,6 +7,8 @@
 name             = "appsforhire-worker"
 main             = "worker.js"
 compatibility_date = "2024-01-01"
+workers_dev      = true
+preview_urls     = false
 
 # ── Custom domain ─────────────────────────────────────────────────────────────
 # After first deploy, go to:
