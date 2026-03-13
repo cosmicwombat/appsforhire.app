@@ -3,21 +3,23 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Corner Tracker — AppsForHire Demo</title>
-  <meta name="theme-color" content="#6d28d9"/>
+  <title>The Promo Builder — AppsForHire Demo</title>
+  <meta name="theme-color" content="#4f46e5"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --brand: #6d28d9; --brand-light: #7c3aed;
+      --brand: #4f46e5; --brand-dark: #3730a3; --brand-light: #818cf8;
       --sky: #0ea5e9; --mint: #10b981; --amber: #f59e0b; --coral: #ef4444;
+      --orange: #ea580c;
       --gray50: #f8fafc; --gray100: #f1f5f9; --gray200: #e2e8f0;
       --gray400: #94a3b8; --gray600: #475569; --gray700: #334155; --gray900: #0f172a;
       --white: #ffffff;
     }
+    html, body { height: 100%; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--gray50); color: var(--gray700);
-      -webkit-font-smoothing: antialiased; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ── Demo Overlay ── */
@@ -38,54 +40,9 @@
       display: inline-flex; align-items: center; gap: .5rem;
       background: var(--sky); color: var(--white);
       padding: .9rem 1.75rem; border-radius: 12px;
-      font-weight: 700; font-size: 1rem; text-decoration: none; margin-bottom: .85rem;
+      font-weight: 700; font-size: 1rem; text-decoration: none;
     }
-    .overlay-back { display: block; font-size: .82rem; color: var(--gray400); text-decoration: none; margin-top: .5rem; }
-    .overlay-back:hover { color: var(--gray700); }
-
-    /* ── AI Modal ── */
-    #aiModal {
-      display: none; position: fixed; inset: 0; z-index: 500;
-      background: rgba(15,23,42,.7);
-      align-items: flex-end; justify-content: center;
-      padding: 1rem;
-    }
-    #aiModal.show { display: flex; }
-    @media(min-width: 640px) { #aiModal { align-items: center; } }
-    .ai-modal-card {
-      background: var(--white); border-radius: 20px;
-      padding: 1.75rem; max-width: 540px; width: 100%;
-      max-height: 82vh; overflow-y: auto;
-    }
-    .ai-modal-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 1.25rem;
-    }
-    .ai-modal-header h3 {
-      font-size: 1rem; font-weight: 800; color: var(--gray900);
-      display: flex; align-items: center; gap: .5rem;
-    }
-    .ai-close {
-      background: var(--gray100); border: none; cursor: pointer;
-      width: 28px; height: 28px; border-radius: 50%;
-      font-size: .9rem; color: var(--gray600);
-      display: flex; align-items: center; justify-content: center;
-    }
-    #aiContent {
-      font-size: .92rem; line-height: 1.75; color: var(--gray700);
-      white-space: pre-wrap;
-    }
-    #aiContent.loading { color: var(--gray400); font-style: italic; }
-    .ai-footer {
-      margin-top: 1.25rem; padding-top: 1rem;
-      border-top: 1px solid var(--gray100);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .ai-calls-left { font-size: .78rem; color: var(--gray400); }
-    .ai-cta-link {
-      font-size: .78rem; font-weight: 700; color: var(--sky);
-      text-decoration: none;
-    }
+    .overlay-back { display: block; font-size: .82rem; color: var(--gray400); text-decoration: none; margin-top: 1rem; }
 
     /* ── Run Badge ── */
     #runBadge {
@@ -98,161 +55,160 @@
 
     /* ── Header ── */
     header {
-      background: linear-gradient(135deg, var(--brand), var(--brand-light));
+      background: linear-gradient(135deg, var(--brand-dark), var(--brand-light));
       padding: 1rem 1.25rem;
       display: flex; align-items: center; justify-content: space-between;
       position: sticky; top: 0; z-index: 50;
     }
     header h1 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
-    header p { font-size: .78rem; color: rgba(255,255,255,.7); }
+    header p  { font-size: .78rem; color: rgba(255,255,255,.75); }
     .header-badge {
       background: rgba(255,255,255,.15); color: var(--white);
       padding: .3rem .75rem; border-radius: 8px; font-size: .8rem; font-weight: 600;
+      white-space: nowrap;
     }
-
-    /* ── Tabs ── */
-    .tabs {
-      display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
-      border-bottom: 2px solid var(--gray200);
-      background: var(--white); padding: 0 1rem;
-    }
-    .tabs::-webkit-scrollbar { display: none; }
-    .tab {
-      padding: .85rem 1.1rem; font-size: .88rem; font-weight: 600;
-      color: var(--gray600); cursor: pointer; white-space: nowrap;
-      border-bottom: 2px solid transparent; margin-bottom: -2px;
-      transition: color .2s, border-color .2s;
-    }
-    .tab.active { color: var(--brand); border-color: var(--brand); }
 
     /* ── Main ── */
-    main { max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 5rem; }
+    main { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
     .demo-banner {
-      background: #fffbeb; border: 1px solid #fcd34d;
+      background: #eef2ff; border: 1px solid #c7d2fe;
       border-radius: 10px; padding: .75rem 1rem;
-      font-size: .82rem; color: #92400e; margin-bottom: 1.5rem;
+      font-size: .82rem; color: #3730a3; margin-bottom: 1.5rem;
     }
 
-    /* ── AI Insights Button ── */
-    .ai-insights-btn {
-      display: flex; align-items: center; gap: .75rem;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      color: var(--white); border: none; width: 100%;
-      padding: .9rem 1.25rem; border-radius: 12px;
-      cursor: pointer; margin-bottom: 1.5rem;
-      text-align: left; font-family: inherit;
-      transition: opacity .2s, transform .1s;
-    }
-    .ai-insights-btn:hover { opacity: .92; }
-    .ai-insights-btn:active { transform: scale(.99); }
-    .ai-btn-icon { font-size: 1.5rem; flex-shrink: 0; }
-    .ai-btn-text h4 { font-size: .9rem; font-weight: 800; }
-    .ai-btn-text p { font-size: .75rem; opacity: .8; margin-top: .1rem; }
-    .ai-btn-arrow { margin-left: auto; font-size: 1.1rem; opacity: .7; }
-    .ai-insights-btn:disabled { opacity: .6; cursor: not-allowed; }
-
-    /* ── Stats Row ── */
-    .stats-row {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: .75rem; margin-bottom: 1.5rem;
-    }
-    .stat-card {
+    /* ── Input Card ── */
+    .input-card {
       background: var(--white); border: 1px solid var(--gray200);
-      border-radius: 12px; padding: 1rem;
-      text-align: center;
+      border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;
     }
-    .stat-card .num { font-size: 1.6rem; font-weight: 800; color: var(--gray900); }
-    .stat-card .lbl { font-size: .75rem; color: var(--gray400); margin-top: .1rem; }
-
-    /* ── Form ── */
-    .add-form {
-      background: var(--white); border: 1px solid var(--gray200);
-      border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem;
+    .input-card h3 {
+      font-size: .95rem; font-weight: 800; color: var(--gray900);
+      margin-bottom: 1.1rem; display: flex; align-items: center; gap: .5rem;
     }
-    .add-form h3 { font-size: .9rem; font-weight: 700; color: var(--gray900); margin-bottom: 1rem; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
-    @media(max-width: 400px) { .form-row { grid-template-columns: 1fr; } }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; margin-bottom: .85rem; }
+    @media(max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
     .form-group { display: flex; flex-direction: column; gap: .3rem; }
-    label { font-size: .78rem; font-weight: 600; color: var(--gray700); }
-    input, select {
-      padding: .65rem .85rem; border: 1.5px solid var(--gray200);
-      border-radius: 9px; font-size: .9rem; color: var(--gray900);
+    label { font-size: .78rem; font-weight: 700; color: var(--gray700); }
+    input, select, textarea {
+      padding: .7rem .9rem; border: 1.5px solid var(--gray200);
+      border-radius: 10px; font-size: .9rem; color: var(--gray900);
       background: var(--white); outline: none; font-family: inherit;
-      transition: border-color .2s;
+      transition: border-color .2s; resize: vertical;
     }
-    input:focus, select:focus { border-color: var(--brand); }
-    .submit-btn {
-      background: linear-gradient(135deg, var(--brand), var(--brand-light));
-      color: var(--white); border: none; width: 100%;
-      padding: .75rem; border-radius: 10px;
-      font-weight: 700; font-size: .95rem; cursor: pointer;
-      transition: opacity .2s;
-    }
-    .submit-btn:hover { opacity: .9; }
+    input:focus, select:focus, textarea:focus { border-color: var(--brand); }
 
-    /* ── Table ── */
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 400px; }
-    th {
-      font-size: .75rem; font-weight: 700; color: var(--gray600);
-      letter-spacing: .04em; text-transform: uppercase;
-      padding: .6rem .75rem; text-align: left;
-      border-bottom: 2px solid var(--gray200);
+    .generate-btn {
+      width: 100%; margin-top: 1rem;
+      background: linear-gradient(135deg, var(--brand-dark), var(--brand-light));
+      color: var(--white); border: none;
+      padding: .9rem; border-radius: 12px;
+      font-size: 1rem; font-weight: 800; cursor: pointer; font-family: inherit;
+      transition: opacity .2s; display: flex; align-items: center; justify-content: center; gap: .6rem;
     }
-    td {
-      padding: .75rem; font-size: .88rem; color: var(--gray700);
-      border-bottom: 1px solid var(--gray100);
-    }
-    tr:hover td { background: var(--gray50); }
-    .badge {
-      display: inline-block; padding: .15rem .55rem; border-radius: 6px;
-      font-size: .72rem; font-weight: 700; text-transform: uppercase;
-    }
-    .badge-green { background: #dcfce7; color: #166534; }
-    .badge-amber { background: #fef9c3; color: #854d0e; }
-    .badge-red   { background: #fee2e2; color: #991b1b; }
-    .del-btn { background: none; border: none; cursor: pointer; color: var(--gray400); font-size: .9rem; }
-    .del-btn:hover { color: #ef4444; }
-    .empty-msg { text-align: center; padding: 3rem 1rem; color: var(--gray400); font-size: .9rem; }
+    .generate-btn:hover { opacity: .92; }
+    .generate-btn:disabled { opacity: .5; cursor: not-allowed; }
 
-    /* ── Sections ── */
-    .panel { display: none; }
-    .panel.active { display: block; }
-
-    /* ── Log ── */
-    .log-entry {
+    /* ── Loading ── */
+    #loadingState {
       background: var(--white); border: 1px solid var(--gray200);
-      border-radius: 12px; padding: 1rem 1.1rem;
-      margin-bottom: .6rem;
+      border-radius: 16px; padding: 2.5rem;
+      text-align: center; margin-bottom: 1.5rem; display: none;
     }
-    .log-entry .log-time { font-size: .75rem; color: var(--gray400); margin-bottom: .25rem; }
-    .log-entry .log-text { font-size: .9rem; color: var(--gray700); }
+    #loadingState.show { display: block; }
+    .dot-pulse { display: flex; gap: .4rem; justify-content: center; margin-bottom: 1rem; }
+    .dot-pulse span {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--brand); animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot-pulse span:nth-child(2) { animation-delay: .2s; }
+    .dot-pulse span:nth-child(3) { animation-delay: .4s; }
+    @keyframes pulse { 0%,100% { opacity:.3; transform: scale(.8); } 50% { opacity:1; transform: scale(1); } }
+    #loadingState p { font-size: .9rem; color: var(--gray600); }
+
+    /* ── Output sections ── */
+    .output-wrap { display: none; }
+    .output-wrap.show { display: block; }
+
+    .output-section {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 14px; margin-bottom: 1rem; overflow: hidden;
+    }
+    .section-header {
+      padding: .75rem 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .section-header h4 {
+      font-size: .82rem; font-weight: 800; letter-spacing: .03em;
+      display: flex; align-items: center; gap: .45rem;
+    }
+    .copy-btn {
+      background: rgba(255,255,255,.25); border: 1px solid rgba(255,255,255,.3);
+      cursor: pointer; padding: .2rem .65rem; border-radius: 6px;
+      font-size: .72rem; font-weight: 700; color: inherit;
+      transition: background .15s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.4); }
+    .section-body {
+      padding: 1rem 1.1rem;
+      font-size: .92rem; line-height: 1.75; color: var(--gray700);
+      white-space: pre-wrap;
+    }
+
+    /* Section colors */
+    .sec-sms     .section-header { background: #0ea5e9; color: var(--white); }
+    .sec-social  .section-header { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); color: var(--white); }
+    .sec-strategy .section-header { background: #059669; color: var(--white); }
+    .sec-email   .section-header { background: #4f46e5; color: var(--white); }
+
+    /* Strategy section — slightly different body */
+    .sec-strategy .section-body { background: #f0fdf4; color: #166534; }
+
+    /* Email subjects — clickable chips */
+    .subject-list { padding: .75rem 1rem; display: flex; flex-direction: column; gap: .5rem; }
+    .subject-chip {
+      background: var(--gray50); border: 1.5px solid var(--gray200);
+      border-radius: 9px; padding: .6rem .9rem;
+      font-size: .88rem; color: var(--gray900); cursor: pointer;
+      transition: border-color .15s, background .15s;
+      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+    }
+    .subject-chip:hover { border-color: var(--brand); background: #eef2ff; }
+    .subject-chip span { font-size: .72rem; color: var(--gray400); white-space: nowrap; }
+
+    /* SMS char badge */
+    .sms-note {
+      padding: .35rem 1.1rem;
+      background: #f0f9ff; border-top: 1px solid #e0f2fe;
+      font-size: .72rem; color: #0369a1; font-weight: 600;
+    }
+
+    /* ── AI footer ── */
+    .ai-calls-row {
+      display: none; justify-content: space-between; align-items: center;
+      font-size: .78rem; color: var(--gray400); margin-bottom: 1.5rem;
+    }
+    .ai-calls-row.show { display: flex; }
+    .ai-calls-row a { color: var(--sky); font-weight: 700; text-decoration: none; }
+
+    /* ── Error ── */
+    .error-card {
+      background: #eef2ff; border: 1px solid #c7d2fe;
+      border-radius: 14px; padding: 1.25rem;
+      font-size: .9rem; color: #3730a3; display: none;
+    }
+    .error-card.show { display: block; }
   </style>
 </head>
 <body>
 
 <div id="demoOverlay">
   <div class="overlay-card">
-    <div class="overlay-icon">📊</div>
-    <h2>Nice. You've been tracking.</h2>
-    <p>You've used your 10 demo runs for this app. A real Custom-tier app would connect to your actual data sources — Shopify, QuickBooks, Google Sheets, whatever you use. Want one?</p>
+    <div class="overlay-icon">🚀</div>
+    <h2>You've promoted your limit.</h2>
+    <p>You've used all 10 demo runs. A real app built for your business would run unlimited campaigns using your own Claude API key — your prompts, your brand voice, your cost.</p>
     <a class="overlay-cta" href="https://appsforhire.app/#contact">Build Mine →</a>
     <a class="overlay-back" href="../">← Back to Demo Home</a>
-  </div>
-</div>
-
-<!-- AI Insights Modal -->
-<div id="aiModal">
-  <div class="ai-modal-card">
-    <div class="ai-modal-header">
-      <h3>🤖 AI Inventory Insights</h3>
-      <button class="ai-close" onclick="closeAI()">✕</button>
-    </div>
-    <div id="aiContent" class="loading">Analyzing your inventory...</div>
-    <div class="ai-footer">
-      <span class="ai-calls-left" id="aiCallsLeft"></span>
-      <a class="ai-cta-link" href="https://appsforhire.app/#byo">Your API key, your rules →</a>
-    </div>
   </div>
 </div>
 
@@ -260,122 +216,113 @@
 
 <header>
   <div>
-    <h1>📊 The Corner Tracker</h1>
-    <p>AppsForHire Demo App — Custom Tier</p>
+    <h1>🚀 The Promo Builder</h1>
+    <p>AppsForHire Demo — byoAI Campaign Engine</p>
   </div>
-  <div class="header-badge" id="dateDisplay"></div>
+  <div class="header-badge">Full Campaign, 1 Click</div>
 </header>
-
-<div class="tabs">
-  <div class="tab active" onclick="showPanel('inventory', this)">Inventory</div>
-  <div class="tab" onclick="showPanel('log', this)">Daily Log</div>
-</div>
 
 <main>
 
   <div class="demo-banner">
-    🧪 <strong>Demo app.</strong> Data is stored locally on this device. This is what a Custom-tier tracking app looks like — <a href="https://appsforhire.app/#contact" style="color:#92400e;font-weight:700;">get one connected to your real data →</a>
+    🧪 <strong>Demo app.</strong> Tell Claude about your business and your slowest time — it builds a full promotional campaign: SMS, social post, discount strategy, and email subject lines. Ready to send. <a href="https://appsforhire.app/#byo" style="color:#3730a3;font-weight:700;">byoAI →</a>
   </div>
 
-  <!-- ── Inventory Panel ── -->
-  <div id="panel-inventory" class="panel active">
+  <div class="input-card">
+    <h3>📋 Tell Claude About Your Promo</h3>
 
-    <!-- AI Insights Button -->
-    <button class="ai-insights-btn" id="aiInsightsBtn" onclick="getAIInsights()">
-      <span class="ai-btn-icon">🤖</span>
-      <span class="ai-btn-text">
-        <h4>AI Inventory Insights</h4>
-        <p>Let Claude review your stock levels and flag what needs attention</p>
-      </span>
-      <span class="ai-btn-arrow">›</span>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Business type</label>
+        <input id="bizType" type="text" placeholder="e.g. Ghost kitchen, pizza delivery, food truck"/>
+      </div>
+      <div class="form-group">
+        <label>Your slowest time</label>
+        <input id="slowTime" type="text" placeholder="e.g. Tuesday lunch, Sunday 2–5pm"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Promo goal</label>
+        <select id="promoGoal">
+          <option value="drive more orders during slow hours">Drive orders in slow hours</option>
+          <option value="get new customers to try us for the first time">Attract first-time customers</option>
+          <option value="move a specific item that isn't selling well">Move a slow-selling item</option>
+          <option value="boost a weekday that's always quiet">Boost a quiet weekday</option>
+          <option value="fill capacity for a specific upcoming date">Fill capacity for an upcoming date</option>
+          <option value="reward loyal customers and encourage repeat visits">Reward loyal regulars</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Offer idea <span style="font-weight:400;color:var(--gray400)">(optional)</span></label>
+        <input id="offerIdea" type="text" placeholder="e.g. 20% off, free side, BOGO"/>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:0;">
+      <label>Anything else Claude should know</label>
+      <input id="extraNotes" type="text" placeholder="e.g. We specialize in BBQ. Average order is $22. Most customers found us on Instagram."/>
+    </div>
+
+    <button class="generate-btn" id="generateBtn" onclick="generate()">
+      <span>🤖</span> Build My Campaign
     </button>
-
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="num" id="statTotal">0</div>
-        <div class="lbl">Total Items</div>
-      </div>
-      <div class="stat-card">
-        <div class="num" id="statLow" style="color:var(--amber)">0</div>
-        <div class="lbl">Low Stock</div>
-      </div>
-      <div class="stat-card">
-        <div class="num" id="statOut" style="color:var(--coral)">0</div>
-        <div class="lbl">Out of Stock</div>
-      </div>
-    </div>
-
-    <div class="add-form">
-      <h3>Add / Update Item</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Item Name</label>
-          <input id="itemName" type="text" placeholder="e.g. Paper Bags"/>
-        </div>
-        <div class="form-group">
-          <label>Quantity</label>
-          <input id="itemQty" type="number" min="0" placeholder="0"/>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Category</label>
-          <select id="itemCat">
-            <option value="Supplies">Supplies</option>
-            <option value="Food">Food</option>
-            <option value="Beverage">Beverage</option>
-            <option value="Equipment">Equipment</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Low Stock Alert At</label>
-          <input id="itemAlert" type="number" min="0" placeholder="5"/>
-        </div>
-      </div>
-      <button class="submit-btn" onclick="addItem()">Add to Inventory</button>
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Category</th>
-            <th>Qty</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="inventoryTable">
-        </tbody>
-      </table>
-      <div id="inventoryEmpty" class="empty-msg" style="display:none;">
-        No items yet — add your first item above.
-      </div>
-    </div>
   </div>
 
-  <!-- ── Log Panel ── -->
-  <div id="panel-log" class="panel">
-    <div class="add-form">
-      <h3>Add Log Entry</h3>
-      <div class="form-group" style="margin-bottom:.75rem;">
-        <label>Note</label>
-        <input id="logNote" type="text" placeholder="e.g. Received shipment, adjusted stock..."/>
+  <div id="loadingState">
+    <div class="dot-pulse"><span></span><span></span><span></span></div>
+    <p>Claude is building your campaign...</p>
+  </div>
+
+  <div class="error-card" id="errorCard"></div>
+
+  <div class="output-wrap" id="outputWrap">
+
+    <div class="output-section sec-sms">
+      <div class="section-header">
+        <h4>💬 SMS Offer</h4>
+        <button class="copy-btn" onclick="copySection('sms')">Copy</button>
       </div>
-      <button class="submit-btn" onclick="addLog()">Add Entry</button>
+      <div class="section-body" id="out-sms">—</div>
+      <div class="sms-note" id="sms-chars"></div>
     </div>
-    <div id="logList"></div>
-    <div id="logEmpty" class="empty-msg">No log entries yet.</div>
+
+    <div class="output-section sec-social">
+      <div class="section-header">
+        <h4>📸 Social Post <span style="font-size:.72rem;opacity:.8;font-weight:600;">(Instagram / Facebook)</span></h4>
+        <button class="copy-btn" onclick="copySection('social')">Copy</button>
+      </div>
+      <div class="section-body" id="out-social">—</div>
+    </div>
+
+    <div class="output-section sec-strategy">
+      <div class="section-header">
+        <h4>💡 Discount Strategy</h4>
+        <button class="copy-btn" onclick="copySection('strategy')">Copy</button>
+      </div>
+      <div class="section-body" id="out-strategy">—</div>
+    </div>
+
+    <div class="output-section sec-email">
+      <div class="section-header">
+        <h4>✉️ Email Subject Lines</h4>
+        <span style="font-size:.72rem;color:rgba(255,255,255,.7);">Click any to copy</span>
+      </div>
+      <div class="subject-list" id="out-subjects"></div>
+    </div>
+
+  </div>
+
+  <div class="ai-calls-row" id="aiCallsRow">
+    <span id="aiCallsLeft"></span>
+    <a href="https://appsforhire.app/#byo">Your API key = unlimited campaigns →</a>
   </div>
 
 </main>
 
 <script>
   const APP_KEY    = 'demo_runs_app2';
-  const INV_KEY    = 'demo_inventory';
-  const LOG_KEY    = 'demo_log';
   const DEMO_LIMIT = 10;
   const WORKER_URL = 'https://worker.appsforhire.app/ai';
 
@@ -387,221 +334,168 @@
   if (runCount >= 9) badge.classList.add('warning');
   if (runCount > DEMO_LIMIT) document.getElementById('demoOverlay').classList.add('show');
 
-  // ── Date ───────────────────────────────────────────────────────────────────
-  document.getElementById('dateDisplay').textContent =
-    new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-
-  // ── Tabs ───────────────────────────────────────────────────────────────────
-  function showPanel(name, el) {
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('panel-' + name).classList.add('active');
-    el.classList.add('active');
-  }
-
-  // ── Inventory ──────────────────────────────────────────────────────────────
-  function loadInventory() {
-    try { return JSON.parse(localStorage.getItem(INV_KEY)) || []; }
-    catch { return []; }
-  }
-  function saveInventory(items) { localStorage.setItem(INV_KEY, JSON.stringify(items)); }
-
-  function statusBadge(qty, alert) {
-    if (qty === 0)       return '<span class="badge badge-red">Out</span>';
-    if (qty <= alert)    return '<span class="badge badge-amber">Low</span>';
-    return                      '<span class="badge badge-green">OK</span>';
-  }
-
-  function renderInventory() {
-    const items = loadInventory();
-    const tbody = document.getElementById('inventoryTable');
-    const empty = document.getElementById('inventoryEmpty');
-
-    if (items.length === 0) {
-      tbody.innerHTML = '';
-      empty.style.display = '';
-    } else {
-      empty.style.display = 'none';
-      tbody.innerHTML = items.map(item => `
-        <tr>
-          <td><strong>${escapeHTML(item.name)}</strong></td>
-          <td>${escapeHTML(item.cat)}</td>
-          <td>
-            <input type="number" value="${item.qty}" min="0" style="width:60px;padding:.3rem .5rem;border:1.5px solid var(--gray200);border-radius:6px;font-size:.85rem;"
-              onchange="updateQty('${item.id}', this.value)"/>
-          </td>
-          <td>${statusBadge(item.qty, item.alert)}</td>
-          <td><button class="del-btn" onclick="deleteItem('${item.id}')">✕</button></td>
-        </tr>`).join('');
-    }
-
-    // Stats
-    const total = items.length;
-    const low   = items.filter(i => i.qty > 0 && i.qty <= i.alert).length;
-    const out   = items.filter(i => i.qty === 0).length;
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statLow').textContent   = low;
-    document.getElementById('statOut').textContent   = out;
-  }
-
-  function addItem() {
-    const name  = document.getElementById('itemName').value.trim();
-    const qty   = parseInt(document.getElementById('itemQty').value) || 0;
-    const cat   = document.getElementById('itemCat').value;
-    const alert = parseInt(document.getElementById('itemAlert').value) || 5;
-    if (!name) return;
-    const items = loadInventory();
-    items.push({ id: Date.now().toString(), name, qty, cat, alert });
-    saveInventory(items);
-    document.getElementById('itemName').value = '';
-    document.getElementById('itemQty').value  = '';
-    addLog(`Added "${name}" to inventory (qty: ${qty})`);
-    renderInventory();
-  }
-
-  function updateQty(id, val) {
-    const items = loadInventory();
-    const item  = items.find(i => i.id === id);
-    if (item) { item.qty = parseInt(val) || 0; saveInventory(items); }
-    renderInventory();
-  }
-
-  function deleteItem(id) {
-    saveInventory(loadInventory().filter(i => i.id !== id));
-    renderInventory();
-  }
-
-  // ── Log ────────────────────────────────────────────────────────────────────
-  function loadLog() {
-    try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
-    catch { return []; }
-  }
-
-  function addLog(text) {
-    if (typeof text !== 'string') {
-      text = document.getElementById('logNote').value.trim();
-      if (!text) return;
-      document.getElementById('logNote').value = '';
-    }
-    const log = loadLog();
-    log.unshift({ id: Date.now().toString(), text, time: new Date().toLocaleString() });
-    localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, 50)));
-    renderLog();
-  }
-
-  function renderLog() {
-    const log = loadLog();
-    const list = document.getElementById('logList');
-    const empty = document.getElementById('logEmpty');
-    if (log.length === 0) {
-      list.innerHTML = ''; empty.style.display = '';
-    } else {
-      empty.style.display = 'none';
-      list.innerHTML = log.map(e => `
-        <div class="log-entry">
-          <div class="log-time">${e.time}</div>
-          <div class="log-text">${escapeHTML(e.text)}</div>
-        </div>`).join('');
-    }
-  }
-
-  // ── AI Inventory Insights ─────────────────────────────────────────────────
-  async function getAIInsights() {
-    const items  = loadInventory();
-    const modal  = document.getElementById('aiModal');
-    const content = document.getElementById('aiContent');
-    const btn    = document.getElementById('aiInsightsBtn');
-
-    content.className = 'loading';
-    content.textContent = 'Analyzing your inventory...';
-    document.getElementById('aiCallsLeft').textContent = '';
-    modal.classList.add('show');
-    btn.disabled = true;
-
-    const today = new Date().toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric'
+  // ── Parse output ────────────────────────────────────────────────────────────
+  function parseOutput(text) {
+    const keys = ['SMS', 'SOCIAL', 'STRATEGY', 'EMAIL_SUBJECTS'];
+    const out  = {};
+    keys.forEach(k => {
+      const re = new RegExp(`\\[${k}\\]\\s*([\\s\\S]*?)(?=\\[[A-Z_]+\\]|$)`, 'i');
+      const m  = text.match(re);
+      if (m) out[k.toLowerCase()] = m[1].trim();
     });
+    return out;
+  }
 
-    let inventorySummary;
-    if (items.length === 0) {
-      inventorySummary = 'No inventory items have been added yet.';
-    } else {
-      const outOfStock = items.filter(i => i.qty === 0);
-      const lowStock   = items.filter(i => i.qty > 0 && i.qty <= i.alert);
-      const healthy    = items.filter(i => i.qty > i.alert);
+  function parseSubjects(text) {
+    if (!text) return [];
+    return text.split('\n')
+      .map(l => l.replace(/^\d+[\.\)]\s*/, '').trim())
+      .filter(Boolean)
+      .slice(0, 4);
+  }
 
-      inventorySummary = items.map(i => {
-        const status = i.qty === 0 ? 'OUT OF STOCK' : (i.qty <= i.alert ? `LOW (${i.qty}, alert threshold: ${i.alert})` : `OK (qty: ${i.qty})`);
-        return `- ${i.name} [${i.cat}]: ${status}`;
-      }).join('\n');
+  // ── Generate ─────────────────────────────────────────────────────────────────
+  async function generate() {
+    const biz    = document.getElementById('bizType').value.trim();
+    const slow   = document.getElementById('slowTime').value.trim();
+    const goal   = document.getElementById('promoGoal').value;
+    const offer  = document.getElementById('offerIdea').value.trim();
+    const extra  = document.getElementById('extraNotes').value.trim();
 
-      inventorySummary += `\n\nSummary: ${outOfStock.length} out of stock, ${lowStock.length} low stock, ${healthy.length} healthy.`;
+    if (!biz && !slow) {
+      alert('Fill in your business type and slowest time to get started.');
+      return;
     }
 
-    const userMessage = `Today is ${today}. Here is my current inventory:\n\n${inventorySummary}\n\nPlease give me a concise inventory briefing. Flag anything urgent (out of stock or critically low), suggest reorder priorities, and note any patterns you see. Be direct and practical. Under 150 words.`;
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> Building...';
+
+    document.getElementById('loadingState').classList.add('show');
+    document.getElementById('outputWrap').classList.remove('show');
+    document.getElementById('errorCard').classList.remove('show');
+    document.getElementById('aiCallsRow').classList.remove('show');
+
+    const context = [
+      biz   && `Business: ${biz}`,
+      slow  && `Slowest time: ${slow}`,
+      `Goal: ${goal}`,
+      offer && `Offer idea (can adapt): ${offer}`,
+      extra && `Additional context: ${extra}`,
+    ].filter(Boolean).join('\n');
+
+    const prompt = `You are a marketing strategist who specializes in small food businesses. Build a complete promotional campaign using the info below.
+
+${context}
+
+Format your ENTIRE response EXACTLY like this — no extra text before or after:
+
+[SMS]
+An SMS offer. Under 155 characters. Include a specific discount or hook, a clear call to action, and urgency. No hashtags.
+
+[SOCIAL]
+An Instagram/Facebook post. 3–4 sentences. Specific about the offer, sounds human and genuine. End with 4–6 relevant hashtags. Include an emoji or two.
+
+[STRATEGY]
+2–3 sentences recommending a specific discount structure (e.g. exact % off, dollar amount, BOGO mechanics) and WHY it works for this specific situation. Be concrete and practical — give a real number.
+
+[EMAIL_SUBJECTS]
+4 email subject line options, one per line, numbered. Mix approaches: urgency, curiosity, straightforward offer, personalization. Each under 55 characters.`;
 
     try {
-      const res = await fetch(WORKER_URL, {
+      const res  = await fetch(WORKER_URL, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
           model:   'claude',
-          system:  'You are a practical operations advisor for a small business. You review inventory data and give clear, actionable guidance. Be direct and specific — no filler.',
-          message: userMessage,
+          system:  'You are a practical marketing strategist for small food businesses. Be specific, direct, and genuinely useful. Follow the format exactly.',
+          message: prompt,
         }),
       });
 
       const data = await res.json();
+      document.getElementById('loadingState').classList.remove('show');
 
       if (res.status === 429) {
-        content.className = '';
-        content.textContent = '⚡ You\'ve used your 10 free AI calls for this demo. A real app built for your business would use your own Claude API key — unlimited calls, your cost, your control.';
-        document.getElementById('aiCallsLeft').textContent = '0 demo calls remaining';
+        const err = document.getElementById('errorCard');
+        err.classList.add('show');
+        err.textContent = '⚡ You\'ve used your 10 free AI demo calls. A real app uses your own Claude API key — build unlimited campaigns.';
       } else if (!res.ok) {
-        content.className = '';
-        content.textContent = 'Could not reach the AI right now. Try again in a moment.';
+        const err = document.getElementById('errorCard');
+        err.classList.add('show');
+        err.textContent = 'Could not reach the AI right now. Try again in a moment.';
       } else {
-        content.className = '';
-        content.textContent = data.response || 'No response received.';
-        const remaining = data.calls_remaining ?? '';
+        const raw      = data.response || '';
+        const sections = parseOutput(raw);
+
+        // SMS
+        const smsText = sections.sms || '';
+        document.getElementById('out-sms').textContent = smsText;
+        document.getElementById('sms-chars').textContent = smsText
+          ? `${smsText.length} chars ${smsText.length <= 160 ? '✓ fits one SMS' : '⚠ over 160 — may split'}`
+          : '';
+
+        // Social
+        document.getElementById('out-social').textContent = sections.social || '';
+
+        // Strategy
+        document.getElementById('out-strategy').textContent = sections.strategy || '';
+
+        // Email subjects
+        const subjects = parseSubjects(sections.email_subjects || '');
+        const subjList = document.getElementById('out-subjects');
+        if (subjects.length) {
+          subjList.innerHTML = subjects.map(s => `
+            <div class="subject-chip" onclick="copySubject(this, '${s.replace(/'/g,"\\'")}')">
+              <span style="color:var(--gray900)">${escapeHTML(s)}</span>
+              <span>Copy</span>
+            </div>`).join('');
+        } else {
+          subjList.innerHTML = `<div style="padding:.5rem;font-size:.88rem;color:var(--gray400)">—</div>`;
+        }
+
+        document.getElementById('outputWrap').classList.add('show');
+
+        const rem = data.calls_remaining ?? '';
         document.getElementById('aiCallsLeft').textContent =
-          remaining !== '' ? `${remaining} demo AI call${remaining === 1 ? '' : 's'} remaining` : '';
+          rem !== '' ? `${rem} demo AI call${rem === 1 ? '' : 's'} remaining` : '';
+        document.getElementById('aiCallsRow').classList.add('show');
       }
+
     } catch (err) {
-      content.className = '';
-      content.textContent = 'Network error — make sure you\'re online and try again.';
+      document.getElementById('loadingState').classList.remove('show');
+      const errCard = document.getElementById('errorCard');
+      errCard.classList.add('show');
+      errCard.textContent = 'Network error — check your connection and try again.';
     }
 
     btn.disabled = false;
+    btn.innerHTML = '<span>🤖</span> Build My Campaign';
   }
 
-  function closeAI() {
-    document.getElementById('aiModal').classList.remove('show');
+  // ── Copy helpers ─────────────────────────────────────────────────────────────
+  function copySection(id) {
+    const text = document.getElementById(`out-${id}`)?.textContent;
+    if (!text || text === '—') return;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = orig, 1800);
+    });
   }
 
-  document.getElementById('aiModal').addEventListener('click', function(e) {
-    if (e.target === this) closeAI();
-  });
+  function copySubject(chip, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = chip.querySelector('span:last-child').textContent;
+      chip.querySelector('span:last-child').textContent = '✓ Copied!';
+      setTimeout(() => chip.querySelector('span:last-child').textContent = orig, 1800);
+    });
+  }
 
   function escapeHTML(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
-
-  // ── Seed demo data ─────────────────────────────────────────────────────────
-  if (loadInventory().length === 0) {
-    const seed = [
-      { id:'1', name:'Paper Bags (sm)', qty: 48, cat:'Supplies', alert: 10 },
-      { id:'2', name:'Paper Bags (lg)', qty:  3, cat:'Supplies', alert: 10 },
-      { id:'3', name:'Coffee Cups',     qty:  0, cat:'Supplies', alert: 20 },
-      { id:'4', name:'Napkins',         qty: 200, cat:'Supplies', alert: 50 },
-      { id:'5', name:'Whole Milk (qt)', qty:  8, cat:'Food',     alert:  5 },
-    ];
-    saveInventory(seed);
-    addLog('Demo data loaded — edit quantities or add your own items');
-  }
-
-  renderInventory();
-  renderLog();
 </script>
 </body>
 </html>

@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Daily Checklist — AppsForHire Demo</title>
-  <meta name="theme-color" content="#0d9488"/>
+  <title>The Special Board — AppsForHire Demo</title>
+  <meta name="theme-color" content="#ea580c"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --brand: #0d9488; --brand-dark: #0f766e;
-      --navy: #1a1f36; --sky: #0ea5e9;
-      --amber: #f59e0b; --mint: #10b981;
-      --purple: #7c3aed;
+      --brand: #ea580c; --brand-dark: #c2410c; --brand-light: #fb923c;
+      --sky: #0ea5e9; --mint: #10b981; --amber: #f59e0b;
       --gray50: #f8fafc; --gray100: #f1f5f9; --gray200: #e2e8f0;
       --gray400: #94a3b8; --gray600: #475569; --gray700: #334155; --gray900: #0f172a;
       --white: #ffffff;
@@ -23,19 +23,16 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Demo Overlay (shown after 10 runs) ── */
+    /* ── Demo Overlay ── */
     #demoOverlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 9999;
+      display: none; position: fixed; inset: 0; z-index: 9999;
       background: rgba(15,23,42,.92);
-      align-items: center; justify-content: center;
-      padding: 1.5rem;
+      align-items: center; justify-content: center; padding: 1.5rem;
     }
     #demoOverlay.show { display: flex; }
     .overlay-card {
       background: var(--white); border-radius: 20px;
-      padding: 2.5rem; max-width: 420px; width: 100%;
-      text-align: center;
+      padding: 2.5rem; max-width: 420px; width: 100%; text-align: center;
     }
     .overlay-icon { font-size: 3rem; margin-bottom: 1rem; }
     .overlay-card h2 { font-size: 1.5rem; font-weight: 800; color: var(--gray900); margin-bottom: .6rem; }
@@ -45,497 +42,450 @@
       background: var(--sky); color: var(--white);
       padding: .9rem 1.75rem; border-radius: 12px;
       font-weight: 700; font-size: 1rem; text-decoration: none;
-      margin-bottom: .85rem;
     }
-    .overlay-back {
-      display: block; font-size: .82rem; color: var(--gray400);
-      text-decoration: none; margin-top: .5rem;
-    }
-    .overlay-back:hover { color: var(--gray700); }
+    .overlay-back { display: block; font-size: .82rem; color: var(--gray400); text-decoration: none; margin-top: 1rem; }
 
-    /* ── AI Modal ── */
-    #aiModal {
-      display: none; position: fixed; inset: 0; z-index: 500;
-      background: rgba(15,23,42,.7);
-      align-items: flex-end; justify-content: center;
-      padding: 1rem;
-    }
-    #aiModal.show { display: flex; }
-    @media(min-width: 560px) { #aiModal { align-items: center; } }
-    .ai-modal-card {
-      background: var(--white); border-radius: 20px;
-      padding: 1.75rem; max-width: 520px; width: 100%;
-      max-height: 80vh; overflow-y: auto;
-    }
-    .ai-modal-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 1.25rem;
-    }
-    .ai-modal-header h3 {
-      font-size: 1rem; font-weight: 800; color: var(--gray900);
-      display: flex; align-items: center; gap: .5rem;
-    }
-    .ai-close {
-      background: var(--gray100); border: none; cursor: pointer;
-      width: 28px; height: 28px; border-radius: 50%;
-      font-size: .9rem; color: var(--gray600);
-      display: flex; align-items: center; justify-content: center;
-    }
-    #aiContent {
-      font-size: .92rem; line-height: 1.75; color: var(--gray700);
-      white-space: pre-wrap;
-    }
-    #aiContent.loading { color: var(--gray400); font-style: italic; }
-    .ai-footer {
-      margin-top: 1.25rem; padding-top: 1rem;
-      border-top: 1px solid var(--gray100);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .ai-calls-left { font-size: .78rem; color: var(--gray400); }
-    .ai-cta-link {
-      font-size: .78rem; font-weight: 700; color: var(--sky);
-      text-decoration: none;
-    }
-
-    /* ── Run Counter Badge ── */
+    /* ── Run Badge ── */
     #runBadge {
       position: fixed; top: 4.5rem; right: 1rem; z-index: 100;
-      background: rgba(245,158,11,.15);
-      border: 1px solid rgba(245,158,11,.4);
-      color: var(--amber);
-      padding: .3rem .75rem; border-radius: 100px;
+      background: rgba(245,158,11,.15); border: 1px solid rgba(245,158,11,.4);
+      color: var(--amber); padding: .3rem .75rem; border-radius: 100px;
       font-size: .72rem; font-weight: 700; letter-spacing: .04em;
     }
     #runBadge.warning { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.4); color: #ef4444; }
 
     /* ── Header ── */
     header {
-      background: var(--brand);
+      background: linear-gradient(135deg, var(--brand-dark), var(--brand-light));
       padding: 1rem 1.25rem;
       display: flex; align-items: center; justify-content: space-between;
       position: sticky; top: 0; z-index: 50;
     }
-    .header-left { display: flex; align-items: center; gap: .75rem; }
-    .header-left h1 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
-    .header-left p { font-size: .78rem; color: rgba(255,255,255,.7); }
-    .date-badge {
+    header h1 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+    header p  { font-size: .78rem; color: rgba(255,255,255,.75); }
+    .header-badge {
       background: rgba(255,255,255,.15); color: var(--white);
-      padding: .3rem .75rem; border-radius: 8px;
-      font-size: .8rem; font-weight: 600;
+      padding: .3rem .75rem; border-radius: 8px; font-size: .8rem; font-weight: 600;
+      white-space: nowrap;
     }
 
     /* ── Main ── */
-    main { max-width: 560px; margin: 0 auto; padding: 1.5rem 1rem 5rem; }
+    main { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
 
-    .progress-bar {
-      background: var(--gray200); border-radius: 100px; height: 6px;
-      margin-bottom: 1.5rem; overflow: hidden;
-    }
-    .progress-fill {
-      background: linear-gradient(90deg, var(--brand), var(--mint));
-      height: 100%; border-radius: 100px;
-      transition: width .4s ease;
-    }
-    .progress-label {
-      display: flex; justify-content: space-between;
-      font-size: .8rem; color: var(--gray600); margin-bottom: .5rem;
-    }
-
-    /* ── AI Briefing Button ── */
-    .ai-briefing-btn {
-      display: flex; align-items: center; gap: .75rem;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      color: var(--white); border: none; width: 100%;
-      padding: .9rem 1.25rem; border-radius: 12px;
-      cursor: pointer; margin-bottom: 1.5rem;
-      text-align: left; font-family: inherit;
-      transition: opacity .2s, transform .1s;
-    }
-    .ai-briefing-btn:hover { opacity: .92; }
-    .ai-briefing-btn:active { transform: scale(.99); }
-    .ai-btn-icon { font-size: 1.5rem; flex-shrink: 0; }
-    .ai-btn-text h4 { font-size: .9rem; font-weight: 800; }
-    .ai-btn-text p { font-size: .75rem; opacity: .8; margin-top: .1rem; }
-    .ai-btn-arrow { margin-left: auto; font-size: 1.1rem; opacity: .7; }
-    .ai-briefing-btn:disabled { opacity: .6; cursor: not-allowed; }
-
-    /* ── Add Item ── */
-    .add-form {
-      display: flex; gap: .6rem; margin-bottom: 1.5rem;
-    }
-    .add-input {
-      flex: 1; padding: .75rem 1rem;
-      border: 1.5px solid var(--gray200); border-radius: 10px;
-      font-size: .95rem; color: var(--gray900);
-      background: var(--white); outline: none;
-      font-family: inherit;
-      transition: border-color .2s;
-    }
-    .add-input:focus { border-color: var(--brand); }
-    .add-btn {
-      background: var(--brand); color: var(--white);
-      border: none; padding: .75rem 1.1rem;
-      border-radius: 10px; font-size: 1.2rem;
-      cursor: pointer; font-weight: 700;
-      transition: background .2s;
-    }
-    .add-btn:hover { background: var(--brand-dark); }
-
-    /* ── Checklist ── */
-    .section-label {
-      font-size: .75rem; font-weight: 700; color: var(--gray400);
-      letter-spacing: .06em; text-transform: uppercase;
-      margin-bottom: .75rem;
-    }
-    .checklist { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 2rem; }
-    .check-item {
-      display: flex; align-items: center; gap: .85rem;
-      background: var(--white); border: 1.5px solid var(--gray200);
-      border-radius: 12px; padding: .9rem 1rem;
-      transition: border-color .15s, background .15s;
-      cursor: pointer; user-select: none;
-    }
-    .check-item.done {
-      background: #f0fdf4; border-color: #bbf7d0;
-    }
-    .check-item input[type="checkbox"] { display: none; }
-    .check-box {
-      width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
-      border: 2px solid var(--gray200);
-      display: flex; align-items: center; justify-content: center;
-      transition: background .15s, border-color .15s;
-    }
-    .check-item.done .check-box {
-      background: var(--mint); border-color: var(--mint); color: var(--white);
-    }
-    .check-text {
-      flex: 1; font-size: .95rem; color: var(--gray900);
-      transition: color .15s;
-    }
-    .check-item.done .check-text {
-      color: var(--gray400); text-decoration: line-through;
-    }
-    .delete-btn {
-      background: none; border: none; cursor: pointer;
-      color: var(--gray400); font-size: 1rem; padding: .2rem;
-      opacity: 0; transition: opacity .15s, color .15s;
-    }
-    .check-item:hover .delete-btn { opacity: 1; }
-    .delete-btn:hover { color: #ef4444; }
-
-    /* ── Reset Bar ── */
-    .reset-bar {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--white); border-top: 1px solid var(--gray200);
-      padding: 1rem 1.5rem;
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 1rem;
-    }
-    .reset-bar span { font-size: .85rem; color: var(--gray600); }
-    .reset-btn {
-      background: var(--gray100); color: var(--gray700); border: none;
-      padding: .6rem 1.2rem; border-radius: 8px; cursor: pointer;
-      font-weight: 700; font-size: .85rem;
-      transition: background .2s;
-    }
-    .reset-btn:hover { background: var(--gray200); }
-
-    /* ── Demo Banner ── */
     .demo-banner {
-      background: #fffbeb; border: 1px solid #fcd34d;
+      background: #fff7ed; border: 1px solid #fed7aa;
       border-radius: 10px; padding: .75rem 1rem;
-      font-size: .82rem; color: #92400e; margin-bottom: 1.5rem;
-      display: flex; gap: .5rem; align-items: flex-start;
+      font-size: .82rem; color: #9a3412; margin-bottom: 1.5rem;
     }
+
+    /* ── Input Card ── */
+    .input-card {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;
+    }
+    .input-card h3 {
+      font-size: .95rem; font-weight: 800; color: var(--gray900);
+      margin-bottom: 1.1rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .form-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; margin-bottom: .85rem;
+    }
+    @media(max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: .3rem; }
+    label { font-size: .78rem; font-weight: 700; color: var(--gray700); }
+    input, select, textarea {
+      padding: .7rem .9rem; border: 1.5px solid var(--gray200);
+      border-radius: 10px; font-size: .9rem; color: var(--gray900);
+      background: var(--white); outline: none; font-family: inherit;
+      transition: border-color .2s; resize: vertical;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--brand); }
+    .desc-area { min-height: 90px; width: 100%; }
+    .char-hint { font-size: .72rem; color: var(--gray400); text-align: right; margin-top: .2rem; }
+
+    .generate-btn {
+      width: 100%; margin-top: 1rem;
+      background: linear-gradient(135deg, var(--brand-dark), var(--brand-light));
+      color: var(--white); border: none;
+      padding: .9rem; border-radius: 12px;
+      font-size: 1rem; font-weight: 800; cursor: pointer; font-family: inherit;
+      transition: opacity .2s; display: flex; align-items: center; justify-content: center; gap: .6rem;
+    }
+    .generate-btn:hover { opacity: .92; }
+    .generate-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Output Cards Grid ── */
+    .output-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1rem; margin-bottom: 1.5rem; display: none;
+    }
+    .output-grid.show { display: grid; }
+    @media(max-width: 520px) { .output-grid { grid-template-columns: 1fr; } }
+
+    .output-card {
+      border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--gray200);
+    }
+    .output-card-header {
+      padding: .65rem 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .output-card-header h4 {
+      font-size: .78rem; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; display: flex; align-items: center; gap: .4rem;
+    }
+    .copy-btn {
+      background: rgba(255,255,255,.2); border: none; cursor: pointer;
+      padding: .2rem .6rem; border-radius: 6px;
+      font-size: .72rem; font-weight: 700; color: inherit;
+      transition: background .15s; white-space: nowrap;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.35); }
+    .output-card-body {
+      padding: 1rem; background: var(--white);
+      font-size: .88rem; line-height: 1.7; color: var(--gray700);
+      min-height: 80px; white-space: pre-wrap;
+    }
+
+    /* Platform colors */
+    .card-instagram .output-card-header { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); color: var(--white); }
+    .card-sms .output-card-header       { background: #0ea5e9; color: var(--white); }
+    .card-google .output-card-header    { background: #1a73e8; color: var(--white); }
+    .card-chalkboard .output-card-header { background: #1c2b1a; color: #d4f5c6; }
+
+    /* Chalkboard style body */
+    .card-chalkboard .output-card-body {
+      background: #1c2b1a; color: #e8f5e4;
+      font-family: 'Caveat', cursive; font-size: 1.05rem;
+      letter-spacing: .01em; line-height: 1.65;
+    }
+
+    /* SMS char counter */
+    .sms-footer {
+      padding: .4rem 1rem;
+      background: #f0f9ff;
+      border-top: 1px solid #e0f2fe;
+      font-size: .72rem; color: #0369a1; font-weight: 600;
+    }
+
+    /* ── Loading state ── */
+    #loadingState {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 16px; padding: 2.5rem;
+      text-align: center; margin-bottom: 1.5rem; display: none;
+    }
+    #loadingState.show { display: block; }
+    .dot-pulse { display: flex; gap: .4rem; justify-content: center; margin-bottom: 1rem; }
+    .dot-pulse span {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--brand); animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot-pulse span:nth-child(2) { animation-delay: .2s; }
+    .dot-pulse span:nth-child(3) { animation-delay: .4s; }
+    @keyframes pulse { 0%,100% { opacity:.3; transform: scale(.8); } 50% { opacity:1; transform: scale(1); } }
+    #loadingState p { font-size: .9rem; color: var(--gray600); }
+
+    /* ── AI footer ── */
+    .ai-calls-row {
+      display: none; justify-content: space-between; align-items: center;
+      font-size: .78rem; color: var(--gray400); margin-top: -.5rem; margin-bottom: 1.5rem;
+    }
+    .ai-calls-row.show { display: flex; }
+    .ai-calls-row a { color: var(--sky); font-weight: 700; text-decoration: none; }
+
+    /* ── Error ── */
+    .error-card {
+      background: #fff7ed; border: 1px solid #fed7aa;
+      border-radius: 14px; padding: 1.25rem;
+      font-size: .9rem; color: #9a3412; display: none;
+    }
+    .error-card.show { display: block; }
   </style>
 </head>
 <body>
 
-<!-- Demo expired overlay -->
 <div id="demoOverlay">
   <div class="overlay-card">
-    <div class="overlay-icon">🎯</div>
-    <h2>You've seen what we can do.</h2>
-    <p>You've hit your 10-run demo limit for this app — which means you've had a proper look at what an AppsForHire Starter app can do. Ready for one built around your actual business?</p>
-    <a class="overlay-cta" href="https://appsforhire.app/#contact">Let's Build Yours →</a>
+    <div class="overlay-icon">🍽️</div>
+    <h2>You've cooked up your limit.</h2>
+    <p>You've used all 10 demo runs. A real app built for your business would use your own Claude API key — unlimited specials, your cost, full control over the prompts and output format.</p>
+    <a class="overlay-cta" href="https://appsforhire.app/#contact">Build Mine →</a>
     <a class="overlay-back" href="../">← Back to Demo Home</a>
   </div>
 </div>
 
-<!-- AI Briefing Modal -->
-<div id="aiModal">
-  <div class="ai-modal-card">
-    <div class="ai-modal-header">
-      <h3>🤖 AI Daily Briefing</h3>
-      <button class="ai-close" onclick="closeAI()">✕</button>
-    </div>
-    <div id="aiContent" class="loading">Asking Claude about your day...</div>
-    <div class="ai-footer">
-      <span class="ai-calls-left" id="aiCallsLeft"></span>
-      <a class="ai-cta-link" href="https://appsforhire.app/#byo">Your API key, your rules →</a>
-    </div>
-  </div>
-</div>
-
-<!-- Run counter badge -->
 <div id="runBadge">Demo: — / 10 runs</div>
 
 <header>
-  <div class="header-left">
-    <div>
-      <h1>📋 The Daily Checklist</h1>
-      <p>AppsForHire Demo App — Starter Tier</p>
-    </div>
+  <div>
+    <h1>🍽️ The Special Board</h1>
+    <p>AppsForHire Demo — byoAI Marketing Engine</p>
   </div>
-  <div class="date-badge" id="dateDisplay"></div>
+  <div class="header-badge">4 Formats, 1 Click</div>
 </header>
 
 <main>
 
   <div class="demo-banner">
-    🧪 <span>This is a live demo app. Your data is saved locally on this device. This is exactly how a real Starter-tier app looks and works — <a href="https://appsforhire.app/#contact" style="color:#92400e;font-weight:700;">get one built for your business →</a></span>
+    🧪 <strong>Demo app.</strong> Describe today's special — Claude writes your Instagram caption, SMS blast, Google post, and chalkboard copy. In a real app, this'd be your daily 30-second marketing workflow. <a href="https://appsforhire.app/#byo" style="color:#9a3412;font-weight:700;">byoAI →</a>
   </div>
 
-  <!-- AI Briefing Button -->
-  <button class="ai-briefing-btn" id="aiBriefingBtn" onclick="getAIBriefing()">
-    <span class="ai-btn-icon">🤖</span>
-    <span class="ai-btn-text">
-      <h4>AI Daily Briefing</h4>
-      <p>Let Claude review your list and give you a smart start to the day</p>
-    </span>
-    <span class="ai-btn-arrow">›</span>
-  </button>
+  <div class="input-card">
+    <h3>✍️ Tell Claude About Your Special</h3>
 
-  <div class="progress-label">
-    <span id="progressText">0 of 0 complete</span>
-    <span id="progressPct">—</span>
-  </div>
-  <div class="progress-bar">
-    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Dish Name</label>
+        <input id="dishName" type="text" placeholder="e.g. Crispy Duck Tacos"/>
+      </div>
+      <div class="form-group">
+        <label>Price <span style="font-weight:400;color:var(--gray400)">(optional)</span></label>
+        <input id="dishPrice" type="text" placeholder="e.g. $14 · 2 for $24"/>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:.85rem;">
+      <label>Describe the dish — the more you say, the better the copy</label>
+      <textarea class="desc-area" id="dishDesc"
+        placeholder="e.g. Slow-braised duck, crispy skin, house-made pickled slaw, chipotle crema, flour tortillas. Small batch — only 20 orders tonight. Goes great with a margarita."
+        oninput="updateCharCount(this, 'descCount', 300)"></textarea>
+      <div class="char-hint"><span id="descCount">0</span> / 300</div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Business vibe</label>
+        <select id="bizVibe">
+          <option value="casual and fun">Casual &amp; fun</option>
+          <option value="warm and neighborhood-y">Warm &amp; neighborhood-y</option>
+          <option value="upscale and refined">Upscale &amp; refined</option>
+          <option value="bold and no-nonsense">Bold &amp; no-nonsense</option>
+          <option value="quirky and playful">Quirky &amp; playful</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Availability</label>
+        <select id="dishAvail">
+          <option value="tonight only">Tonight only</option>
+          <option value="this weekend only">This weekend only</option>
+          <option value="limited quantity">Limited quantity</option>
+          <option value="while supplies last">While supplies last</option>
+          <option value="ongoing special">Ongoing special</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="generateBtn" onclick="generate()">
+      <span>🤖</span> Write My Marketing Copy
+    </button>
   </div>
 
-  <div class="add-form">
-    <input class="add-input" id="newTask" type="text" placeholder="Add a task to today's checklist..." />
-    <button class="add-btn" onclick="addTask()">+</button>
+  <div id="loadingState">
+    <div class="dot-pulse"><span></span><span></span><span></span></div>
+    <p id="loadingMsg">Claude is writing your copy...</p>
   </div>
 
-  <div id="pendingSection">
-    <div class="section-label">To Do</div>
-    <div class="checklist" id="pendingList"></div>
+  <div class="error-card" id="errorCard"></div>
+
+  <div class="output-grid" id="outputGrid">
+
+    <div class="output-card card-instagram">
+      <div class="output-card-header">
+        <h4>📸 Instagram</h4>
+        <button class="copy-btn" onclick="copyCard('instagram')">Copy</button>
+      </div>
+      <div class="output-card-body" id="out-instagram">—</div>
+    </div>
+
+    <div class="output-card card-sms">
+      <div class="output-card-header">
+        <h4>💬 SMS Blast</h4>
+        <button class="copy-btn" onclick="copyCard('sms')">Copy</button>
+      </div>
+      <div class="output-card-body" id="out-sms">—</div>
+      <div class="sms-footer" id="sms-count"></div>
+    </div>
+
+    <div class="output-card card-google">
+      <div class="output-card-header">
+        <h4>🔍 Google Post</h4>
+        <button class="copy-btn" onclick="copyCard('google')">Copy</button>
+      </div>
+      <div class="output-card-body" id="out-google">—</div>
+    </div>
+
+    <div class="output-card card-chalkboard">
+      <div class="output-card-header">
+        <h4>🖊️ Chalkboard</h4>
+        <button class="copy-btn" onclick="copyCard('chalkboard')">Copy</button>
+      </div>
+      <div class="output-card-body" id="out-chalkboard">—</div>
+    </div>
+
   </div>
 
-  <div id="doneSection" style="display:none;">
-    <div class="section-label">Done ✓</div>
-    <div class="checklist" id="doneList"></div>
-  </div>
-
-  <div id="emptyState" style="text-align:center;padding:3rem 1rem;color:var(--gray400);">
-    <div style="font-size:2.5rem;margin-bottom:.75rem;">✅</div>
-    <p style="font-size:.95rem;">All clear! Add your first task above.</p>
+  <div class="ai-calls-row" id="aiCallsRow">
+    <span id="aiCallsLeft"></span>
+    <a href="https://appsforhire.app/#byo">Your API key = no limits →</a>
   </div>
 
 </main>
 
-<div class="reset-bar">
-  <span id="resetLabel">Ready for a new shift?</span>
-  <button class="reset-btn" onclick="resetDay()">Reset for Today →</button>
-</div>
-
 <script>
   const APP_KEY    = 'demo_runs_app1';
-  const TASKS_KEY  = 'demo_tasks_app1';
   const DEMO_LIMIT = 10;
   const WORKER_URL = 'https://worker.appsforhire.app/ai';
 
-  // ── Run counter ────────────────────────────────────────────────────────────
+  // ── Run counter ─────────────────────────────────────────────────────────────
   let runCount = parseInt(localStorage.getItem(APP_KEY) || '0') + 1;
   localStorage.setItem(APP_KEY, runCount);
-
   const badge = document.getElementById('runBadge');
   badge.textContent = `Demo: ${runCount} / 10 runs`;
   if (runCount >= 9) badge.classList.add('warning');
+  if (runCount > DEMO_LIMIT) document.getElementById('demoOverlay').classList.add('show');
 
-  if (runCount > DEMO_LIMIT) {
-    document.getElementById('demoOverlay').classList.add('show');
+  // ── Char counter ────────────────────────────────────────────────────────────
+  function updateCharCount(el, countId, max) {
+    const n = el.value.length;
+    const span = document.getElementById(countId);
+    span.textContent = n;
+    span.style.color = n > max ? '#ef4444' : '';
   }
 
-  // ── Date display ───────────────────────────────────────────────────────────
-  const dateOpts = { weekday: 'short', month: 'short', day: 'numeric' };
-  document.getElementById('dateDisplay').textContent =
-    new Date().toLocaleDateString('en-US', dateOpts);
-
-  // ── Task management ────────────────────────────────────────────────────────
-  function loadTasks() {
-    try { return JSON.parse(localStorage.getItem(TASKS_KEY)) || []; }
-    catch { return []; }
-  }
-
-  function saveTasks(tasks) {
-    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
-  }
-
-  function render() {
-    const tasks   = loadTasks();
-    const pending = tasks.filter(t => !t.done);
-    const done    = tasks.filter(t => t.done);
-
-    document.getElementById('pendingList').innerHTML = pending.map(t => taskHTML(t)).join('');
-    document.getElementById('doneList').innerHTML    = done.map(t => taskHTML(t)).join('');
-
-    document.getElementById('pendingSection').style.display = pending.length ? '' : 'none';
-    document.getElementById('doneSection').style.display    = done.length   ? '' : 'none';
-    document.getElementById('emptyState').style.display     = tasks.length  ? 'none' : '';
-
-    const pct = tasks.length ? Math.round((done.length / tasks.length) * 100) : 0;
-    document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('progressText').textContent  = `${done.length} of ${tasks.length} complete`;
-    document.getElementById('progressPct').textContent   = tasks.length ? pct + '%' : '—';
-
-    const allDone = tasks.length > 0 && done.length === tasks.length;
-    document.getElementById('resetLabel').textContent = allDone
-      ? '🎉 All done! Ready for a new shift?'
-      : 'Ready for a new shift?';
-  }
-
-  function taskHTML(task) {
-    const checkmark = task.done ? '✓' : '';
-    return `
-      <div class="check-item ${task.done ? 'done' : ''}" onclick="toggleTask('${task.id}')">
-        <div class="check-box">${checkmark}</div>
-        <span class="check-text">${escapeHTML(task.text)}</span>
-        <button class="delete-btn" onclick="event.stopPropagation();deleteTask('${task.id}')">✕</button>
-      </div>`;
-  }
-
-  function escapeHTML(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function addTask() {
-    const input = document.getElementById('newTask');
-    const text  = input.value.trim();
-    if (!text) return;
-    const tasks = loadTasks();
-    tasks.push({ id: Date.now().toString(), text, done: false });
-    saveTasks(tasks);
-    input.value = '';
-    render();
-  }
-
-  function toggleTask(id) {
-    const tasks = loadTasks();
-    const t = tasks.find(t => t.id === id);
-    if (t) t.done = !t.done;
-    saveTasks(tasks);
-    render();
-  }
-
-  function deleteTask(id) {
-    saveTasks(loadTasks().filter(t => t.id !== id));
-    render();
-  }
-
-  function resetDay() {
-    if (loadTasks().length === 0) return;
-    if (confirm('Reset checklist? This will uncheck everything for a fresh start.')) {
-      const tasks = loadTasks().map(t => ({ ...t, done: false }));
-      saveTasks(tasks);
-      render();
-    }
-  }
-
-  // ── AI Briefing ────────────────────────────────────────────────────────────
-  async function getAIBriefing() {
-    const tasks   = loadTasks();
-    const pending = tasks.filter(t => !t.done);
-    const done    = tasks.filter(t => t.done);
-
-    const modal   = document.getElementById('aiModal');
-    const content = document.getElementById('aiContent');
-    const btn     = document.getElementById('aiBriefingBtn');
-
-    // Show modal in loading state
-    content.className = 'loading';
-    content.textContent = 'Asking Claude about your day...';
-    document.getElementById('aiCallsLeft').textContent = '';
-    modal.classList.add('show');
-    btn.disabled = true;
-
-    const today = new Date().toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric'
+  // ── Parse Claude's structured output ────────────────────────────────────────
+  function parseOutput(text) {
+    const sections = {};
+    const keys = ['INSTAGRAM', 'SMS', 'GOOGLE', 'CHALKBOARD'];
+    keys.forEach(k => {
+      const re = new RegExp(`\\[${k}\\]\\s*([\\s\\S]*?)(?=\\[[A-Z]+\\]|$)`, 'i');
+      const m  = text.match(re);
+      if (m) sections[k.toLowerCase()] = m[1].trim();
     });
+    return sections;
+  }
 
-    const taskSummary = tasks.length === 0
-      ? 'No tasks added yet.'
-      : [
-          pending.length ? `Still to do:\n${pending.map(t => `- ${t.text}`).join('\n')}` : '',
-          done.length    ? `Already done:\n${done.map(t => `✓ ${t.text}`).join('\n')}`    : '',
-        ].filter(Boolean).join('\n\n');
+  // ── Generate ─────────────────────────────────────────────────────────────────
+  async function generate() {
+    const name  = document.getElementById('dishName').value.trim();
+    const desc  = document.getElementById('dishDesc').value.trim();
+    const price = document.getElementById('dishPrice').value.trim();
+    const vibe  = document.getElementById('bizVibe').value;
+    const avail = document.getElementById('dishAvail').value;
 
-    const userMessage = `Today is ${today}. Here is my task list:\n\n${taskSummary}\n\nPlease give me a short, energetic daily briefing. Acknowledge what's been done, motivate me on what's left, and if you spot any tasks that logically go together, suggest a smart order to tackle them. Keep it practical and under 150 words.`;
+    if (!name && !desc) {
+      alert('Add a dish name or description first.');
+      return;
+    }
+
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> Writing...';
+
+    document.getElementById('loadingState').classList.add('show');
+    document.getElementById('outputGrid').classList.remove('show');
+    document.getElementById('errorCard').classList.remove('show');
+    document.getElementById('aiCallsRow').classList.remove('show');
+    document.getElementById('loadingMsg').textContent = 'Claude is writing your marketing copy...';
+
+    const dishInfo = [
+      name && `Dish: ${name}`,
+      price && `Price: ${price}`,
+      desc && `Description: ${desc}`,
+      `Business vibe: ${vibe}`,
+      `Availability: ${avail}`,
+    ].filter(Boolean).join('\n');
+
+    const prompt = `You are a marketing copywriter for a small food business. Write 4 versions of marketing copy for today's special, strictly in the format below. Each section must start with its label on its own line.
+
+${dishInfo}
+
+Format your entire response EXACTLY like this — no extra text before or after:
+
+[INSTAGRAM]
+A punchy Instagram caption with 5–8 relevant hashtags. Include an emoji or two. Under 220 characters before hashtags. Make it feel genuine, not corporate.
+
+[SMS]
+An SMS blast. MUST be under 155 characters total. Include the dish name, one irresistible hook, and availability. No hashtags.
+
+[GOOGLE]
+A Google Business post. 2–3 sentences. Welcoming, describes the dish appealingly, ends with a soft call to action. Professional but warm.
+
+[CHALKBOARD]
+A chalkboard-style menu listing. Use line breaks for visual rhythm. Include the dish name, 3–4 key ingredients on separate lines, price if provided. Evocative, handwritten feel. Under 120 characters total.`;
 
     try {
-      const res = await fetch(WORKER_URL, {
+      const res  = await fetch(WORKER_URL, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
           model:   'claude',
-          system:  'You are a sharp, friendly business assistant for a small business owner. Be direct, warm, and genuinely useful. No fluff.',
-          message: userMessage,
+          system:  'You are a sharp marketing copywriter for small food businesses. Follow the requested output format exactly.',
+          message: prompt,
         }),
       });
 
       const data = await res.json();
+      document.getElementById('loadingState').classList.remove('show');
 
       if (res.status === 429) {
-        content.className = '';
-        content.textContent = '⚡ You\'ve used your 10 free AI calls for this demo. Imagine having your own Claude-powered app with unlimited calls using your own API key — that\'s exactly what we build.';
-        document.getElementById('aiCallsLeft').textContent = '0 demo calls remaining';
+        const err = document.getElementById('errorCard');
+        err.classList.add('show');
+        err.textContent = '⚡ You\'ve used your 10 free AI demo calls. A real app uses your own Claude API key — no limits.';
       } else if (!res.ok) {
-        content.className = '';
-        content.textContent = 'Could not reach the AI right now. Try again in a moment.';
+        const err = document.getElementById('errorCard');
+        err.classList.add('show');
+        err.textContent = 'Could not reach the AI right now. Try again in a moment.';
       } else {
-        content.className = '';
-        content.textContent = data.response || 'No response received.';
-        const remaining = data.calls_remaining ?? '';
+        const raw      = data.response || '';
+        const sections = parseOutput(raw);
+
+        document.getElementById('out-instagram').textContent  = sections.instagram  || fallback(raw, 0);
+        document.getElementById('out-sms').textContent        = sections.sms        || fallback(raw, 1);
+        document.getElementById('out-google').textContent     = sections.google     || fallback(raw, 2);
+        document.getElementById('out-chalkboard').textContent = sections.chalkboard || fallback(raw, 3);
+
+        const smsText = sections.sms || '';
+        document.getElementById('sms-count').textContent = smsText
+          ? `${smsText.length} chars ${smsText.length <= 160 ? '✓ one SMS' : '⚠ over 160 — may split'}`
+          : '';
+
+        document.getElementById('outputGrid').classList.add('show');
+
+        const rem = data.calls_remaining ?? '';
+        const row = document.getElementById('aiCallsRow');
         document.getElementById('aiCallsLeft').textContent =
-          remaining !== '' ? `${remaining} demo AI call${remaining === 1 ? '' : 's'} remaining` : '';
+          rem !== '' ? `${rem} demo AI call${rem === 1 ? '' : 's'} remaining` : '';
+        row.classList.add('show');
       }
+
     } catch (err) {
-      content.className = '';
-      content.textContent = 'Network error — make sure you\'re online and try again.';
+      document.getElementById('loadingState').classList.remove('show');
+      const errCard = document.getElementById('errorCard');
+      errCard.classList.add('show');
+      errCard.textContent = 'Network error — check your connection and try again.';
     }
 
     btn.disabled = false;
+    btn.innerHTML = '<span>🤖</span> Write My Marketing Copy';
   }
 
-  function closeAI() {
-    document.getElementById('aiModal').classList.remove('show');
+  function fallback(text, idx) {
+    // If parsing failed, split on double newlines and return nth chunk
+    const chunks = text.split(/\n\n+/).filter(Boolean);
+    return chunks[idx] || text;
   }
 
-  // Close modal on backdrop click
-  document.getElementById('aiModal').addEventListener('click', function(e) {
-    if (e.target === this) closeAI();
-  });
-
-  // Enter key on input
-  document.getElementById('newTask').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addTask();
-  });
-
-  // Seed demo tasks on first visit
-  if (loadTasks().length === 0) {
-    const defaults = [
-      'Open up & check messages',
-      'Review today\'s orders',
-      'Restock supplies checklist',
-      'End of day cash count',
-      'Lock up & set alarm'
-    ];
-    saveTasks(defaults.map((text, i) => ({ id: String(i+1), text, done: false })));
+  // ── Copy helpers ─────────────────────────────────────────────────────────────
+  function copyCard(id) {
+    const text = document.getElementById(`out-${id}`)?.textContent;
+    if (!text || text === '—') return;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = orig, 1800);
+    });
   }
-
-  render();
 </script>
 </body>
 </html>
