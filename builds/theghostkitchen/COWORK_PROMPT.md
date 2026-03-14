@@ -1,4 +1,4 @@
-# AppsForHire — Build: The Quake Wisperer
+# AppsForHire — Build: The Quake Whisperer
 **Client:** The Ghost Kitchen
 **Slug:** `theghostkitchen`
 **Live URL:** https://theghostkitchen.appsforhire.app
@@ -29,7 +29,7 @@ Same as the tgpquake but with Temps over the two week period added.
 ## Brand & Design System
 
 - **Business name:** The Ghost Kitchen
-- **App title:** The Quake Wisperer
+- **App title:** The Quake Whisperer
 - **Subtitle / description:** Quakes, Tides and Temps oh my!
 - **Brand accent color:** `#0f172a` (Slate/Dark) — use as `--accent`
 - **Brand accent dark:** `#1e293b` — use as `--accent-dark`
@@ -116,7 +116,7 @@ Show a soft overlay (not a hard block) when `remaining` reaches 1-2.
 
 ## Required UI Elements
 
-1. **Header** — sticky, brand color background, shows `The Ghost Kitchen` + `The Quake Wisperer`. The right side of the header must include two pill-shaped elements side by side:
+1. **Header** — sticky, brand color background, shows `The Ghost Kitchen` + `The Quake Whisperer`. The right side of the header must include two pill-shaped elements side by side:
    - A **`← My Apps` back link** (`<a href="/portal/" class="back-link">← My Apps</a>`) — `background: rgba(0,0,0,.2)`, `border: 1px solid rgba(255,255,255,.2)`, `border-radius: 100px`, `padding: .3rem .8rem`, `font-size: .75rem`, `font-weight: 600`, white text, no underline. Hover: `background: rgba(0,0,0,.35)`. This lets customers navigate back to their app portal.
    - A **"Secure App" badge** (`<div class="header-badge">Secure App</div>`) with `background: rgba(255,255,255,.18)`, `border: 1px solid rgba(255,255,255,.3)`.
    - Wrap both in a `<div class="header-right">` with `display: flex; align-items: center; gap: .6rem`.

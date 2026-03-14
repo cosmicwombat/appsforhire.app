@@ -3,11 +3,11 @@ const CUSTOMER = {
   name:          "The Ghost Kitchen",
   tier:          "starter",
   since:         "March 2026",
-  support_email: "hello@appsforhire.app",
+  support_email: "info@ghostkitchen.shop",
   stripe_portal: "https://billing.stripe.com/p/login/YOUR_PORTAL_LINK",
   apps: [
     {
-      name:        "The Quake Wisperer",
+      name:        "The Quake Whisperer",
       description: "Quakes, Tides and Temps oh my!",
       url:         "https://theghostkitchen.appsforhire.app",
       icon:        "📱",
