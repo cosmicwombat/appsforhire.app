@@ -43,8 +43,8 @@
 // ── AI model constants ────────────────────────────────────────────────────────
 const CLAUDE_MODEL  = "claude-haiku-4-5-20251001"; // fast + cheap
 const GEMINI_MODEL  = "gemini-2.5-flash";
-const DEMO_AI_LIMIT = 100;                         // calls per IP per window (lower in production)
-const DEMO_AI_TTL   = 7 * 24 * 60 * 60;           // 7 days in seconds
+const DEMO_AI_LIMIT = 50;                          // calls per IP per day
+const DEMO_AI_TTL   = 24 * 60 * 60;               // 24 hours in seconds
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 // Allows any *.appsforhire.app subdomain automatically — new clients just work.
