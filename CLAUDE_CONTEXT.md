@@ -169,13 +169,13 @@ Legacy ops `access-app-create` and `access-policy-create` still work but `access
 ---
 
 ## Key Scripts
-| Script | Purpose |
-|--------|---------|
-| `scripts/new_build.py` | Scaffold new build + generate Cowork prompt |
-| `scripts/new_customer.py` | Add customer to data.json |
-| `scripts/setup_admin_site.py` | Push admin-site/ to appsforhire-admin repo |
-| `scripts/push_portal.py` | Push portal/ files to a client repo |
-| `scripts/update_admin_data.py` | Sync data.json from customers.json |
+| Script | Purpose | Command |
+|--------|---------|---------|
+| `scripts/new_build.py` | Scaffold new build + generate Cowork prompt | `python3 scripts/new_build.py` |
+| `scripts/new_customer.py` | Add customer to data.json | `python3 scripts/new_customer.py` |
+| `scripts/setup_admin_site.py` | Push admin-site/ to appsforhire-admin repo | `GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py` |
+| `scripts/push_portals.py` | Push portal/ files for one or all client repos | `GITHUB_TOKEN=xxx python3 scripts/push_portals.py` or `GITHUB_TOKEN=xxx python3 scripts/push_portals.py {slug}` |
+| `scripts/update_admin_data.py` | Sync data.json from customers.json | `python3 scripts/update_admin_data.py` |
 
 ---
 
@@ -203,9 +203,29 @@ Legacy ops `access-app-create` and `access-policy-create` still work but `access
 
 ---
 
+## Marketing Site State
+**URL:** https://appsforhire.app
+- **Launch offer page:** `/launch-offer.html` — Stripe Buy Button embedded (Starter Bundle $249 → $0 with `FIRSTAPP2026`)
+  - buy-button-id: `buy_btn_1TAv17Gsk9fomNK8KTG2Xpff`
+  - publishable-key: `pk_live_51T6MtjGsk9fomNK8zl6ZJtyesypQmppfPbMxIh4ejYpGhYhTjOgNe44myGObp7m7i3S2sKOeEueW5g5PeepaVkz4003PTX0Spx`
+- **Starter tier:** includes shared AI (Gemini + Claude, limited usage) — NOT byoAI
+- **Custom/Pro tiers:** byoAI + byoAPI (client's own keys)
+- **Capacity:** limited to 100 customers total (prominently noted on site)
+- **Banner link** → `/launch-offer.html` (not direct to Stripe)
+
+---
+
+## Operational Rules
+**Always give Robert the commands to run — never run them silently.**
+When any step produces a terminal command (git push, wrangler deploy, python scripts, etc.),
+output the exact command for Robert to run. Never skip it or assume it's been done.
+
+---
+
 ## Maintenance Checklist (after any enhancement)
 - [ ] Worker changed? → `cd worker && npx wrangler deploy`
 - [ ] admin-site/ changed? → `GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py`
+- [ ] Portal files changed? → `GITHUB_TOKEN=xxx python3 scripts/push_portals.py {slug}`
 - [ ] New app published? → Add to `admin-site/data.json` apps[] + push + deploy admin site
 - [ ] CLAUDE_CONTEXT.md updated? → Rebuild `appsforhire.plugin` + commit
 - [ ] SKILL.md updated? → Rebuild `appsforhire.plugin` + commit

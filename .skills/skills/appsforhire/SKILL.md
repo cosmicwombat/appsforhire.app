@@ -118,9 +118,13 @@ const CUSTOMER = {
 After any new app is published via the Admin portal:
 1. **Update `admin-site/data.json`** — add new app as a nested entry in the customer's `apps[]` array
 2. **Update `CLAUDE_CONTEXT.md`** — add new app row to the Active Customers & Apps table and update status
-3. **Deploy admin site** — `GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py`
-4. **Rebuild plugin** — update `appsforhire.plugin` in repo root (or flag for Robert to do so)
-5. **Commit and push** all changed files
+3. **Update all portal configs for that customer** — every slug for that customer needs the new app added to their `apps[]` in `portal/customer-config.js`
+4. **Deploy admin site** — give Robert the command: `GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py`
+5. **Push portal files** — give Robert the command: `GITHUB_TOKEN=xxx python3 scripts/push_portals.py {slug}` (run for every slug belonging to that customer)
+6. **Rebuild plugin** — update `appsforhire.plugin` in repo root (or flag for Robert to do so)
+7. **Commit and push** all changed files — give Robert: `git add ... && git commit -m '...' && git push`
+
+⚠️ **Always give Robert the exact commands to run. Never run git push, wrangler deploy, or Python scripts silently.**
 
 ## CF Access — what the publish flow handles automatically
 - Creates DNS CNAME (`{slug}` → `cosmicwombat.github.io`, proxied)
