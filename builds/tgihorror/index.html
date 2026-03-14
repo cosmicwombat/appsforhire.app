@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ghost Story Generator — The Ghost Interpreter</title>
+  <meta name="description" content="Tell the ghost your setting. It will tell you what happened there."/>
+  <meta name="theme-color" content="#7c3aed"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <style>
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --surface2: #222536;
+      --border:   #2e3147;
+      --text:     #e2e8f0;
+      --muted:    #94a3b8;
+      --dim:      #64748b;
+      --accent:   #7c3aed;
+      --accent2:  #a78bfa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      width: 100%;
+    }
+    .back-link { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .back-link:hover { color: var(--text); }
+    .header-badge {
+      font-size: 11px; color: var(--muted);
+      background: var(--surface2); padding: 3px 8px;
+      border-radius: 20px; border: 1px solid var(--border);
+    }
+
+    /* ── Main ── */
+    .main {
+      width: 100%;
+      max-width: 480px;
+      padding: 28px 20px 48px;
+      flex: 1;
+    }
+
+    .app-icon {
+      text-align: center;
+      font-size: 52px;
+      margin-bottom: 12px;
+      animation: haunt 4s ease-in-out infinite;
+    }
+    @keyframes haunt {
+      0%, 100% { transform: translateY(0) rotate(-2deg); filter: drop-shadow(0 0 8px rgba(124,58,237,0.5)); }
+      50%       { transform: translateY(-8px) rotate(2deg); filter: drop-shadow(0 0 20px rgba(124,58,237,0.9)); }
+    }
+
+    .app-title {
+      text-align: center;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+    }
+    .app-sub {
+      text-align: center;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    /* ── Input area ── */
+    .input-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 8px;
+    }
+    .setting-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 8px;
+      resize: none;
+      min-height: 80px;
+      font-family: inherit;
+    }
+    .setting-input:focus { border-color: var(--accent); }
+    .setting-input::placeholder { color: var(--dim); }
+
+    /* ── Mood chips ── */
+    .mood-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .mood-chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .mood-chip:hover, .mood-chip.active {
+      border-color: var(--accent);
+      color: var(--accent2);
+      background: rgba(124,58,237,0.12);
+    }
+
+    /* ── Summon button ── */
+    .btn-summon {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--accent), #6d28d9);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-bottom: 24px;
+      letter-spacing: 0.01em;
+    }
+    .btn-summon:hover  { opacity: 0.9; }
+    .btn-summon:active { transform: scale(0.98); }
+    .btn-summon:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Loading ── */
+    .loading { display: none; justify-content: center; gap: 8px; margin-bottom: 20px; }
+    .loading.active { display: flex; }
+    .dot {
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 1.3s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; transform: scale(0.7); }
+      50%       { opacity: 1;   transform: scale(1.2); }
+    }
+
+    /* ── Story card ── */
+    .story-card {
+      display: none;
+      background: var(--surface);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 0 30px rgba(124,58,237,0.1);
+    }
+    .story-card.visible { display: block; }
+
+    .card-header {
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(109,40,217,0.1));
+      border-bottom: 1px solid rgba(124,58,237,0.2);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent2);
+    }
+    .card-setting {
+      font-size: 11px;
+      color: var(--dim);
+      margin-left: auto;
+      font-style: italic;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-body { padding: 20px 20px 16px; }
+    .story-text {
+      font-size: 15px;
+      line-height: 1.85;
+      color: var(--text);
+      white-space: pre-wrap;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+
+    /* ── Soft warning ── */
+    .soft-warning {
+      display: none;
+      text-align: center;
+      font-size: 12px;
+      color: var(--accent2);
+      margin-bottom: 12px;
+      padding: 8px 14px;
+      background: rgba(167,139,250,0.08);
+      border: 1px solid rgba(167,139,250,0.2);
+      border-radius: 8px;
+    }
+    .soft-warning.visible { display: block; }
+
+    /* ── Action buttons ── */
+    .card-actions { display: none; gap: 10px; margin-bottom: 24px; }
+    .card-actions.visible { display: flex; }
+    .btn-sm {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      transition: background 0.15s;
+    }
+    .btn-sm:hover { background: var(--border); }
+
+    /* ── Demo overlay ── */
+    #demoOverlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(15,17,23,0.96);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px; text-align: center;
+    }
+    #demoOverlay .ov-icon { font-size: 52px; margin-bottom: 16px; }
+    #demoOverlay h2 { font-size: 22px; margin-bottom: 10px; }
+    #demoOverlay p  { color: var(--muted); margin-bottom: 24px; font-size: 15px; line-height: 1.6; }
+    #demoOverlay a  {
+      display: inline-block; padding: 13px 28px;
+      background: linear-gradient(135deg, var(--accent), #6d28d9);
+      color: #fff; font-weight: 700; border-radius: 12px;
+      text-decoration: none; font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <a href="/portal/" class="back-link">← My Apps</a>
+    <div class="header-right">
+      <span class="header-badge">🔒 Secure App</span>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="app-icon">👻</div>
+    <div class="app-title">Ghost Story Generator</div>
+    <div class="app-sub">Give the ghost a place. It will tell you what happened there.</div>
+
+    <div class="input-label">Setting or premise</div>
+    <textarea
+      class="setting-input"
+      id="settingInput"
+      placeholder="e.g. an abandoned lighthouse on a foggy coast… a child's bedroom in a 1920s manor… a subway station that closed in 1987…"
+      maxlength="200"
+    ></textarea>
+
+    <div class="mood-row" id="moodRow">
+      <span class="mood-chip" onclick="toggleMood(this)">😱 Terrifying</span>
+      <span class="mood-chip active" onclick="toggleMood(this)">🌫️ Unsettling</span>
+      <span class="mood-chip" onclick="toggleMood(this)">😢 Melancholy</span>
+      <span class="mood-chip" onclick="toggleMood(this)">🤨 Mysterious</span>
+      <span class="mood-chip" onclick="toggleMood(this)">😂 Darkly Comic</span>
+    </div>
+
+    <button class="btn-summon" id="summonBtn" onclick="generate()">
+      👻 Tell the Story
+    </button>
+
+    <div class="loading" id="loading">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+
+    <div class="soft-warning" id="softWarning"></div>
+
+    <div class="story-card" id="storyCard">
+      <div class="card-header">
+        <span class="card-label">👻 The Ghost's Tale</span>
+        <span class="card-setting" id="cardSetting"></span>
+      </div>
+      <div class="card-body">
+        <div class="story-text" id="storyText"></div>
+      </div>
+    </div>
+
+    <div class="card-actions" id="actions">
+      <button class="btn-sm" onclick="copyStory()">📋 Copy</button>
+      <button class="btn-sm" onclick="generate()">Again →</button>
+    </div>
+  </main>
+
+  <!-- Demo overlay -->
+  <div id="demoOverlay">
+    <div class="ov-icon">👻</div>
+    <h2>The ghost has gone quiet.</h2>
+    <p>You've reached the demo limit.<br>Get your own haunted app from AppsForHire.</p>
+    <a href="https://appsforhire.app/#contact">Get Your Build →</a>
+  </div>
+
+  <script>
+    const SYSTEM = `You are a master of atmospheric horror and ghost stories. Your tales are vivid, unsettling, and deeply human — never gratuitously gory, always psychologically resonant.
+
+When given a setting and mood, write a ghost story of exactly 3-4 paragraphs. Rules:
+- Open with a single striking sentence that sets dread immediately
+- Include one specific, haunting detail that feels disturbingly real (a sound, a smell, a date, a name)
+- Build to a quiet, ambiguous ending — never fully explain the ghost
+- Match the requested mood precisely
+- Write in second person ("You notice…", "The air around you…") to pull the reader in
+- Keep it under 300 words — tightly crafted, no filler`;
+
+    let currentStory = '';
+    let selectedMood = 'Unsettling';
+
+    function toggleMood(el) {
+      document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      selectedMood = el.textContent.replace(/^[^\s]+\s/, ''); // strip emoji
+    }
+
+    async function generate() {
+      const setting = document.getElementById('settingInput').value.trim();
+      if (!setting) {
+        document.getElementById('settingInput').focus();
+        document.getElementById('settingInput').style.borderColor = 'var(--accent)';
+        setTimeout(() => document.getElementById('settingInput').style.borderColor = '', 1200);
+        return;
+      }
+
+      const btn = document.getElementById('summonBtn');
+      btn.disabled = true;
+      document.getElementById('loading').classList.add('active');
+      document.getElementById('storyCard').classList.remove('visible');
+      document.getElementById('actions').classList.remove('visible');
+      document.getElementById('softWarning').classList.remove('visible');
+
+      try {
+        const res = await fetch('https://worker.appsforhire.app/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gemini',
+            system: SYSTEM,
+            message: `Setting: ${setting}\nMood: ${selectedMood}\n\nTell the story.`,
+          }),
+        });
+
+        if (res.status === 429) {
+          document.getElementById('demoOverlay').style.display = 'flex';
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!data.error && data.calls_remaining <= 2) {
+          const w = document.getElementById('softWarning');
+          w.textContent = `${data.calls_remaining} stor${data.calls_remaining === 1 ? 'y' : 'ies'} remaining in demo.`;
+          w.classList.add('visible');
+        }
+
+        if (data.error) throw new Error(data.error);
+
+        currentStory = data.response || '';
+        document.getElementById('storyText').textContent = currentStory;
+        document.getElementById('cardSetting').textContent = setting;
+        document.getElementById('storyCard').classList.add('visible');
+        document.getElementById('actions').classList.add('visible');
+
+      } catch (e) {
+        document.getElementById('storyText').textContent = 'The ghost is silent. Try again.';
+        document.getElementById('storyCard').classList.add('visible');
+      } finally {
+        document.getElementById('loading').classList.remove('active');
+        btn.disabled = false;
+      }
+    }
+
+    function copyStory() {
+      if (!currentStory) return;
+      navigator.clipboard.writeText(currentStory).then(() => {
+        const btn = event.target;
+        btn.textContent = '✓ Copied';
+        setTimeout(() => btn.textContent = '📋 Copy', 1800);
+      });
+    }
+
+    // Allow Enter+Shift for newlines, Enter alone submits
+    document.getElementById('settingInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generate(); }
+    });
+  </script>
+</body>
+</html>

@@ -24,6 +24,18 @@
     "status": "published"
   },
   {
+    "slug": "tgihorror",
+    "client_name": "The Ghost Interpreter",
+    "app_title": "Ghost Story Generator",
+    "app_desc": "Give the ghost a place. It will tell you what happened there.",
+    "tier": "starter",
+    "api_type": "starter-gemini",
+    "theme_color": "#7c3aed",
+    "theme_dark": "#6d28d9",
+    "created": "2026-03-14",
+    "status": "in_progress"
+  },
+  {
     "slug": "tgpscripture",
     "client_name": "The Gathering Place",
     "app_title": "Daily Word",
