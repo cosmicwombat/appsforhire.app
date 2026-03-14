@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Review Responder — AppsForHire</title>
+  <meta name="theme-color" content="#7c3aed"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --brand: #7c3aed; --brand-light: #a78bfa; --brand-dark: #5b21b6;
+      --gemini: #4285f4;
+      --gray50: #f8fafc; --gray100: #f1f5f9; --gray200: #e2e8f0;
+      --gray400: #94a3b8; --gray600: #475569; --gray700: #334155; --gray900: #0f172a;
+      --white: #ffffff; --green: #10b981;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray50); color: var(--gray700);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Demo Overlay ── */
+    #demoOverlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,.92);
+      align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    #demoOverlay.show { display: flex; }
+    .overlay-card {
+      background: var(--white); border-radius: 20px;
+      padding: 2.5rem; max-width: 420px; width: 100%; text-align: center;
+    }
+    .overlay-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .overlay-card h2 { font-size: 1.5rem; font-weight: 800; color: var(--gray900); margin-bottom: .6rem; }
+    .overlay-card p  { font-size: .95rem; color: var(--gray600); line-height: 1.7; margin-bottom: 1.75rem; }
+    .overlay-cta {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--brand); color: var(--white);
+      padding: .9rem 1.75rem; border-radius: 12px;
+      font-weight: 700; font-size: 1rem; text-decoration: none;
+    }
+    .overlay-back { display: block; font-size: .82rem; color: var(--gray400); text-decoration: none; margin-top: 1rem; }
+    .overlay-back:hover { color: var(--gray700); }
+
+    /* ── Run Badge ── */
+    #runBadge {
+      position: fixed; top: 4.5rem; right: 1rem; z-index: 100;
+      background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.3);
+      color: var(--brand-light); padding: .3rem .75rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+    }
+    #runBadge.warning { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.4); color: #ef4444; }
+
+    /* ── Gemini Badge ── */
+    .gemini-badge {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: #e8f0fe; color: var(--gemini);
+      padding: .25rem .7rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 700;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+    header p  { font-size: .78rem; color: rgba(255,255,255,.7); }
+
+    /* ── Main ── */
+    main { max-width: 660px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+    .demo-banner {
+      background: #ede9fe; border: 1px solid #c4b5fd;
+      border-radius: 10px; padding: .75rem 1rem;
+      font-size: .82rem; color: var(--brand-dark); margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 16px; padding: 1.5rem; margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: .75rem; font-weight: 700; color: var(--gray400);
+      letter-spacing: .06em; text-transform: uppercase; margin-bottom: .85rem;
+    }
+
+    /* ── Form ── */
+    label { font-size: .82rem; font-weight: 600; color: var(--gray700); display: block; margin-bottom: .4rem; }
+    textarea, select {
+      width: 100%; border: 1.5px solid var(--gray200); border-radius: 10px;
+      padding: .75rem; font-size: .9rem; font-family: inherit;
+      color: var(--gray900); background: var(--white);
+      transition: border-color .2s;
+      resize: vertical;
+    }
+    textarea:focus, select:focus {
+      outline: none; border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(124,58,237,.1);
+    }
+    textarea { min-height: 120px; }
+    select   { min-height: 2.6rem; cursor: pointer; }
+    .form-row { margin-bottom: 1rem; }
+    .char-count { font-size: .72rem; color: var(--gray400); text-align: right; margin-top: .3rem; }
+
+    /* ── Submit ── */
+    .submit-btn {
+      display: flex; align-items: center; justify-content: center; gap: .6rem;
+      width: 100%; background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+      color: var(--white); border: none; border-radius: 12px;
+      padding: .95rem; font-size: 1rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: opacity .2s; margin-top: .5rem;
+    }
+    .submit-btn:hover:not(:disabled) { opacity: .9; }
+    .submit-btn:disabled { opacity: .55; cursor: not-allowed; }
+    .spinner-sm {
+      width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4);
+      border-top-color: white; border-radius: 50%;
+      animation: spin .7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Output ── */
+    .output-panel {
+      display: none; margin-top: 1.25rem;
+    }
+    .output-panel.show { display: block; }
+    .output-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: .75rem; flex-wrap: wrap; gap: .5rem;
+    }
+    .output-header h3 {
+      font-size: .9rem; font-weight: 800; color: var(--gray900);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .output-text {
+      background: var(--gray50); border: 1px solid var(--gray200);
+      border-radius: 10px; padding: 1rem;
+      font-size: .9rem; line-height: 1.75; color: var(--gray700);
+      white-space: pre-wrap; min-height: 80px;
+    }
+    .output-text.loading { color: var(--gray400); font-style: italic; }
+    .copy-btn {
+      background: none; border: 1.5px solid var(--gray200); color: var(--gray600);
+      padding: .35rem .9rem; border-radius: 8px; font-size: .78rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .copy-btn:hover { border-color: var(--brand); color: var(--brand); }
+    .copy-btn.copied { border-color: var(--green); color: var(--green); }
+    .calls-left { font-size: .75rem; color: var(--gray400); }
+
+    /* ── Tone chips ── */
+    .tone-chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .25rem; }
+    .tone-chip {
+      padding: .35rem .85rem; border-radius: 100px;
+      border: 1.5px solid var(--gray200); background: var(--white);
+      font-size: .82rem; font-weight: 600; color: var(--gray600);
+      cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .tone-chip.active {
+      background: var(--brand); border-color: var(--brand);
+      color: var(--white);
+    }
+    .chip-label { font-size: .75rem; color: var(--gray400); margin-bottom: .5rem; }
+  </style>
+</head>
+<body>
+
+<div id="demoOverlay">
+  <div class="overlay-card">
+    <div class="overlay-icon">⭐</div>
+    <h2>Every review deserves a reply.</h2>
+    <p>You've used your 10 demo responses. A real app built for your business would use your own Gemini key — unlimited responses, your cost, your brand voice.</p>
+    <a class="overlay-cta" href="https://appsforhire.app/#contact">Build Mine →</a>
+    <a class="overlay-back" href="../">← Back to Demo Home</a>
+  </div>
+</div>
+
+<div id="runBadge">Responses: — / 10</div>
+
+<header>
+  <div>
+    <h1>⭐ The Review Responder</h1>
+    <p>AppsForHire Demo · Powered by Google Gemini</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="demo-banner">
+    🧪 <strong>Demo app.</strong> Paste any customer review and Gemini writes a professional reply. Real apps use <em>your</em> Gemini key with your brand voice baked in.
+    &nbsp;<span class="gemini-badge">✦ Google Gemini</span>
+  </div>
+
+  <div class="card">
+    <div class="card-title">The Review</div>
+
+    <div class="form-row">
+      <label for="reviewInput">Paste the customer review</label>
+      <textarea id="reviewInput" placeholder="e.g. &quot;The food was amazing but the wait was really long. Our server was friendly though and made up for it. Will come back but hope the kitchen gets faster!&quot;" rows="5"></textarea>
+      <div class="char-count" id="reviewCount">0 characters</div>
+    </div>
+
+    <div class="form-row">
+      <label>Response tone</label>
+      <div class="tone-chips">
+        <button class="tone-chip active" data-tone="Professional">Professional</button>
+        <button class="tone-chip" data-tone="Warm & Personal">Warm & Personal</button>
+        <button class="tone-chip" data-tone="Brief & Direct">Brief & Direct</button>
+        <button class="tone-chip" data-tone="Apologetic & Empathetic">Apologetic</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label for="bizType">Type of business <span style="font-weight:400;color:var(--gray400)">(optional — helps Gemini match your voice)</span></label>
+      <select id="bizType">
+        <option value="">— select or leave blank —</option>
+        <option>Restaurant / Café</option>
+        <option>Retail Shop</option>
+        <option>Auto Shop</option>
+        <option>Hair / Beauty Salon</option>
+        <option>Medical / Dental</option>
+        <option>Home Services</option>
+        <option>Gym / Fitness</option>
+        <option>Hotel / B&B</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="generate()">
+      <span id="btnIcon">✦</span>
+      <span id="btnText">Write My Response</span>
+    </button>
+
+    <div class="output-panel" id="outputPanel">
+      <div class="output-header">
+        <h3>✦ Gemini's Draft</h3>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <span class="calls-left" id="callsLeft"></span>
+          <button class="copy-btn" id="copyBtn" onclick="copyResponse()">Copy</button>
+        </div>
+      </div>
+      <div class="output-text" id="outputText"></div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+  const APP_KEY    = 'demo_runs_review_responder';
+  const DEMO_LIMIT = 10;
+  const WORKER_URL = 'https://worker.appsforhire.app/ai';
+
+  let runCount = parseInt(localStorage.getItem(APP_KEY) || '0');
+  let activeTone = 'Professional';
+
+  const badge = document.getElementById('runBadge');
+  function updateBadge() {
+    badge.textContent = `Responses: ${runCount} / 10`;
+    badge.classList.toggle('warning', runCount >= 9);
+  }
+  updateBadge();
+
+  // Tone chip toggle
+  document.querySelectorAll('.tone-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.tone-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeTone = chip.dataset.tone;
+    });
+  });
+
+  // Char counter
+  const reviewInput = document.getElementById('reviewInput');
+  reviewInput.addEventListener('input', () => {
+    document.getElementById('reviewCount').textContent =
+      `${reviewInput.value.length} characters`;
+  });
+
+  async function generate() {
+    const review  = reviewInput.value.trim();
+    const bizType = document.getElementById('bizType').value;
+
+    if (!review) { reviewInput.focus(); return; }
+
+    if (runCount >= DEMO_LIMIT) {
+      document.getElementById('demoOverlay').classList.add('show');
+      return;
+    }
+
+    // Increment counter
+    runCount++;
+    localStorage.setItem(APP_KEY, runCount);
+    updateBadge();
+
+    const btn     = document.getElementById('submitBtn');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnText = document.getElementById('btnText');
+    const panel   = document.getElementById('outputPanel');
+    const output  = document.getElementById('outputText');
+
+    btn.disabled = true;
+    btnIcon.innerHTML = '<div class="spinner-sm"></div>';
+    btnText.textContent = 'Gemini is writing…';
+    panel.classList.add('show');
+    output.className = 'output-text loading';
+    output.textContent = 'Crafting your response…';
+    document.getElementById('copyBtn').classList.remove('copied');
+    document.getElementById('copyBtn').textContent = 'Copy';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    const bizLine  = bizType ? ` The business is a ${bizType}.` : '';
+    const system   = `You are a professional reputation manager writing Google/Yelp review responses for a local business.${bizLine} Write responses that are genuine, not overly corporate, and reflect well on the business. Address the reviewer's specific points. Keep responses under 120 words. Never start with "Thank you for your review" — find a fresher opening. Don't use exclamation marks more than once.`;
+    const message  = `Write a ${activeTone} response to this customer review:\n\n"${review}"\n\nTone: ${activeTone}. Keep it under 120 words.`;
+
+    try {
+      const res  = await fetch(WORKER_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ model: 'gemini', system, message }),
+      });
+      const data = await res.json();
+
+      if (res.status === 429) {
+        output.className = 'output-text';
+        output.textContent = '⚡ Demo AI limit reached. Contact us to get your own app with unlimited responses.';
+      } else if (!res.ok) {
+        output.className = 'output-text';
+        output.textContent = 'Could not reach Gemini right now. Try again in a moment.';
+      } else {
+        output.className = 'output-text';
+        output.textContent = data.response || 'No response received.';
+        const rem = data.calls_remaining ?? '';
+        document.getElementById('callsLeft').textContent =
+          rem !== '' ? `${rem} demo call${rem === 1 ? '' : 's'} left` : '';
+      }
+    } catch (err) {
+      output.className = 'output-text';
+      output.textContent = 'Network error — check your connection and try again.';
+    }
+
+    btn.disabled = false;
+    btnIcon.textContent = '✦';
+    btnText.textContent = 'Write My Response';
+  }
+
+  function copyResponse() {
+    const text = document.getElementById('outputText').textContent;
+    if (!text || text.includes('error') || text.includes('Error')) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+</script>
+</body>
+</html>

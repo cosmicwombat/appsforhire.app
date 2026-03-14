@@ -200,6 +200,24 @@
       <p class="counter-hint">Your runs: <strong id="runs4">—</strong> / 10</p>
     </a>
 
+    <a class="app-card" href="review-responder/">
+      <div class="app-icon" style="background:#ede9fe;">⭐</div>
+      <span class="app-tier" style="background:#ede9fe;color:#5b21b6;">Reputation <span class="ai-tag">✦ Gemini</span></span>
+      <h2>The Review Responder</h2>
+      <p>Paste any customer review — Gemini writes a professional reply in seconds. Choose your tone: Professional, Warm, Direct, or Apologetic. One-click copy to your clipboard.</p>
+      <span class="app-launch">Open App →</span>
+      <p class="counter-hint">Your runs: <strong id="runsRR">—</strong> / 10</p>
+    </a>
+
+    <a class="app-card" href="face-off/">
+      <div class="app-icon" style="background:#f0f9ff;">⚔️</div>
+      <span class="app-tier" style="background:#f0f9ff;color:#1e1b4b;">AI Comparison <span class="ai-tag">◆ vs ✦</span></span>
+      <h2>The AI Face-Off</h2>
+      <p>Give both AIs the same writing task — they answer simultaneously. See which one sounds more like your brand, and which one finishes faster. Then pick your winner.</p>
+      <span class="app-launch">Open App →</span>
+      <p class="counter-hint">Your battles: <strong id="runsFO">—</strong> / 5</p>
+    </a>
+
   </div>
 
   <div class="what-next">
@@ -221,6 +239,10 @@
     const n = parseInt(localStorage.getItem(`demo_runs_${key}`) || '0');
     document.getElementById(`runs${i+1}`).textContent = Math.min(n, 10);
   });
+  document.getElementById('runsRR').textContent =
+    Math.min(parseInt(localStorage.getItem('demo_runs_review_responder') || '0'), 10);
+  document.getElementById('runsFO').textContent =
+    Math.min(parseInt(localStorage.getItem('demo_runs_face_off') || '0'), 5);
 </script>
 </body>
 </html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The AI Face-Off — AppsForHire</title>
+  <meta name="theme-color" content="#1e1b4b"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --claude:  #d97706; --claude-light: #fde68a; --claude-dark: #92400e;
+      --gemini:  #4285f4; --gemini-light: #bfdbfe; --gemini-dark: #1d4ed8;
+      --vs-bg:   #1e1b4b;
+      --gray50:  #f8fafc; --gray100: #f1f5f9; --gray200: #e2e8f0;
+      --gray400: #94a3b8; --gray600: #475569; --gray700: #334155; --gray900: #0f172a;
+      --white:   #ffffff; --green: #10b981;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray50); color: var(--gray700);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Demo Overlay ── */
+    #demoOverlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,.92);
+      align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    #demoOverlay.show { display: flex; }
+    .overlay-card {
+      background: var(--white); border-radius: 20px;
+      padding: 2.5rem; max-width: 420px; width: 100%; text-align: center;
+    }
+    .overlay-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .overlay-card h2 { font-size: 1.5rem; font-weight: 800; color: var(--gray900); margin-bottom: .6rem; }
+    .overlay-card p  { font-size: .95rem; color: var(--gray600); line-height: 1.7; margin-bottom: 1.75rem; }
+    .overlay-cta {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--vs-bg); color: var(--white);
+      padding: .9rem 1.75rem; border-radius: 12px;
+      font-weight: 700; font-size: 1rem; text-decoration: none;
+    }
+    .overlay-back { display: block; font-size: .82rem; color: var(--gray400); text-decoration: none; margin-top: 1rem; }
+    .overlay-back:hover { color: var(--gray700); }
+
+    /* ── Run Badge ── */
+    #runBadge {
+      position: fixed; top: 4.5rem; right: 1rem; z-index: 100;
+      background: rgba(30,27,75,.12); border: 1px solid rgba(30,27,75,.3);
+      color: var(--vs-bg); padding: .3rem .75rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+    }
+    #runBadge.warning { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.4); color: #ef4444; }
+
+    /* ── AI Badges ── */
+    .claude-badge {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: #fef3c7; color: var(--claude-dark);
+      padding: .25rem .7rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 700;
+    }
+    .gemini-badge {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: #dbeafe; color: var(--gemini-dark);
+      padding: .25rem .7rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 700;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+    header p  { font-size: .78rem; color: rgba(255,255,255,.7); }
+    .header-badges { display: flex; gap: .4rem; align-items: center; }
+
+    /* ── Main ── */
+    main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+    .demo-banner {
+      background: #eef2ff; border: 1px solid #c7d2fe;
+      border-radius: 10px; padding: .75rem 1rem;
+      font-size: .82rem; color: #3730a3; margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--white); border: 1px solid var(--gray200);
+      border-radius: 16px; padding: 1.5rem; margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: .75rem; font-weight: 700; color: var(--gray400);
+      letter-spacing: .06em; text-transform: uppercase; margin-bottom: .85rem;
+    }
+
+    /* ── Form ── */
+    label { font-size: .82rem; font-weight: 600; color: var(--gray700); display: block; margin-bottom: .4rem; }
+    textarea, select {
+      width: 100%; border: 1.5px solid var(--gray200); border-radius: 10px;
+      padding: .75rem; font-size: .9rem; font-family: inherit;
+      color: var(--gray900); background: var(--white);
+      transition: border-color .2s;
+      resize: vertical;
+    }
+    textarea:focus, select:focus {
+      outline: none; border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+    }
+    textarea { min-height: 100px; }
+    select   { min-height: 2.6rem; cursor: pointer; }
+    .form-row { margin-bottom: 1rem; }
+    .char-count { font-size: .72rem; color: var(--gray400); text-align: right; margin-top: .3rem; }
+
+    /* ── Submit ── */
+    .submit-btn {
+      display: flex; align-items: center; justify-content: center; gap: .6rem;
+      width: 100%; background: linear-gradient(135deg, #1e1b4b, #4338ca);
+      color: var(--white); border: none; border-radius: 12px;
+      padding: .95rem; font-size: 1rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: opacity .2s; margin-top: .5rem;
+    }
+    .submit-btn:hover:not(:disabled) { opacity: .9; }
+    .submit-btn:disabled { opacity: .55; cursor: not-allowed; }
+    .spinner-sm {
+      width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4);
+      border-top-color: white; border-radius: 50%;
+      animation: spin .7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── VS divider in header ── */
+    .vs-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--white); color: var(--vs-bg);
+      font-weight: 900; font-size: .78rem; letter-spacing: .05em;
+      width: 2rem; height: 2rem; border-radius: 50%;
+    }
+
+    /* ── Side-by-side output ── */
+    .output-grid {
+      display: none; margin-top: 1.25rem;
+      gap: 1rem;
+    }
+    .output-grid.show { display: grid; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 600px) {
+      .output-grid.show { grid-template-columns: 1fr; }
+    }
+
+    .output-col {
+      border-radius: 12px; overflow: hidden;
+      border: 2px solid var(--gray200);
+    }
+    .output-col.claude-col { border-color: #fbbf24; }
+    .output-col.gemini-col { border-color: #93c5fd; }
+
+    .output-col-header {
+      padding: .65rem 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .output-col.claude-col .output-col-header { background: #fffbeb; }
+    .output-col.gemini-col .output-col-header { background: #eff6ff; }
+
+    .output-col-header-left {
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .output-col-name {
+      font-size: .85rem; font-weight: 800;
+    }
+    .claude-col .output-col-name { color: var(--claude-dark); }
+    .gemini-col .output-col-name { color: var(--gemini-dark); }
+
+    .output-body {
+      padding: 1rem;
+      font-size: .9rem; line-height: 1.75; color: var(--gray700);
+      white-space: pre-wrap; min-height: 120px;
+      background: var(--white);
+    }
+    .output-body.loading { color: var(--gray400); font-style: italic; }
+
+    .copy-btn {
+      background: none; border: 1.5px solid var(--gray200); color: var(--gray600);
+      padding: .25rem .7rem; border-radius: 8px; font-size: .75rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .copy-btn.claude-copy:hover { border-color: #f59e0b; color: var(--claude-dark); }
+    .copy-btn.gemini-copy:hover { border-color: #60a5fa; color: var(--gemini-dark); }
+    .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+    /* ── Winner banner ── */
+    .winner-banner {
+      display: none; margin-top: 1rem; padding: .75rem 1rem;
+      border-radius: 10px; font-size: .82rem; font-weight: 600;
+      text-align: center;
+    }
+    .winner-banner.show { display: block; }
+    .winner-banner.claude-wins {
+      background: #fffbeb; border: 1.5px solid #fbbf24; color: var(--claude-dark);
+    }
+    .winner-banner.gemini-wins {
+      background: #eff6ff; border: 1.5px solid #93c5fd; color: var(--gemini-dark);
+    }
+    .winner-banner.tie {
+      background: #f0fdf4; border: 1.5px solid #6ee7b7; color: #065f46;
+    }
+
+    /* ── Speed chips ── */
+    .speed-row {
+      display: flex; gap: .5rem; flex-wrap: wrap;
+      margin-top: .5rem; padding: 0 1rem .75rem;
+      background: var(--white);
+    }
+    .speed-chip {
+      font-size: .72rem; font-weight: 600;
+      padding: .2rem .6rem; border-radius: 100px;
+      background: var(--gray100); color: var(--gray600);
+    }
+    .speed-chip.fastest { background: #d1fae5; color: #065f46; }
+  </style>
+</head>
+<body>
+
+<div id="demoOverlay">
+  <div class="overlay-card">
+    <div class="overlay-icon">⚔️</div>
+    <h2>Who wins at your business?</h2>
+    <p>You've used your 5 demo battles. A real app built for your business would run unlimited comparisons — on your own AI keys, in your brand voice.</p>
+    <a class="overlay-cta" href="https://appsforhire.app/#contact">Build Mine →</a>
+    <a class="overlay-back" href="../">← Back to Demo Home</a>
+  </div>
+</div>
+
+<div id="runBadge">Battles: — / 5</div>
+
+<header>
+  <div>
+    <h1>⚔️ The AI Face-Off</h1>
+    <p>AppsForHire Demo · Claude vs Gemini, head to head</p>
+  </div>
+  <div class="header-badges">
+    <span class="claude-badge">◆ Claude</span>
+    <span class="vs-pill">VS</span>
+    <span class="gemini-badge">✦ Gemini</span>
+  </div>
+</header>
+
+<main>
+
+  <div class="demo-banner">
+    ⚔️ <strong>Both AIs answer the same question — simultaneously.</strong> See which one fits your brand voice. Real apps can be locked to whichever wins.
+    &nbsp;<span class="claude-badge">◆ Claude</span>&nbsp;<span class="gemini-badge">✦ Gemini</span>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Your Prompt</div>
+
+    <div class="form-row">
+      <label for="promptInput">What do you want both AIs to write?</label>
+      <textarea id="promptInput" placeholder="e.g. &quot;Write a 2-sentence promo for a $5 Tuesday lunch special at a cozy pizza spot. Keep it friendly and fun.&quot;" rows="4"></textarea>
+      <div class="char-count" id="promptCount">0 characters</div>
+    </div>
+
+    <div class="form-row">
+      <label for="contextInput">Extra context <span style="font-weight:400;color:var(--gray400)">(optional — brand name, audience, style notes, etc.)</span></label>
+      <textarea id="contextInput" placeholder='e.g. "Brand name: Sal'\''s Slice House. Audience: young professionals. Tone: casual & witty."' rows="2" style="min-height:70px;"></textarea>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="runFaceOff()">
+      <span id="btnIcon">⚔️</span>
+      <span id="btnText">Start the Face-Off</span>
+    </button>
+
+    <div class="output-grid" id="outputGrid">
+
+      <!-- Claude column -->
+      <div class="output-col claude-col">
+        <div class="output-col-header">
+          <div class="output-col-header-left">
+            <span class="output-col-name">◆ Claude</span>
+          </div>
+          <button class="copy-btn claude-copy" id="claudeCopyBtn" onclick="copyResponse('claude')">Copy</button>
+        </div>
+        <div class="output-body loading" id="claudeOutput">Waiting…</div>
+        <div class="speed-row" id="claudeSpeedRow" style="display:none;">
+          <span class="speed-chip" id="claudeSpeedChip"></span>
+        </div>
+      </div>
+
+      <!-- Gemini column -->
+      <div class="output-col gemini-col">
+        <div class="output-col-header">
+          <div class="output-col-header-left">
+            <span class="output-col-name">✦ Gemini</span>
+          </div>
+          <button class="copy-btn gemini-copy" id="geminiCopyBtn" onclick="copyResponse('gemini')">Copy</button>
+        </div>
+        <div class="output-body loading" id="geminiOutput">Waiting…</div>
+        <div class="speed-row" id="geminiSpeedRow" style="display:none;">
+          <span class="speed-chip" id="geminiSpeedChip"></span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="winner-banner" id="winnerBanner"></div>
+
+  </div>
+
+</main>
+
+<script>
+  const APP_KEY    = 'demo_runs_face_off';
+  const DEMO_LIMIT = 5;
+  const WORKER_URL = 'https://worker.appsforhire.app/ai';
+
+  let runCount  = parseInt(localStorage.getItem(APP_KEY) || '0');
+  let isRunning = false;
+
+  const badge = document.getElementById('runBadge');
+  function updateBadge() {
+    badge.textContent = `Battles: ${runCount} / 5`;
+    badge.classList.toggle('warning', runCount >= 4);
+  }
+  updateBadge();
+
+  // Char counter
+  const promptInput = document.getElementById('promptInput');
+  promptInput.addEventListener('input', () => {
+    document.getElementById('promptCount').textContent =
+      `${promptInput.value.length} characters`;
+  });
+
+  async function runFaceOff() {
+    const userPrompt = promptInput.value.trim();
+    const context    = document.getElementById('contextInput').value.trim();
+
+    if (!userPrompt) { promptInput.focus(); return; }
+    if (isRunning)   return;
+
+    if (runCount >= DEMO_LIMIT) {
+      document.getElementById('demoOverlay').classList.add('show');
+      return;
+    }
+
+    // Increment counter
+    runCount++;
+    localStorage.setItem(APP_KEY, runCount);
+    updateBadge();
+
+    isRunning = true;
+    const btn     = document.getElementById('submitBtn');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnText = document.getElementById('btnText');
+    const grid    = document.getElementById('outputGrid');
+    const banner  = document.getElementById('winnerBanner');
+
+    const claudeOut  = document.getElementById('claudeOutput');
+    const geminiOut  = document.getElementById('geminiOutput');
+
+    btn.disabled  = true;
+    btnIcon.innerHTML = '<div class="spinner-sm"></div>';
+    btnText.textContent = 'Both AIs are writing…';
+
+    grid.classList.add('show');
+    banner.className = 'winner-banner';
+    banner.textContent = '';
+
+    claudeOut.className = 'output-body loading';
+    claudeOut.textContent = 'Claude is writing…';
+    geminiOut.className = 'output-body loading';
+    geminiOut.textContent = 'Gemini is writing…';
+
+    document.getElementById('claudeSpeedRow').style.display = 'none';
+    document.getElementById('geminiSpeedRow').style.display = 'none';
+    document.getElementById('claudeCopyBtn').classList.remove('copied');
+    document.getElementById('claudeCopyBtn').textContent = 'Copy';
+    document.getElementById('geminiCopyBtn').classList.remove('copied');
+    document.getElementById('geminiCopyBtn').textContent = 'Copy';
+
+    grid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    const contextLine = context ? `\n\nContext: ${context}` : '';
+    const system      = `You are a helpful AI writing assistant for a small business. Write concise, genuine, on-brand copy. Do not use excessive exclamation marks. Never start with "Sure!" or "Absolutely!".${contextLine}`;
+    const message     = userPrompt;
+
+    // Run both calls in parallel
+    const [claudeResult, geminiResult] = await Promise.all([
+      callAI('claude', system, message),
+      callAI('gemini', system, message),
+    ]);
+
+    // Render Claude
+    claudeOut.className = claudeResult.ok ? 'output-body' : 'output-body';
+    claudeOut.textContent = claudeResult.text;
+    document.getElementById('claudeSpeedRow').style.display = 'flex';
+    document.getElementById('claudeSpeedChip').textContent = `${(claudeResult.ms / 1000).toFixed(1)}s`;
+
+    // Render Gemini
+    geminiOut.className = geminiResult.ok ? 'output-body' : 'output-body';
+    geminiOut.textContent = geminiResult.text;
+    document.getElementById('geminiSpeedRow').style.display = 'flex';
+    document.getElementById('geminiSpeedChip').textContent = `${(geminiResult.ms / 1000).toFixed(1)}s`;
+
+    // Speed winner
+    if (claudeResult.ok && geminiResult.ok) {
+      const fasterChip = claudeResult.ms <= geminiResult.ms
+        ? document.getElementById('claudeSpeedChip')
+        : document.getElementById('geminiSpeedChip');
+      fasterChip.classList.add('fastest');
+      fasterChip.textContent += ' ⚡ faster';
+
+      const diff = Math.abs(claudeResult.ms - geminiResult.ms);
+      if (diff < 500) {
+        banner.className = 'winner-banner tie show';
+        banner.textContent = '🤝 A genuine tie — both AIs delivered great results at similar speed. Pick your favorite!';
+      } else if (claudeResult.ms < geminiResult.ms) {
+        banner.className = 'winner-banner claude-wins show';
+        banner.textContent = '⚡ Claude was faster this round. Compare the writing above to pick your winner.';
+      } else {
+        banner.className = 'winner-banner gemini-wins show';
+        banner.textContent = '⚡ Gemini was faster this round. Compare the writing above to pick your winner.';
+      }
+    }
+
+    btn.disabled = false;
+    btnIcon.textContent = '⚔️';
+    btnText.textContent = 'Run Another Battle';
+    isRunning = false;
+  }
+
+  async function callAI(model, system, message) {
+    const start = Date.now();
+    try {
+      const res  = await fetch(WORKER_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ model, system, message }),
+      });
+      const ms   = Date.now() - start;
+      const data = await res.json();
+      if (res.status === 429) {
+        return { ok: false, ms, text: '⚡ Demo AI limit reached. Contact us for your own app with unlimited responses.' };
+      } else if (!res.ok) {
+        return { ok: false, ms, text: `Could not reach ${model === 'claude' ? 'Claude' : 'Gemini'} right now. Try again in a moment.` };
+      }
+      return { ok: true, ms, text: data.response || 'No response received.' };
+    } catch (err) {
+      return { ok: false, ms: Date.now() - start, text: 'Network error — check your connection and try again.' };
+    }
+  }
+
+  function copyResponse(which) {
+    const id  = which === 'claude' ? 'claudeOutput' : 'geminiOutput';
+    const btn = document.getElementById(which === 'claude' ? 'claudeCopyBtn' : 'geminiCopyBtn');
+    const text = document.getElementById(id).textContent;
+    if (!text || text.includes('Network error') || text.includes('limit reached') || text.includes('Could not reach')) return;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
