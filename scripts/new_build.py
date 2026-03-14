@@ -165,7 +165,7 @@ def scaffold_build(info):
     build_dir = info["build_dir"]
     build_dir.mkdir(parents=True, exist_ok=True)
 
-    # Copy template files (not the portal subdirectory)
+    # Copy template files (not the portal subdirectory — we generate it below)
     for item in TEMPLATE_DIR.iterdir():
         if item.name == "portal":
             continue
@@ -175,8 +175,39 @@ def scaffold_build(info):
         else:
             shutil.copy2(item, dest)
 
+    # Copy portal/index.html from template
+    portal_src = TEMPLATE_DIR / "portal"
+    portal_dst = build_dir / "portal"
+    if portal_src.exists():
+        portal_dst.mkdir(exist_ok=True)
+        shutil.copy2(portal_src / "index.html", portal_dst / "index.html")
+
+    # Write a pre-filled customer-config.js — no placeholders
+    import datetime as dt
+    month_year = dt.date.today().strftime("%B %Y")
+    config_js = f"""// AppsForHire — Customer Portal Config
+const CUSTOMER = {{
+  name:          "{info['name']}",
+  tier:          "{info['tier']}",
+  since:         "{month_year}",
+  support_email: "hello@appsforhire.app",
+  stripe_portal: "https://billing.stripe.com/p/login/YOUR_PORTAL_LINK",
+  apps: [
+    {{
+      name:        "{info['app_title']}",
+      description: "{info['app_desc']}",
+      url:         "https://{info['slug']}.appsforhire.app",
+      icon:        "📱",
+      status:      "active",
+      launched:    "{month_year}",
+    }},
+  ]
+}};
+"""
+    (portal_dst / "customer-config.js").write_text(config_js)
+
     print(f"\n  ✅  Scaffolded: builds/{info['slug']}/")
-    print(f"      Files: index.html, manifest.json, sw.js, icons/")
+    print(f"      Files: index.html, manifest.json, sw.js, icons/, portal/")
 
 
 def build_ai_instructions(info):
