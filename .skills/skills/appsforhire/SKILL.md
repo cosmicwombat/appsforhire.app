@@ -111,5 +111,31 @@ const CUSTOMER = {
 ## After building
 1. Verify the app works by reading through the JS logic
 2. Confirm all 4 required elements are present: header/back-link, AI call pattern, demo overlay, soft warning
-3. Confirm `customer-config.js` has NO template placeholders
+3. Confirm `customer-config.js` has NO template placeholders — include ALL existing apps for that customer
 4. Tell Robert: "Ready to commit — run `git add builds/{slug} && git commit -m '...' && git push`"
+
+## After publishing (post-Publish workflow)
+After any new app is published via the Admin portal:
+1. **Update `admin-site/data.json`** — add new app as a nested entry in the customer's `apps[]` array
+2. **Update `CLAUDE_CONTEXT.md`** — add new app row to the Active Customers & Apps table and update status
+3. **Deploy admin site** — `GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py`
+4. **Rebuild plugin** — update `appsforhire.plugin` in repo root (or flag for Robert to do so)
+5. **Commit and push** all changed files
+
+## CF Access — what the publish flow handles automatically
+- Creates DNS CNAME (`{slug}` → `cosmicwombat.github.io`, proxied)
+- Creates Cloudflare Access self-hosted app (`session_duration: 6h` — customers auth once per session)
+- Creates Access policy (allow: client email OTP)
+- ⚠️ Policy creation requires `Access: Apps and Policies → Edit` on the CF API token
+  If that permission is missing, Robert creates the policy manually in Zero Trust dashboard
+
+---
+
+## Current Active Customers (as of 2026-03-14)
+| Client | Slug | App | Status |
+|--------|------|-----|--------|
+| Smith Bakery | smithbakery | Smith Bakery App | published |
+| The Gathering Place | thegatheringplace | Daily Offerations | published |
+| The Gathering Place | tgpscripture | Daily Word | published |
+| The Ghost Interpreter | theghostinterpreter | Random Sentence Generator | published |
+| The Ghost Interpreter | tgihorror | Ghost Story Generator | in_progress |

@@ -19,33 +19,38 @@ GitHub Pages behind Cloudflare Access (email OTP), and charges a monthly hosting
 ```
 app_for_hire/
   admin-site/          ← Admin portal source (push via setup_admin_site.py)
-    index.html
-    data.json
-  admin/               ← Older admin data copy (keep in sync)
+    index.html         ← Token persistence via localStorage (afh_gh_token, afh_admin_secret)
+    data.json          ← Customer records with nested apps[] arrays
   builds/              ← One folder per client app
     builds.json        ← Registry: slug, status (in_progress|ready|published)
     {slug}/
-      index.html       ← The app
+      index.html       ← The app (single file: HTML + CSS + JS)
       manifest.json
       sw.js
       portal/
         index.html     ← Customer "My Apps" portal
-        customer-config.js  ← Filled-in customer data
+        customer-config.js  ← Filled-in customer data (NO placeholders)
   scripts/             ← Python utilities
   template/            ← Shared icons and portal base
   worker/              ← Cloudflare Worker (AI proxy + CF proxy + Stripe)
     worker.js
     wrangler.toml
+  CLAUDE_CONTEXT.md    ← This file — update it whenever platform state changes
+  appsforhire.plugin   ← Cowork plugin (rebuild when skills/context change)
 ```
 
 ---
 
-## Active Customers
-| Client | Slug | URL | Theme |
-|--------|------|-----|-------|
-| Smith Bakery | smithbakery | smithbakery.appsforhire.app | #0d9488 teal |
-| The Gathering Place | thegatheringplace | thegatheringplace.appsforhire.app | #d97706 amber |
-| The Ghost Interpreter | theghostinterpreter | theghostinterpreter.appsforhire.app | #7c3aed violet |
+## Active Customers & Apps
+| Client | Slug | App Title | URL | Theme | Status |
+|--------|------|-----------|-----|-------|--------|
+| Smith Bakery | smithbakery | Smith Bakery App | smithbakery.appsforhire.app | #0d9488 teal | published |
+| The Gathering Place | thegatheringplace | Daily Offerations | thegatheringplace.appsforhire.app | #d97706 amber | published |
+| The Gathering Place | tgpscripture | Daily Word | tgpscripture.appsforhire.app | #d97706 amber | published |
+| The Ghost Interpreter | theghostinterpreter | Random Sentence Generator | theghostinterpreter.appsforhire.app | #7c3aed violet | published |
+| The Ghost Interpreter | tgihorror | Ghost Story Generator | tgihorror.appsforhire.app | #7c3aed violet | in_progress |
+
+**data.json nesting rule:** apps[] under each customer, not as separate customer rows.
 
 ---
 
@@ -123,7 +128,7 @@ if (res.status === 429) { /* show demo overlay */ }
 | Dad Joke | `https://icanhazdadjoke.com/` (Accept: application/json) | `.joke` |
 | Trivia | `https://opentdb.com/api.php?amount=1&type=multiple` | `.results[0]` |
 
-⚠️ **Dead/unreliable — never use:** api.quotable.io
+⚠️ **Dead/unreliable — never use:** `api.quotable.io`
 
 ---
 
@@ -138,7 +143,10 @@ if (res.status === 429) { /* show demo overlay */ }
 | `/admin/set-client-keys` | POST | Bearer ADMIN_SECRET | Store per-client API keys in KV |
 | `/webhook` | POST | Stripe sig | Stripe events |
 
-**CF proxy ops:** `dns-create`, `access-app-create`, `access-policy-create`, `cache-purge`
+**CF proxy ops:** `dns-create`, `access-app-create` (session_duration: 6h), `access-policy-create`, `cache-purge`
+
+**Worker secrets required:**
+`CF_API_TOKEN`, `CF_ZONE_ID`, `CF_ACCOUNT_ID`, `ADMIN_SECRET`, `GEMINI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
 
 ---
 
@@ -148,7 +156,11 @@ if (res.status === 429) { /* show demo overlay */ }
 3. Review app, commit, push: `git add builds/ && git commit && git push`
 4. Admin portal → connect GitHub + enter Admin Secret → Builds tab → Mark Ready
 5. Customers tab → Publish → enter client email
-6. Portal auto-handles: repo create, file push, Pages enable, DNS, CF Access
+6. Portal auto-handles: repo create, file push, Pages enable, DNS, CF Access (6h session)
+7. CF Access token permission: needs `Access: Apps and Policies → Edit` to auto-create policies
+   (if missing, create Access policy manually in CF Zero Trust dashboard)
+8. After publishing: update `admin-site/data.json` to add app to customer's `apps[]` array
+9. Deploy admin site: `GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py`
 
 ---
 
@@ -164,13 +176,17 @@ if (res.status === 429) { /* show demo overlay */ }
 ---
 
 ## Common Gotchas
-- **CF Access token needs** `Access: Apps and Policies` permission — often missing from API token
-- **One-Time PIN** must be enabled in Zero Trust → Settings → Authentication
-- **Portal files** (`portal/index.html`, `portal/customer-config.js`) must be pushed separately — publish flow handles this now
-- **Admin portal token** clears on every page refresh — reconnect GitHub + Admin Secret each session
+- **CF Access token needs** `Access: Apps and Policies` permission — often missing; add in CF dashboard
+- **One-Time PIN** must be enabled: Zero Trust → Settings → Authentication → Identity Providers
+- **Uncheck "Accept all available identity providers"** on the Access app to show OTP option on login
+- **Portal files** (`portal/index.html`, `portal/customer-config.js`) are included in publish flow automatically
+- **GitHub token persists** via localStorage (`afh_gh_token`, `afh_admin_secret`) — one-time connect per device
 - **Rate limit reset:** `npx wrangler kv key delete --binding=RATE_LIMIT "demo_ai:$(curl -s ifconfig.me)"`
 - **Push admin site after any changes:** `GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py`
 - **builds.json status** values: `in_progress` → `ready` → `published`
+- **CF Access session** is set to **6h** in the Worker (access-app-create op) — customers auth once per session
+- **data.json apps[]** — always add new apps as nested entries under the correct customer, not as new customer rows
+- **Worker deploy:** `cd worker && npx wrangler deploy` — redeploy after any worker.js change
 
 ---
 
@@ -180,3 +196,12 @@ if (res.status === 429) { /* show demo overlay */ }
 | Starter | $15 | Robert's shared Gemini key | 100 calls / 7 days (testing), 10 in production |
 | Custom | $20 | Client's own key (stored in Worker KV) | None |
 | Pro | $29 | Client's own key | None |
+
+---
+
+## Maintenance Checklist (after any enhancement)
+- [ ] Worker changed? → `cd worker && npx wrangler deploy`
+- [ ] admin-site/ changed? → `GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py`
+- [ ] New app published? → Add to `admin-site/data.json` apps[] + push + deploy admin site
+- [ ] CLAUDE_CONTEXT.md updated? → Rebuild `appsforhire.plugin` + commit
+- [ ] SKILL.md updated? → Rebuild `appsforhire.plugin` + commit

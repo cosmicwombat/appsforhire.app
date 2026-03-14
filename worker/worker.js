@@ -514,7 +514,7 @@ async function handleCFProxy(request, env, origin) {
         name:              subdomain,
         domain:            subdomain,
         type:              "self_hosted",
-        session_duration:  "24h",
+        session_duration:  "6h",
         allowed_idps:      [],
         auto_redirect_to_identity: false,
       });
