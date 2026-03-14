@@ -49,6 +49,14 @@
           "title": "Salish Shaker",
           "status": "live",
           "url": "https://tgpquake.appsforhire.app"
+        },
+        {
+          "slug": "isitopen",
+          "title": "Is it open",
+          "description": "Enter a business and find out if it's open and if not when does it open next.",
+          "icon": "🕜",
+          "status": "live",
+          "url": "https://isitopen.appsforhire.app"
         }
       ]
     },

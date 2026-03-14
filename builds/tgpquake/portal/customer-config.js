@@ -28,6 +28,14 @@ const CUSTOMER = {
       icon:        "🌊",
       status:      "active",
       launched:    "March 2026",
-    }
+    },
+    {
+      name:        "Is it open",
+      description: "Enter a business and find out if it's open and if not when does it open next.",
+      url:         "https://isitopen.appsforhire.app",
+      icon:        "🕜",
+      status:      "active",
+      launched:    "March 2026",
+    },
   ]
 };

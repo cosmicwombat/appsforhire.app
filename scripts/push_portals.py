@@ -20,6 +20,7 @@ SLUGS = [
     "thegatheringplace",
     "tgpscripture",
     "tgpquake",
+    "isitopen",
     "theghostinterpreter",
     "tgihorror",
     "theghostkitchen",

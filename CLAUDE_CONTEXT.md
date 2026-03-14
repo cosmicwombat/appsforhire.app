@@ -48,8 +48,10 @@ app_for_hire/
 | The Gathering Place | thegatheringplace | Daily Offerations | thegatheringplace.appsforhire.app | #d97706 amber | published |
 | The Gathering Place | tgpscripture | Daily Word | tgpscripture.appsforhire.app | #d97706 amber | published |
 | The Gathering Place | tgpquake | Salish Shaker | tgpquake.appsforhire.app | #d97706 amber | published |
+| The Gathering Place | isitopen | Is it open | isitopen.appsforhire.app | #16a34a green | published |
 | The Ghost Interpreter | theghostinterpreter | Random Sentence Generator | theghostinterpreter.appsforhire.app | #7c3aed violet | published |
 | The Ghost Interpreter | tgihorror | Ghost Story Generator | tgihorror.appsforhire.app | #7c3aed violet | published |
+| The Ghost Kitchen | theghostkitchen | The Quake Whisperer | theghostkitchen.appsforhire.app | #0f172a slate | published |
 
 **data.json nesting rule:** apps[] under each customer, not as separate customer rows.
 
@@ -141,6 +143,7 @@ if (res.status === 429) { /* show demo overlay */ }
 | Route | Method | Auth | Purpose |
 |-------|--------|------|---------|
 | `/ai` | POST | none | AI proxy (Claude/Gemini, rate-limited for Starter) |
+| `/places` | POST | none | Google Places API proxy (powers "Is it open" and similar apps) |
 | `/health` | GET | none | Check all secrets are configured |
 | `/admin/cf-proxy` | POST | Bearer ADMIN_SECRET | Cloudflare DNS, Access, cache purge |
 | `/admin/set-client-keys` | POST | Bearer ADMIN_SECRET | Store per-client API keys in KV |
@@ -150,7 +153,7 @@ if (res.status === 429) { /* show demo overlay */ }
 Legacy ops `access-app-create` and `access-policy-create` still work but `access-full-setup` is preferred — it runs all three CF saves in the correct order so OTP-only enforcement sticks.
 
 **Worker secrets required:**
-`CF_API_TOKEN`, `CF_ZONE_ID`, `CF_ACCOUNT_ID`, `ADMIN_SECRET`, `GEMINI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+`CF_API_TOKEN`, `CF_ZONE_ID`, `CF_ACCOUNT_ID`, `ADMIN_SECRET`, `GEMINI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `GOOGLE_PLACES_KEY`
 
 ---
 
@@ -197,7 +200,7 @@ Legacy ops `access-app-create` and `access-policy-create` still work but `access
 ## Tier System
 | Tier | Monthly | AI Key | Rate Limit |
 |------|---------|--------|------------|
-| Starter | $15 | Robert's shared Gemini key | 100 calls / 7 days (testing), 10 in production |
+| Starter | $15 | Robert's shared Gemini key | 50 calls / 24h |
 | Custom | $20 | Client's own key (stored in Worker KV) | None |
 | Pro | $29 | Client's own key | None |
 
