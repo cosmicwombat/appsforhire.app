@@ -39,6 +39,13 @@
       font-size: .75rem; font-weight: 700; letter-spacing: .04em;
       text-transform: uppercase;
     }
+    .header-right { display: flex; align-items: center; gap: .75rem; }
+    .logout-link {
+      color: rgba(255,255,255,.45); font-size: .75rem; font-weight: 600;
+      text-decoration: none; letter-spacing: .02em;
+      transition: color .15s;
+    }
+    .logout-link:hover { color: rgba(255,255,255,.85); }
     .hero {
       background: linear-gradient(140deg, var(--navy) 0%, #2d1b69 60%, #1a3a5c 100%);
       color: var(--white); text-align: center;
@@ -145,7 +152,10 @@
     </svg>
     <span>Apps<em>ForHire</em></span>
   </a>
-  <span class="demo-badge">🧪 Demo Environment</span>
+  <div class="header-right">
+    <span class="demo-badge">🧪 Demo Environment</span>
+    <a class="logout-link" href="/cdn-cgi/access/logout">Sign out</a>
+  </div>
 </header>
 
 <div class="hero">
