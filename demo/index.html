@@ -228,6 +228,15 @@
       <p class="counter-hint">Your battles: <strong id="runsFO">—</strong> / 5</p>
     </a>
 
+    <a class="app-card" href="daily-offerations/">
+      <div class="app-icon" style="background:#1e293b;">🪵</div>
+      <span class="app-tier" style="background:#f0fdf4;color:#166534;">Custom Build <span class="ai-tag">✦ Gemini</span></span>
+      <h2>Daily Offerations</h2>
+      <p>Enter your name and receive a gruff-yet-heartfelt daily affirmation in the voice of Nick Offerman. Overlaid on a moody background. Copy and share the wisdom.</p>
+      <span class="app-launch">Open App →</span>
+      <p class="counter-hint">Your runs: <strong id="runsDO">—</strong> / 10</p>
+    </a>
+
   </div>
 
   <div class="what-next">
@@ -253,6 +262,8 @@
     Math.min(parseInt(localStorage.getItem('demo_runs_review_responder') || '0'), 10);
   document.getElementById('runsFO').textContent =
     Math.min(parseInt(localStorage.getItem('demo_runs_face_off') || '0'), 5);
+  document.getElementById('runsDO').textContent =
+    Math.min(parseInt(localStorage.getItem('demo_runs_daily_offerations') || '0'), 10);
 </script>
 </body>
 </html>

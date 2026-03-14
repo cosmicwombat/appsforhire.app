@@ -13,10 +13,12 @@ builds/
 
 ## Rules
 
-- **Do NOT commit** the `builds/` folder to the main appsforhire repo.
-  Each build eventually lives in its own private GitHub repo (e.g. `cosmicwombat/client-smithbakery`).
-- Once a build is live (pushed via `new_customer.py`), you can delete the local folder here.
-- If a build is in progress and you need to pause, it stays here safely.
+- **DO commit** `builds/` to the main repo — the admin portal reads build files
+  from GitHub to power the in-browser Publish workflow.
+- `builds.json` is the registry. It is always committed.
+- Individual build folders (`builds/{slug}/`) should be committed once the app
+  is ready to review. After publishing, they can be deleted from the repo.
+- `git add builds/` after each `new_build.py` run so the admin portal can see it.
 
 ## How a build goes live
 

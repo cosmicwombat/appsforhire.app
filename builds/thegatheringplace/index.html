@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Gathering Place — Daily Offerations</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1117">
+  <meta name="description" content="Things Nick Offerman might say to you on a daily basis">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <style>
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --surface2: #222536;
+      --border:   #2e3147;
+      --accent:   #6366f1;
+      --accent2:  #22d3ee;
+      --green:    #34d399;
+      --red:      #f87171;
+      --yellow:   #fbbf24;
+      --text:     #e2e8f0;
+      --muted:    #94a3b8;
+      --radius:   12px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-brand h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .01em;
+    }
+    .header-brand .badge {
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .back-link {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: color .15s, border-color .15s;
+    }
+    .back-link:hover { color: var(--text); border-color: var(--accent); }
+    .header-badge {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .header-badge .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    /* ── Main ── */
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Query Section (Input Card) ── */
+    .query-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .query-section h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .query-section .hint {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .query-row {
+      display: flex;
+      gap: 10px;
+    }
+    .query-input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: var(--font);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .query-input:focus { border-color: var(--accent); }
+    .query-input::placeholder { color: var(--muted); }
+
+    .run-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0 24px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      white-space: nowrap;
+    }
+    .run-btn:hover:not(:disabled) { opacity: .9; }
+    .run-btn:active:not(:disabled) { transform: scale(.97); }
+    .run-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Result Card ── */
+    .result-section { display: none; }
+    .result-section.visible { display: block; }
+
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .offerman-scene-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .scene {
+      width: 100%;
+      min-height: 300px;
+      max-height: 440px;
+      display: block;
+    }
+    /* Wood-grain workshop */
+    .scene-wood {
+      background:
+        repeating-linear-gradient(90deg, transparent, transparent 22px, rgba(139,90,43,.08) 22px, rgba(139,90,43,.08) 24px),
+        repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(0,0,0,.04) 80px, rgba(0,0,0,.04) 82px),
+        linear-gradient(160deg, #3b2014 0%, #5c3a1e 30%, #4a2c12 60%, #2a1508 100%);
+    }
+    /* Amber whiskey warmth */
+    .scene-amber {
+      background:
+        radial-gradient(ellipse at 30% 50%, rgba(217,119,6,.25) 0%, transparent 60%),
+        radial-gradient(ellipse at 75% 30%, rgba(180,83,9,.2) 0%, transparent 50%),
+        linear-gradient(145deg, #1c1917 0%, #44403c 35%, #292524 65%, #0c0a09 100%);
+    }
+    /* Deep forest / outdoors */
+    .scene-forest {
+      background:
+        radial-gradient(ellipse at 20% 80%, rgba(22,101,52,.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(21,128,61,.15) 0%, transparent 40%),
+        linear-gradient(135deg, #052e16 0%, #14532d 30%, #0a3622 60%, #022c22 100%);
+    }
+    /* Leather & smoke */
+    .scene-leather {
+      background:
+        repeating-linear-gradient(170deg, transparent, transparent 40px, rgba(255,255,255,.015) 40px, rgba(255,255,255,.015) 42px),
+        radial-gradient(ellipse at 50% 40%, rgba(120,53,15,.3) 0%, transparent 60%),
+        linear-gradient(150deg, #1c1917 0%, #3f2410 35%, #2c1a0e 65%, #0c0a09 100%);
+    }
+    /* Steel & sawdust */
+    .scene-steel {
+      background:
+        radial-gradient(ellipse at 40% 60%, rgba(148,163,184,.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 30%, rgba(100,116,139,.1) 0%, transparent 40%),
+        linear-gradient(140deg, #0f172a 0%, #1e293b 30%, #1a2332 60%, #0c1220 100%);
+    }
+
+    .offerman-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,.55) 0%, rgba(0,0,0,.3) 100%);
+    }
+    .offerman-quote {
+      color: var(--text);
+      font-size: 1.25rem;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.55;
+      text-shadow: 0 2px 12px rgba(0,0,0,.9);
+      max-width: 90%;
+      font-style: italic;
+    }
+    .offerman-quote::before { content: '\201C'; }
+    .offerman-quote::after  { content: '\201D'; }
+
+    .result-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .result-name {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .copy-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: border-color .15s, color .15s;
+    }
+    .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent2);
+    }
+
+    /* ── Loading ── */
+    .loader {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .loader.visible { display: flex; }
+    .spinner {
+      width: 22px; height: 22px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    .error-msg {
+      display: none;
+      background: rgba(248, 113, 113, .1);
+      border: 1px solid rgba(248, 113, 113, .4);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      color: var(--red);
+      font-size: 14px;
+      text-align: center;
+    }
+    .error-msg.visible { display: block; }
+
+    /* ── Low-remaining warning ── */
+    .low-warning {
+      display: none;
+      background: rgba(251, 191, 36, .08);
+      border: 1px solid rgba(251, 191, 36, .3);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      color: var(--yellow);
+      font-size: 13px;
+      text-align: center;
+    }
+    .low-warning.visible { display: block; }
+
+    /* ── Demo Overlay ── */
+    .demo-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0,0,0,.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease;
+    }
+    .demo-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .demo-overlay-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+    .demo-overlay-card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .demo-overlay-card p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .demo-cta {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: opacity .2s;
+    }
+    .demo-cta:hover { opacity: .9; }
+    .demo-overlay-close {
+      display: block;
+      margin-top: 12px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .demo-overlay-close:hover { color: var(--text); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+    }
+    footer a { color: var(--accent2); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      header { padding: 12px 16px; }
+      main { padding: 20px 16px; }
+      .query-row { flex-direction: column; }
+      .run-btn { padding: 12px 24px; }
+      .offerman-quote { font-size: 1.05rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-brand">
+      <h1>The Gathering Place</h1>
+      <span class="badge">Daily Offerations</span>
+    </div>
+    <div class="header-right">
+      <a href="/portal/" class="back-link">&larr; My Apps</a>
+      <span class="header-badge"><span class="dot"></span> Secure</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Input Form -->
+    <section class="query-section">
+      <h2>Get Your Daily Offeration</h2>
+      <p class="hint">Enter your name below and receive a gruff-yet-heartfelt daily affirmation in the unmistakable voice of Nick Offerman.</p>
+      <form id="offerationForm" aria-label="Daily Offeration form">
+        <div class="query-row">
+          <input type="text" id="userName" name="userName" class="query-input" placeholder="Your name, e.g. Ron" autocomplete="given-name" required>
+          <button type="submit" class="run-btn" id="submitBtn">
+            <span id="btnText">Give Me Wisdom</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Loading -->
+    <div class="loader" id="loader" aria-live="polite">
+      <div class="spinner"></div>
+      <span>Nick Offerman is pondering&hellip;</span>
+    </div>
+
+    <!-- Error -->
+    <div class="error-msg" id="errorMsg" role="alert"></div>
+
+    <!-- Low remaining warning -->
+    <div class="low-warning" id="lowWarning">
+      You're almost out of daily demo uses. Come back tomorrow or contact AppsForHire for unlimited access!
+    </div>
+
+    <!-- Result -->
+    <section class="result-section" id="resultSection" aria-live="polite">
+      <div class="result-card">
+        <div class="offerman-scene-wrapper">
+          <div id="offermanScene" class="scene scene-wood"></div>
+          <div class="offerman-overlay">
+            <p class="offerman-quote" id="affirmationText"></p>
+          </div>
+        </div>
+        <div class="result-meta">
+          <span class="result-name" id="resultName"></span>
+          <button class="copy-btn" id="copyBtn" type="button">Copy Quote</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Powered by <a href="https://appsforhire.app" target="_blank" rel="noopener">AppsForHire</a></p>
+  </footer>
+
+  <!-- Demo Overlay -->
+  <div class="demo-overlay" id="demoOverlay" role="dialog" aria-modal="true" aria-label="Demo limit reached">
+    <div class="demo-overlay-card">
+      <h2>Demo Limit Reached</h2>
+      <p>You've used all your free daily offerations. Want unlimited Nick Offerman wisdom? Contact AppsForHire to upgrade!</p>
+      <a href="https://appsforhire.app" target="_blank" rel="noopener" class="demo-cta">Contact AppsForHire</a>
+      <button class="demo-overlay-close" id="closeDemoOverlay" type="button">Maybe later</button>
+    </div>
+  </div>
+
+  <script>
+    /* ── Service Worker ── */
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(function() {});
+    }
+
+    /* ── Nick Offerman Scene Backgrounds ── */
+    var OFFERMAN_SCENES = [
+      'scene-wood',
+      'scene-amber',
+      'scene-forest',
+      'scene-leather',
+      'scene-steel'
+    ];
+    var lastSceneIndex = -1;
+
+    function getRandomScene() {
+      var idx;
+      do {
+        idx = Math.floor(Math.random() * OFFERMAN_SCENES.length);
+      } while (idx === lastSceneIndex && OFFERMAN_SCENES.length > 1);
+      lastSceneIndex = idx;
+      return OFFERMAN_SCENES[idx];
+    }
+
+    /* ── AI Call ── */
+    var WORKER_URL = 'https://worker.appsforhire.app/ai';
+
+    async function callAI(system, userMessage) {
+      var res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gemini',
+          system: system,
+          message: userMessage
+        })
+      });
+      var data = await res.json();
+
+      if (res.status === 429) {
+        document.getElementById('demoOverlay').classList.add('show');
+        return null;
+      }
+      if (!res.ok) throw new Error(data.error || 'AI error');
+
+      /* Soft warning when running low */
+      if (data.remaining != null && data.remaining <= 2) {
+        document.getElementById('lowWarning').classList.add('visible');
+      }
+
+      return data.response;
+    }
+
+    /* ── DOM Refs ── */
+    var form          = document.getElementById('offerationForm');
+    var nameInput     = document.getElementById('userName');
+    var submitBtn     = document.getElementById('submitBtn');
+    var btnText       = document.getElementById('btnText');
+    var loader        = document.getElementById('loader');
+    var errorMsg      = document.getElementById('errorMsg');
+    var resultSection = document.getElementById('resultSection');
+    var offermanScene = document.getElementById('offermanScene');
+    var affirmation   = document.getElementById('affirmationText');
+    var resultName    = document.getElementById('resultName');
+    var copyBtn       = document.getElementById('copyBtn');
+
+    /* ── Form Submit ── */
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var name = nameInput.value.trim();
+      if (!name) {
+        nameInput.focus();
+        return;
+      }
+
+      /* Reset UI */
+      errorMsg.classList.remove('visible');
+      errorMsg.textContent = '';
+      resultSection.classList.remove('visible');
+      loader.classList.add('visible');
+      submitBtn.disabled = true;
+      btnText.textContent = 'Channeling Offerman\u2026';
+
+      var systemPrompt =
+        'You are Nick Offerman \u2014 the real man, not just Ron Swanson ' +
+        '(though Ron is certainly a part of you). You speak in short, wise, ' +
+        'gruff-yet-warm affirmations. You love woodworking, nature, whisky, ' +
+        'red meat, a good mustache, Megan Mullally, and the simple pleasures ' +
+        'of life. Keep it to 1\u20133 sentences. Be funny, heartfelt, and ' +
+        'unmistakably Offerman. Address the person by name. ' +
+        'Do NOT use hashtags or emojis.';
+
+      var userMsg = 'Give a daily affirmation to ' + name + '.';
+
+      try {
+        var response = await callAI(systemPrompt, userMsg);
+        if (response === null) {
+          /* 429 \u2014 overlay already shown */
+          return;
+        }
+
+        offermanScene.className = 'scene ' + getRandomScene();
+        affirmation.textContent = response;
+        resultName.textContent = 'An offeration for ' + name;
+        resultSection.classList.add('visible');
+
+        /* Scroll result into view */
+        resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (err) {
+        errorMsg.textContent =
+          'Something went wrong \u2014 even Nick Offerman has off days. Please try again.';
+        errorMsg.classList.add('visible');
+      } finally {
+        loader.classList.remove('visible');
+        submitBtn.disabled = false;
+        btnText.textContent = 'Give Me Wisdom';
+      }
+    });
+
+    /* ── Copy to Clipboard ── */
+    copyBtn.addEventListener('click', function() {
+      var quote = affirmation.textContent;
+      if (!quote) return;
+      navigator.clipboard.writeText(quote).then(function() {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function() { copyBtn.textContent = 'Copy Quote'; }, 2000);
+      }).catch(function() {
+        copyBtn.textContent = 'Failed';
+        setTimeout(function() { copyBtn.textContent = 'Copy Quote'; }, 2000);
+      });
+    });
+
+    /* ── Close Demo Overlay ── */
+    document.getElementById('closeDemoOverlay').addEventListener('click', function() {
+      document.getElementById('demoOverlay').classList.remove('show');
+    });
+  </script>
+</body>
+</html>

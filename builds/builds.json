@@ -1,0 +1,14 @@
+[
+  {
+    "slug": "thegatheringplace",
+    "client_name": "The Gathering Place",
+    "app_title": "Daily Offerations",
+    "app_desc": "Things Nick Offerman might say to you on a daily basis",
+    "tier": "starter",
+    "api_type": "starter-gemini",
+    "theme_color": "#0f172a",
+    "theme_dark": "#1e293b",
+    "created": "2026-03-13",
+    "status": "in_progress"
+  }
+]
