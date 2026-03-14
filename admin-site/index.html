@@ -773,7 +773,8 @@
 
       // 2. Read build files
       add('⟳ Reading build files…','run');
-      const files = ['index.html','manifest.json','sw.js'];
+      const files = ['index.html','manifest.json','sw.js',
+                     'portal/index.html','portal/customer-config.js'];
       const got   = {};
       for (const f of files) {
         try { got[f] = await ghGet(MAIN_REPO,`builds/${slug}/${f}`); } catch(e) {}

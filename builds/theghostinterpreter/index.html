@@ -154,8 +154,8 @@
   let currentResult = '';
 
   async function fetchQuote() {
-    const d = await (await fetch('https://api.quotable.io/random')).json();
-    return '"' + d.content + '" — ' + d.author;
+    const d = await (await fetch('https://dummyjson.com/quotes/random')).json();
+    return '"' + d.quote + '" — ' + d.author;
   }
   async function fetchJoke() {
     const d = await (await fetch('https://official-joke-api.appspot.com/random_joke')).json();
