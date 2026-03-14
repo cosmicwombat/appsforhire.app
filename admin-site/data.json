@@ -63,6 +63,12 @@
           "title": "Random Sentence Generator",
           "status": "live",
           "url": "https://theghostinterpreter.appsforhire.app"
+        },
+        {
+          "slug": "tgihorror",
+          "title": "Ghost Story Generator",
+          "status": "in_progress",
+          "url": "https://tgihorror.appsforhire.app"
         }
       ]
     }
