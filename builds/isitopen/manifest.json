@@ -1,0 +1,14 @@
+{
+  "name": "{{CLIENT_NAME}} — {{APP_TITLE}}",
+  "short_name": "{{CLIENT_SHORT}}",
+  "description": "{{APP_DESCRIPTION}}",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "{{THEME_COLOR}}",
+  "theme_color": "{{THEME_COLOR}}",
+  "orientation": "any",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
