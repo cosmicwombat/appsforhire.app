@@ -133,7 +133,8 @@
       color: var(--muted);
       margin-bottom: 6px;
     }
-    .form-group input {
+    .form-group input,
+    .form-group select {
       width: 100%;
       padding: 12px 14px;
       background: var(--surface2);
@@ -144,12 +145,26 @@
       font-family: inherit;
       outline: none;
       transition: border-color .15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .form-group select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
     }
     .form-group input::placeholder {
       color: var(--dim);
     }
-    .form-group input:focus {
+    .form-group input:focus,
+    .form-group select:focus {
       border-color: var(--accent);
+    }
+    .form-group select option {
+      background: var(--surface2);
+      color: var(--text);
     }
 
     .btn-primary {
@@ -475,6 +490,13 @@
           <label for="businessLocation">Location (optional)</label>
           <input type="text" id="businessLocation" placeholder="e.g. Seattle, WA or 123 Main St" autocomplete="off" />
         </div>
+        <div class="form-group">
+          <label for="modelSelect">AI Model</label>
+          <select id="modelSelect">
+            <option value="gemini">Gemini</option>
+            <option value="claude">Claude</option>
+          </select>
+        </div>
         <button type="submit" class="btn-primary" id="submitBtn">
           <span id="btnText">Check Hours</span>
         </button>
@@ -527,12 +549,14 @@
 
     // ── AI Call ──
     var WORKER_URL = 'https://worker.appsforhire.app/ai';
+    var modelSelect = document.getElementById('modelSelect');
 
     async function callAI(system, userMessage) {
+      var selectedModel = modelSelect.value;
       var res = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'gemini', system: system, message: userMessage }),
+        body: JSON.stringify({ model: selectedModel, system: system, message: userMessage }),
       });
       var data = await res.json();
 
