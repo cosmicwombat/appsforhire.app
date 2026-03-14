@@ -606,7 +606,7 @@
       var timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
       var dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-      var systemPrompt = 'You are a helpful assistant that knows typical business hours. The current date and time is ' + dayName + ', ' + dateStr + ' at ' + timeStr + ' (user\'s local time).\n\nWhen the user asks about a business, respond with:\n1. Whether it is likely OPEN or CLOSED right now\n2. Today\'s typical hours\n3. If closed, when it next opens\n4. A brief note if hours may vary by location\n\nKeep your response concise and friendly. Use plain text, no markdown. If you aren\'t sure about exact hours, give the most common/typical hours and note that the user should verify with the specific location.';
+      var systemPrompt = 'You are a helpful assistant that knows typical business hours. The current date and time is ' + dayName + ', ' + dateStr + ' at ' + timeStr + ' (user\'s local time).\n\nWhen the user asks about a business, respond with:\n1. Whether it is likely OPEN or CLOSED right now\n2. Today\'s typical hours\n3. If closed, when it next opens\n4. The business phone number if known\n5. The business website URL if known\n6. A brief note if hours may vary by location\n\nKeep your response concise and friendly. Use plain text, no markdown. If you aren\'t sure about exact hours, give the most common/typical hours and note that the user should verify with the specific location. Always try to include a phone number and website when available.';
 
       var userMsg = location
         ? 'Is "' + name + '" in ' + location + ' open right now?'

@@ -48,6 +48,7 @@ COLORS = {
 API_TYPES = {
     "starter-claude":  "Claude only (Robert's shared key, rate-limited)",
     "starter-gemini":  "Gemini only (Robert's shared key, rate-limited)",
+    "starter-both":    "Both Claude + Gemini (Robert's shared keys, rate-limited)",
     "custom-claude":   "Claude only (client's own key, no rate limit)",
     "custom-gemini":   "Gemini only (client's own key, no rate limit)",
     "custom-both":     "Both Claude + Gemini (client's own keys, can compare)",
@@ -107,8 +108,9 @@ def collect_info():
     if tier == "starter":
         print("    1. Claude only  (robert's claude key — good for writing tasks)")
         print("    2. Gemini only  (robert's gemini key — slightly cheaper, good for Q&A)")
-        api_choice = ask("Choose (1/2)", "1")
-        api_type = "starter-claude" if api_choice == "1" else "starter-gemini"
+        print("    3. Both         (robert's shared keys — user picks per query)")
+        api_choice = ask("Choose (1/2/3)", "1")
+        api_type = {"1": "starter-claude", "2": "starter-gemini", "3": "starter-both"}.get(api_choice, "starter-claude")
     else:
         print("    1. Claude only  (client provides claude key)")
         print("    2. Gemini only  (client provides gemini key)")
@@ -266,7 +268,26 @@ async function callBoth(system, userMessage) {{
 }}
 ```"""
 
-    if api_type == "custom-both":
+    if api_type == "starter-both":
+        ai_block = f"""
+### AI Calls — Both Models Available (Starter)
+
+Worker URL: `{worker_url}`
+The worker will use Robert's shared Claude AND Gemini keys.
+
+> **Rate limit**: This is a Starter app using Robert's shared keys. The worker
+> enforces 10 AI calls per IP per day (shared across both models). Include a
+> **demo overlay** that triggers on 429 responses, encouraging the user to
+> contact AppsForHire.
+
+Add a model picker (dropdown or toggle) so the user can choose `"gemini"` or
+`"claude"` per query. Here is the exact fetch pattern:
+{both_fetch}
+
+The worker returns `{{ "response": "...", "calls_used": N, "remaining": N }}`.
+Show a soft overlay (not a hard block) when `remaining` reaches 1-2.
+"""
+    elif api_type == "custom-both":
         ai_block = f"""
 ### AI Calls — Both Models Available
 
