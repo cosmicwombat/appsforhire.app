@@ -417,7 +417,10 @@
       <div class="panel" id="panel-customers">
         <div class="page-hd">
           <div><div class="page-title">Customers</div><div class="page-sub" id="custSub">Loading…</div></div>
-          <button class="btn btn-ghost btn-sm" onclick="loadCustomers()">↻ Refresh</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="loadCustomers()">↻ Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddCustomerModal()">+ Add Customer</button>
+          </div>
         </div>
         <div class="table-wrap">
           <table>
@@ -476,8 +479,46 @@
     <button class="modal-close" onclick="closeModal('msgModal')">✕</button>
     <div class="modal-title" id="msgTitle">Message Client</div>
     <div class="modal-sub" id="msgSub"></div>
-    <div id="msgNoEmail" class="msg-no-email" style="display:none;">⚠️ No email on file. Add it to customers.json and re-run update_admin_data.py.</div>
+    <div id="msgNoEmail" class="msg-no-email" style="display:none;">⚠️ No email on file. Use <strong>+ Add Customer</strong> to set one, or re-publish the app and enter the email in the Publish modal.</div>
     <div class="msg-options" id="msgOptions"></div>
+  </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div class="modal-backdrop" id="addCustModal" onclick="closeModal('addCustModal',event)">
+  <div class="modal" style="max-width:480px;">
+    <button class="modal-close" onclick="closeModal('addCustModal')">✕</button>
+    <div class="modal-title">👤 Add Customer</div>
+    <div class="modal-sub">Creates a customer record in data.json without a full publish flow. Useful for customers who signed up but whose build isn't ready yet.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Client Name</label>
+        <input class="modal-input" id="acName" type="text" placeholder="e.g. Andrew's Plumbing" autocomplete="off"/>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Email</label>
+        <input class="modal-input" id="acEmail" type="email" placeholder="client@example.com" autocomplete="off"/>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;">
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Tier</label>
+          <select class="modal-input" id="acTier" style="cursor:pointer;">
+            <option value="starter">Starter</option>
+            <option value="custom">Custom</option>
+            <option value="pro">Pro</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Theme Color</label>
+          <input class="modal-input" id="acColor" type="text" placeholder="#4f46e5" value="#4f46e5" autocomplete="off"/>
+        </div>
+      </div>
+    </div>
+    <div id="acStatus" style="min-height:20px;margin-top:10px;font-size:12px;color:var(--text-dim);"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addCustModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewCustomer()">Save Customer →</button>
+    </div>
   </div>
 </div>
 
@@ -767,6 +808,8 @@
       ? '<div style="margin-top:8px;font-size:11px;color:var(--green)">☁️ CF proxy unlocked — DNS &amp; Access will be automated via Worker.</div>'
       : '<div style="margin-top:8px;font-size:11px;color:var(--text-dim)">☁️ Enter Admin Secret above to automate DNS &amp; Access setup.</div>';
     document.getElementById('pubTitle').textContent = 'Publish: '+b.client_name;
+    const descVal = b.app_desc || '';
+    const iconVal = b.app_icon || '';
     document.getElementById('pubContent').innerHTML = `
       <div class="pub-step"><div class="pub-step-label">Client</div><div class="pub-step-val">${b.client_name}</div></div>
       <div class="pub-step"><div class="pub-step-label">App</div><div class="pub-step-val">${b.app_title}</div></div>
@@ -779,6 +822,24 @@
           style="width:100%;margin-top:4px;padding:6px 10px;background:var(--bg-card);
                  border:1px solid var(--border);border-radius:7px;color:var(--text-primary);
                  font-size:13px;outline:none;"/>
+      </div>
+      <div class="pub-step" style="display:flex;gap:10px;align-items:flex-start;">
+        <div style="flex:0 0 80px;">
+          <div class="pub-step-label">Icon</div>
+          <input id="pubIconInput" type="text" value="${iconVal}"
+            placeholder="📱" autocomplete="off"
+            style="width:100%;margin-top:4px;padding:6px 10px;background:var(--bg-card);
+                   border:1px solid var(--border);border-radius:7px;color:var(--text-primary);
+                   font-size:18px;outline:none;text-align:center;"/>
+        </div>
+        <div style="flex:1;">
+          <div class="pub-step-label">App description <span style="font-weight:400">(for portal)</span></div>
+          <input id="pubDescInput" type="text" value="${descVal.replace(/"/g,'&quot;')}"
+            placeholder="One-line description shown in the portal" autocomplete="off"
+            style="width:100%;margin-top:4px;padding:6px 10px;background:var(--bg-card);
+                   border:1px solid var(--border);border-radius:7px;color:var(--text-primary);
+                   font-size:13px;outline:none;"/>
+        </div>
       </div>
       ${cfNote}`;
     document.getElementById('pubActions').innerHTML = `
@@ -870,28 +931,63 @@
 
       // 8. Update admin data.json
       add('⟳ Updating data.json…','run');
+      let updatedCust = null;
       try {
+        const appIcon = (document.getElementById('pubIconInput')?.value || '📱').trim();
+        const appDesc = (document.getElementById('pubDescInput')?.value || '').trim();
         const df   = await ghGet(ADMIN_REPO,'data.json');
         const data = JSON.parse(atob(df.content.replace(/\n/g,'')));
         const today = new Date().toISOString().split('T')[0];
-        const newApp = { title:b.app_title, slug, published:today, status:'live' };
-        const ex = data.customers.find(c=>c.client_slug===slug);
+        const newApp = {
+          title: b.app_title, slug,
+          description: appDesc, icon: appIcon,
+          published: today, status: 'live',
+          url: `https://${slug}.${BASE_DOMAIN}`,
+        };
+        // Match by client_name — not primary slug — so 2nd+ apps find the right customer
+        const ex = data.customers.find(c => c.client_name === b.client_name);
         if (ex) {
+          if (email) ex.email = email;  // save email if provided
           ex.apps = [...(ex.apps||[]).filter(a=>a.slug!==slug), newApp];
+          updatedCust = ex;
         } else {
-          data.customers.push({
-            client_name:b.client_name, client_slug:slug, email:'',
-            subdomain:`${slug}.${BASE_DOMAIN}`,
-            repo:`https://github.com/${GH_OWNER}/${repo}`,
-            tier:b.tier, theme_color:b.theme_color||'#4f46e5',
-            created:today, stripe_hosting:null, status:'active', apps:[newApp],
-          });
+          const newCust = {
+            client_name: b.client_name,
+            client_slug: slug,
+            email: email,
+            subdomain: `${slug}.${BASE_DOMAIN}`,
+            repo: `https://github.com/${GH_OWNER}/${repo}`,
+            tier: b.tier, theme_color: b.theme_color||'#4f46e5',
+            created: today, stripe_hosting: null, status: 'active', apps: [newApp],
+          };
+          data.customers.push(newCust);
+          updatedCust = newCust;
         }
         data.generated = today;
         await ghPut(ADMIN_REPO,'data.json',JSON.stringify(data,null,2),
           `Publish ${b.client_name} — ${b.app_title}`, df.sha);
         add('✓ Customer record updated','ok');
       } catch(e) { add('⚠ data.json update: '+e.message,''); }
+
+      // 8b. Portal cascade — regenerate customer-config.js for all repos of this customer
+      if (updatedCust) {
+        add('⟳ Cascading portal configs…','run');
+        try {
+          const config = makePortalConfig(updatedCust);
+          let cascaded = 0;
+          for (const app of updatedCust.apps) {
+            const clientRepo = 'client-' + app.slug;
+            try {
+              let pSha = null;
+              try { pSha = (await ghGet(clientRepo,'portal/customer-config.js')).sha; } catch(e){}
+              await ghPut(clientRepo,'portal/customer-config.js',config,
+                `Portal cascade — ${b.client_name} add ${b.app_title}`,pSha);
+              cascaded++;
+            } catch(e) { /* repo may not exist yet — skip */ }
+          }
+          add(`✓ Portal configs cascaded (${cascaded} repo${cascaded!==1?'s':''})`, 'ok');
+        } catch(e) { add('⚠ Portal cascade: '+e.message,''); }
+      }
 
       // 9. Cloudflare DNS + Access (via Worker proxy — no CORS issues)
       if (adminSecret) {
@@ -980,6 +1076,69 @@
         <div><div class="msg-option-title">${m.title}</div><div class="msg-option-desc">${m.desc}</div></div>
       </a>`).join('');
     document.getElementById('msgModal').classList.add('open');
+  }
+
+  // ── Portal config generator ──
+  function fmtMonth(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+  }
+
+  function makePortalConfig(cust) {
+    const esc = s => (s||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+    const appsJs = (cust.apps||[]).map(a => `    {
+      name:        "${esc(a.title)}",
+      description: "${esc(a.description||'')}",
+      url:         "${a.url||'https://'+a.slug+'.'+BASE_DOMAIN}",
+      icon:        "${esc(a.icon||'📱')}",
+      status:      "active",
+      launched:    "${fmtMonth(a.published||cust.created)}",
+    }`).join(',\n');
+    return `// AppsForHire — Customer Portal Config\nconst CUSTOMER = {\n  name:          "${esc(cust.client_name)}",\n  tier:          "${cust.tier||'starter'}",\n  since:         "${fmtMonth(cust.created)}",\n  support_email: "info@ghostkitchen.shop",\n  stripe_portal: "https://billing.stripe.com/p/login/YOUR_PORTAL_LINK",\n  apps: [\n${appsJs}\n  ]\n};\n`;
+  }
+
+  // ── Add Customer modal ──
+  function openAddCustomerModal() {
+    if (!ghToken) { toast('Connect GitHub first'); return; }
+    document.getElementById('acName').value  = '';
+    document.getElementById('acEmail').value = '';
+    document.getElementById('acTier').value  = 'starter';
+    document.getElementById('acColor').value = '#4f46e5';
+    document.getElementById('acStatus').textContent = '';
+    document.getElementById('addCustModal').classList.add('open');
+    setTimeout(()=>document.getElementById('acName').focus(),80);
+  }
+
+  async function saveNewCustomer() {
+    const name  = document.getElementById('acName').value.trim();
+    const email = document.getElementById('acEmail').value.trim();
+    const tier  = document.getElementById('acTier').value;
+    const color = document.getElementById('acColor').value.trim()||'#4f46e5';
+    const st    = document.getElementById('acStatus');
+    if (!name) { st.textContent='⚠ Client name is required.'; return; }
+    st.textContent = '⟳ Saving…';
+    try {
+      const df   = await ghGet(ADMIN_REPO,'data.json');
+      const data = JSON.parse(atob(df.content.replace(/\n/g,'')));
+      const today = new Date().toISOString().split('T')[0];
+      const slug  = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'');
+      if (data.customers.find(c=>c.client_name===name)) {
+        st.textContent = '⚠ A customer with that name already exists.'; return;
+      }
+      data.customers.push({
+        client_name: name, client_slug: slug,
+        email: email, subdomain: `${slug}.${BASE_DOMAIN}`,
+        repo: '', tier, theme_color: color,
+        created: today, stripe_hosting: null, status: 'active', apps: [],
+      });
+      data.generated = today;
+      await ghPut(ADMIN_REPO,'data.json',JSON.stringify(data,null,2),`Add customer: ${name}`,df.sha);
+      st.textContent = '✓ Saved!';
+      setTimeout(()=>{ closeModal('addCustModal'); loadCustomers(); toast(`${name} added`); }, 800);
+    } catch(e) {
+      st.textContent = '✗ Error: '+e.message;
+    }
   }
 
   // ── Modal helpers ──
