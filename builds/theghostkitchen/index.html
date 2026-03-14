@@ -387,11 +387,12 @@ const NOAA_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter` +
   `&begin_date=${toNoaaDate(twoWeeksAgo)}&end_date=${toNoaaDate(now)}`;
 
 // Open-Meteo — free, no API key, CORS-friendly
+// Use past_days only (cannot combine with start_date/end_date)
 const TEMP_URL = `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${SALISH_LAT}&longitude=${SALISH_LON}` +
   `&hourly=temperature_2m&temperature_unit=fahrenheit` +
-  `&start_date=${toISODate(twoWeeksAgo)}&end_date=${toISODate(now)}` +
-  `&timezone=America/Los_Angeles&past_days=14`;
+  `&past_days=14&forecast_days=1` +
+  `&timezone=America/Los_Angeles`;
 
 async function loadData() {
   const [usgsRes, noaaRes, tempRes] = await Promise.all([
