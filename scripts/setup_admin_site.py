@@ -121,7 +121,20 @@ def main():
 
     for i, abs_path in enumerate(files, 1):
         github_path = str(abs_path.relative_to(ADMIN_SITE_DIR)).replace("\\", "/")
-        print(f"   [{i:02d}/{len(files):02d}] {github_path}")
+
+        # data.json is owned by the publish flow — only seed it if it doesn't
+        # exist yet in the repo (first-time setup). Never overwrite a live copy.
+        if github_path == "data.json":
+            try:
+                repo.get_contents("data.json")
+                print(f"   [skip] data.json — live version preserved (managed by publish flow)")
+                continue
+            except GithubException:
+                print(f"   [{i:02d}/{len(files):02d}] {github_path} (first-time seed)")
+
+        else:
+            print(f"   [{i:02d}/{len(files):02d}] {github_path}")
+
         try:
             push_file(repo, github_path, abs_path, f"Setup admin site: {github_path}")
             time.sleep(0.25)
