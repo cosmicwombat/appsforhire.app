@@ -678,10 +678,11 @@
           <div class="app-row-left">
             <span>📱</span>
             <span class="app-row-title">${a.title||a.slug}</span>
-            <span class="badge badge-${a.status||'live'}">${a.status||'live'}</span>
+            <span class="badge badge-active">${a.status||'live'}</span>
           </div>
           <div class="app-row-right">
-            <a href="https://${c.subdomain}" target="_blank" class="btn btn-ghost btn-sm">View ↗</a>
+            <a href="${a.url||'https://'+c.subdomain}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:11px">App ↗</a>
+            <a href="${a.url||'https://'+c.subdomain}/portal/" target="_blank" class="btn btn-ghost btn-sm" style="font-size:11px">Portal ↗</a>
           </div>
         </div>`).join('');
       return `
@@ -692,7 +693,7 @@
           <td><span class="badge ${c.status==='active'?'badge-active':'badge-paused'}">${c.status}</span></td>
           <td style="color:var(--text-dim);font-size:12px">${c.created}</td>
           <td><div class="actions">
-            <a href="https://${c.subdomain}" target="_blank" class="btn btn-ghost btn-sm">App ↗</a>
+            <a href="https://${c.subdomain}/portal/" target="_blank" class="btn btn-ghost btn-sm">Portal ↗</a>
             <a href="${c.repo||'#'}" target="_blank" class="btn btn-ghost btn-sm">Repo ↗</a>
             <button class="btn btn-ghost btn-sm" title="Purge Cloudflare cache" onclick="purgeCache('${c.subdomain}')">⚡</button>
             <button class="btn btn-ghost btn-sm" onclick='openMsgModal(${JSON.stringify(c).replace(/"/g,"&quot;")})'>✉️</button>

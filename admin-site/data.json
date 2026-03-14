@@ -3,6 +3,7 @@
     {
       "client_name": "Smith Bakery",
       "client_slug": "smithbakery",
+      "email": "owner@smithbakery.com",
       "subdomain": "smithbakery.appsforhire.app",
       "repo": "https://github.com/cosmicwombat/client-smithbakery",
       "tier": "starter",
@@ -10,7 +11,14 @@
       "created": "2026-03-12",
       "stripe_hosting": null,
       "status": "active",
-      "email": "owner@smithbakery.com"
+      "apps": [
+        {
+          "slug": "smithbakery",
+          "title": "Smith Bakery App",
+          "status": "live",
+          "url": "https://smithbakery.appsforhire.app"
+        }
+      ]
     },
     {
       "client_name": "The Gathering Place",
@@ -22,22 +30,44 @@
       "theme_color": "#d97706",
       "created": "2026-03-13",
       "stripe_hosting": null,
-      "status": "active"
+      "status": "active",
+      "apps": [
+        {
+          "slug": "thegatheringplace",
+          "title": "Daily Offerations",
+          "status": "live",
+          "url": "https://thegatheringplace.appsforhire.app"
+        },
+        {
+          "slug": "tgpscripture",
+          "title": "Daily Word",
+          "status": "live",
+          "url": "https://tgpscripture.appsforhire.app"
+        }
+      ]
     },
     {
-      "client_name": "The Gathering Place — Daily Word",
-      "client_slug": "tgpscripture",
-      "email": "rkeller@licc-tgp.org",
-      "subdomain": "tgpscripture.appsforhire.app",
-      "repo": "https://github.com/cosmicwombat/client-tgpscripture",
+      "client_name": "The Ghost Interpreter",
+      "client_slug": "theghostinterpreter",
+      "email": "rkeller@legoebayuc.com",
+      "subdomain": "theghostinterpreter.appsforhire.app",
+      "repo": "https://github.com/cosmicwombat/client-theghostinterpreter",
       "tier": "starter",
-      "theme_color": "#d97706",
+      "theme_color": "#7c3aed",
       "created": "2026-03-14",
       "stripe_hosting": null,
-      "status": "active"
+      "status": "active",
+      "apps": [
+        {
+          "slug": "theghostinterpreter",
+          "title": "Random Sentence Generator",
+          "status": "live",
+          "url": "https://theghostinterpreter.appsforhire.app"
+        }
+      ]
     }
   ],
   "mrr": 30,
   "capacity": 100,
-  "generated": "2026-03-13"
+  "generated": "2026-03-14"
 }
