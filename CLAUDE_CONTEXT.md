@@ -143,7 +143,8 @@ if (res.status === 429) { /* show demo overlay */ }
 | `/admin/set-client-keys` | POST | Bearer ADMIN_SECRET | Store per-client API keys in KV |
 | `/webhook` | POST | Stripe sig | Stripe events |
 
-**CF proxy ops:** `dns-create`, `access-app-create` (session_duration: 6h), `access-policy-create`, `cache-purge`
+**CF proxy ops:** `dns-create`, `access-full-setup` (3-step: app→policy→patch IDP, session_duration: 6h), `cache-purge`
+Legacy ops `access-app-create` and `access-policy-create` still work but `access-full-setup` is preferred — it runs all three CF saves in the correct order so OTP-only enforcement sticks.
 
 **Worker secrets required:**
 `CF_API_TOKEN`, `CF_ZONE_ID`, `CF_ACCOUNT_ID`, `ADMIN_SECRET`, `GEMINI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`

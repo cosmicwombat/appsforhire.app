@@ -905,25 +905,16 @@
           else add('⚠ DNS: '+e.message,'');
         }
 
-        // 9b. Access app
-        add('⟳ Creating Cloudflare Access app…','run');
-        let appId = null;
+        // 9b. Access full setup (3-step: app → policy → patch IDP — order matters)
+        add('⟳ Creating Cloudflare Access app + policy…','run');
         try {
-          const app = await cfProxy('access-app-create', { subdomain: `${slug}.${BASE_DOMAIN}` });
-          appId = app?.id || app?.uid;
-          add('✓ Access app created','ok');
-        } catch(e) { add('⚠ Access app: '+e.message,''); }
-
-        // 9c. Access policy (email OTP)
-        if (appId && email) {
-          add(`⟳ Adding Access policy for ${email}…`,'run');
-          try {
-            await cfProxy('access-policy-create', { appId, email });
-            add(`✓ Access policy set — ${email} can sign in via OTP`,'ok');
-          } catch(e) { add('⚠ Access policy: '+e.message,''); }
-        } else if (appId) {
-          add('ℹ Access app created — add client email policy in CF dashboard','');
-        }
+          const setup = await cfProxy('access-full-setup', { subdomain: `${slug}.${BASE_DOMAIN}`, email });
+          if (setup.partial) {
+            add(`⚠ Access partial: ${setup.warning}`,'');
+          } else {
+            add(`✓ Access app created, policy set (${email}), OTP-only enforced`,'ok');
+          }
+        } catch(e) { add('⚠ Access setup: '+e.message,''); }
       } else {
         add('ℹ Admin Secret not set — add DNS CNAME &amp; Access manually','');
       }

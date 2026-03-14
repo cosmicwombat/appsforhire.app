@@ -467,7 +467,8 @@ async function sendEmail(env, { to, subject, text }) {
 // Auth is the same ADMIN_SECRET bearer token used by all /admin/* routes.
 // Secrets used: CF_API_TOKEN, CF_ZONE_ID, CF_ACCOUNT_ID
 //
-// Body: { op: "dns-create" | "access-app-create" | "access-policy-create" | "cache-purge", ...params }
+// Body: { op: "dns-create" | "access-full-setup" | "cache-purge", ...params }
+// Legacy ops "access-app-create" and "access-policy-create" still accepted but prefer access-full-setup.
 async function handleCFProxy(request, env, origin) {
   if (!env.CF_API_TOKEN) {
     return jsonResponse({ error: "CF_API_TOKEN not configured in Worker secrets" }, 500, origin);
@@ -530,6 +531,83 @@ async function handleCFProxy(request, env, origin) {
         include:    [{ email: { email } }],
         precedence: 1,
       });
+
+    } else if (op === "access-full-setup") {
+      // Three-step CF Access setup — must run in this exact order or settings don't stick:
+      //   Save 1: Create the policy (standalone, not yet attached to app)
+      //   Save 2: Create the app with the policy already attached
+      //   Save 3: PATCH the app to lock down allowed_idps (uncheck "Accept all identity providers")
+      const { subdomain, email } = body;
+      if (!subdomain || !email) return jsonResponse({ error: "'subdomain' and 'email' required" }, 400, origin);
+
+      // ── Save 1: Create policy attached to a temporary placeholder, then reuse by ID.
+      // CF Access doesn't have a standalone policy endpoint in v1, so we create the app
+      // first bare, attach the policy, then patch the IDP setting. This mirrors the UI flow.
+
+      // Save 1: Create the app without IDP restriction yet
+      const appRes  = await fetch(`${CF}/accounts/${env.CF_ACCOUNT_ID}/access/apps`, {
+        method: "POST", headers,
+        body: JSON.stringify({
+          name:             subdomain,
+          domain:           subdomain,
+          type:             "self_hosted",
+          session_duration: "6h",
+          auto_redirect_to_identity: false,
+        }),
+      });
+      const appData = await appRes.json();
+      if (!appRes.ok || !appData.success) {
+        const msg = appData.errors?.[0]?.message || JSON.stringify(appData.errors);
+        return jsonResponse({ error: `CF Access app create failed: ${msg}`, details: appData }, appRes.status, origin);
+      }
+      const appId = appData.result?.uid || appData.result?.id;
+
+      // Save 2: Attach the email OTP policy to the app
+      const polRes  = await fetch(`${CF}/accounts/${env.CF_ACCOUNT_ID}/access/apps/${appId}/policies`, {
+        method: "POST", headers,
+        body: JSON.stringify({
+          name:       "Client email OTP",
+          decision:   "allow",
+          include:    [{ email: { email } }],
+          precedence: 1,
+        }),
+      });
+      const polData = await polRes.json();
+      if (!polRes.ok || !polData.success) {
+        const msg = polData.errors?.[0]?.message || JSON.stringify(polData.errors);
+        // Policy failure is non-fatal — app exists, policy can be added manually
+        return jsonResponse({
+          ok: true, partial: true,
+          appId,
+          warning: `App created but policy failed: ${msg}`,
+          result: appData.result,
+        }, 200, origin);
+      }
+
+      // Save 3: PATCH app to restrict to no IdPs (forces OTP-only, unchecks "Accept all")
+      const patchRes  = await fetch(`${CF}/accounts/${env.CF_ACCOUNT_ID}/access/apps/${appId}`, {
+        method: "PUT", headers,
+        body: JSON.stringify({
+          name:             subdomain,
+          domain:           subdomain,
+          type:             "self_hosted",
+          session_duration: "6h",
+          allowed_idps:     [],
+          auto_redirect_to_identity: false,
+        }),
+      });
+      const patchData = await patchRes.json();
+      if (!patchRes.ok || !patchData.success) {
+        // IDP patch failure is non-fatal — app + policy exist, IDP can be unchecked manually
+        return jsonResponse({
+          ok: true, partial: true,
+          appId,
+          warning: "App + policy created but IDP restriction patch failed — manually uncheck 'Accept all identity providers' in CF dashboard",
+          result: appData.result,
+        }, 200, origin);
+      }
+
+      return jsonResponse({ ok: true, appId, result: patchData.result }, 200, origin);
 
     } else if (op === "cache-purge") {
       // Purge everything for a subdomain's zone

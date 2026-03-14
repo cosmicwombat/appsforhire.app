@@ -124,10 +124,16 @@ After any new app is published via the Admin portal:
 
 ## CF Access — what the publish flow handles automatically
 - Creates DNS CNAME (`{slug}` → `cosmicwombat.github.io`, proxied)
-- Creates Cloudflare Access self-hosted app (`session_duration: 6h` — customers auth once per session)
-- Creates Access policy (allow: client email OTP)
-- ⚠️ Policy creation requires `Access: Apps and Policies → Edit` on the CF API token
-  If that permission is missing, Robert creates the policy manually in Zero Trust dashboard
+- Calls `access-full-setup` — runs three CF API saves in the required order:
+  1. Create the app (session_duration: 6h)
+  2. Attach the email OTP policy to the app
+  3. PATCH the app with `allowed_idps: []` to enforce OTP-only
+  This order is critical — setting IDP restriction before the policy is attached does not stick.
+- ⚠️ Requires `Access: Apps and Policies → Edit` on the CF API token.
+  If missing, create manually in CF Zero Trust dashboard using this exact order:
+  1. Create the policy first (save)
+  2. Create the app with the policy already selected (save)
+  3. Uncheck "Accept all available identity providers" (save again)
 
 ---
 
