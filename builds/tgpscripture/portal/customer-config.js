@@ -3,7 +3,7 @@ const CUSTOMER = {
   name:          "The Gathering Place",
   tier:          "starter",
   since:         "March 2026",
-  support_email: "hello@appsforhire.app",
+  support_email: "info@ghostkitchen.shop",
   stripe_portal: "https://billing.stripe.com/p/login/YOUR_PORTAL_LINK",
   apps: [
     {

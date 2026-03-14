@@ -450,7 +450,7 @@ async function sendEmail(env, { to, subject, text }) {
       "Content-Type":  "application/json",
     },
     body: JSON.stringify({
-      from:    "AppsForHire <hello@appsforhire.app>",
+      from:    "AppsForHire <info@ghostkitchen.shop>",
       to:      [to],
       subject,
       text,

@@ -70,7 +70,7 @@ const CUSTOMER = {
   name:          "{CLIENT_NAME}",
   tier:          "starter",
   since:         "{MONTH YEAR}",
-  support_email: "hello@appsforhire.app",
+  support_email: "info@ghostkitchen.shop",
   stripe_portal: "https://billing.stripe.com/p/login/YOUR_PORTAL_LINK",
   apps: [{
     name:        "{APP_TITLE}",

@@ -7,7 +7,7 @@ const CUSTOMER = {
   name:        "{{CLIENT_NAME}}",
   tier:        "{{TIER}}",          // starter | custom | pro
   since:       "{{SINCE_DATE}}",    // e.g. "March 2026"
-  support_email: "hello@appsforhire.app",
+  support_email: "info@ghostkitchen.shop",
 
   // Stripe subscription management link (send customer here to manage billing)
   stripe_portal: "https://billing.stripe.com/p/login/YOUR_PORTAL_LINK",
