@@ -46,8 +46,9 @@ const DEMO_AI_TTL   = 7 * 24 * 60 * 60;           // 7 days in seconds
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 // Allows any *.appsforhire.app subdomain automatically — new clients just work.
+// Also allows null/empty origin so local file:// testing works without CORS errors.
 function isAllowedOrigin(origin) {
-  if (!origin) return false;
+  if (!origin || origin === "null") return true; // local file:// or no-origin caller
   if (/^https:\/\/[a-z0-9-]+\.appsforhire\.app$/.test(origin)) return true;
   if (origin === "https://appsforhire.app") return true;
   if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;

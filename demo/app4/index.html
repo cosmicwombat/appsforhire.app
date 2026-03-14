@@ -336,13 +336,31 @@
   const WORKER_URL = 'https://worker.appsforhire.app/ai';
   const USGS_URL   = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
 
-  // ── Run counter ─────────────────────────────────────────────────────────────
-  let runCount = parseInt(localStorage.getItem(APP_KEY) || '0') + 1;
-  localStorage.setItem(APP_KEY, runCount);
+  // ── Run counter ──────────────────────────────────────────────────────────────
+  // For Daily Weird, runs are counted per AI call (not per page load),
+  // because the page auto-loads live data — the interesting action is the AI button.
+  let runCount = parseInt(localStorage.getItem(APP_KEY) || '0');
   const badge = document.getElementById('runBadge');
-  badge.textContent = `Demo: ${runCount} / 10 runs`;
-  if (runCount >= 9) badge.classList.add('warning');
-  if (runCount > DEMO_LIMIT) document.getElementById('demoOverlay').classList.add('show');
+
+  function updateBadge() {
+    badge.textContent = `AI calls: ${runCount} / 10`;
+    badge.classList.toggle('warning', runCount >= 9);
+  }
+  updateBadge();
+
+  function checkDemoLimit() {
+    if (runCount >= DEMO_LIMIT) {
+      document.getElementById('demoOverlay').classList.add('show');
+      return true;
+    }
+    return false;
+  }
+
+  function incrementRunCount() {
+    runCount++;
+    localStorage.setItem(APP_KEY, runCount);
+    updateBadge();
+  }
 
   let quakeData = null;
 
@@ -379,6 +397,7 @@
     } catch (err) {
       loading.style.display = 'none';
       error.style.display   = '';
+      console.error('USGS fetch failed:', err);
     } finally {
       refreshBtn.disabled = false;
     }
@@ -450,9 +469,15 @@
   async function getAITake() {
     if (!quakeData) return;
 
+    // Check limit before calling
+    if (checkDemoLimit()) return;
+
     const btn      = document.getElementById('aiBtn');
     const response = document.getElementById('aiResponse');
     const content  = document.getElementById('aiObservations');
+
+    // Increment counter now (this is the "run")
+    incrementRunCount();
 
     btn.disabled = true;
     response.classList.add('show');
