@@ -23,6 +23,18 @@
       "created": "2026-03-13",
       "stripe_hosting": null,
       "status": "active"
+    },
+    {
+      "client_name": "The Gathering Place — Daily Word",
+      "client_slug": "tgpscripture",
+      "email": "rkeller@licc-tgp.org",
+      "subdomain": "tgpscripture.appsforhire.app",
+      "repo": "https://github.com/cosmicwombat/client-tgpscripture",
+      "tier": "starter",
+      "theme_color": "#d97706",
+      "created": "2026-03-14",
+      "stripe_hosting": null,
+      "status": "active"
     }
   ],
   "mrr": 30,
