@@ -333,6 +333,9 @@
     <button class="topbar-btn" id="cfConnectBtn" onclick="openCFModal()">
       <span id="cfIcon">🔑</span><span id="cfLabel">Admin Secret</span>
     </button>
+    <button class="topbar-btn" id="clearTokensBtn" onclick="clearTokens()" style="display:none;color:#f87171;">
+      🔒 Clear Tokens
+    </button>
     <a class="topbar-logout" href="/cdn-cgi/access/logout">Sign out</a>
   </div>
 
@@ -496,6 +499,28 @@
   document.getElementById('pageDate').textContent =
     new Date().toLocaleDateString('en-US',{ weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
+  // ── Restore persisted tokens on load ──
+  (function restoreTokens() {
+    const gh = localStorage.getItem('afh_gh_token');
+    const cf = localStorage.getItem('afh_admin_secret');
+    if (gh) {
+      ghToken = gh;
+      document.getElementById('ghLabel').textContent = 'GitHub Connected';
+      document.getElementById('ghIcon').textContent  = '✅';
+      document.getElementById('ghConnectBtn').classList.add('connected');
+      document.getElementById('buildsNoGH').style.display = 'none';
+    }
+    if (cf) {
+      adminSecret = cf;
+      document.getElementById('cfLabel').textContent = 'CF Unlocked';
+      document.getElementById('cfIcon').textContent  = '✅';
+      document.getElementById('cfConnectBtn').classList.add('connected');
+    }
+    if (gh || cf) {
+      document.getElementById('clearTokensBtn').style.display = '';
+    }
+  })();
+
   loadAll();
 
   function loadAll() { loadCustomers(); loadBuilds(); }
@@ -516,14 +541,16 @@
     const t = document.getElementById('ghTokenInput').value.trim();
     if (!t) return;
     ghToken = t;
+    localStorage.setItem('afh_gh_token', t);
     document.getElementById('ghLabel').textContent = 'GitHub Connected';
     document.getElementById('ghIcon').textContent  = '✅';
     document.getElementById('ghConnectBtn').classList.add('connected');
     document.getElementById('ghTokenInput').value = '';
+    document.getElementById('clearTokensBtn').style.display = '';
     closeModal('tokenModal');
     document.getElementById('buildsNoGH').style.display = 'none';
     loadBuilds();
-    toast('GitHub connected');
+    toast('GitHub connected — token saved');
   }
   document.getElementById('ghTokenInput').addEventListener('keydown', e => { if (e.key==='Enter') saveToken(); });
 
@@ -536,12 +563,29 @@
     const t = document.getElementById('cfTokenInput').value.trim();
     if (!t) { toast('Enter your ADMIN_SECRET'); return; }
     adminSecret = t;
+    localStorage.setItem('afh_admin_secret', t);
     document.getElementById('cfLabel').textContent = 'CF Unlocked';
     document.getElementById('cfIcon').textContent  = '✅';
     document.getElementById('cfConnectBtn').classList.add('connected');
     document.getElementById('cfTokenInput').value  = '';
+    document.getElementById('clearTokensBtn').style.display = '';
     closeModal('cfModal');
-    toast('Cloudflare proxy unlocked');
+    toast('Admin secret saved — CF proxy unlocked');
+  }
+
+  // ── Clear persisted tokens ──
+  function clearTokens() {
+    localStorage.removeItem('afh_gh_token');
+    localStorage.removeItem('afh_admin_secret');
+    ghToken = null; adminSecret = null;
+    document.getElementById('ghLabel').textContent = 'Connect GitHub';
+    document.getElementById('ghIcon').textContent  = '🔗';
+    document.getElementById('ghConnectBtn').classList.remove('connected');
+    document.getElementById('cfLabel').textContent = 'Admin Secret';
+    document.getElementById('cfIcon').textContent  = '🔑';
+    document.getElementById('cfConnectBtn').classList.remove('connected');
+    document.getElementById('clearTokensBtn').style.display = 'none';
+    toast('Tokens cleared');
   }
   document.getElementById('cfTokenInput').addEventListener('keydown', e => { if (e.key==='Enter') saveCFToken(); });
 
