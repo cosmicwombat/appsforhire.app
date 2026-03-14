@@ -90,7 +90,8 @@ def collect_customer_info():
         info["theme_color"] = input("  Enter hex color (e.g. #e11d48): ").strip()
         info["theme_dark"]  = input("  Enter darker shade (e.g. #be123c): ").strip()
 
-    info["tier"] = input("\nTier (starter/custom/pro): ").strip().lower()
+    info["tier"]  = input("\nTier (starter/custom/pro): ").strip().lower()
+    info["email"] = input("Client email address: ").strip()
 
     print("\n── Customize Template Fields ──")
     print("(These are the {{PLACEHOLDERS}} in the template — press Enter to use defaults)\n")
@@ -286,6 +287,7 @@ def save_customer_record(info, repo):
     record = {
         "client_name":  info["client_name"],
         "client_slug":  info["client_slug"],
+        "email":        info.get("email", ""),
         "subdomain":    info["subdomain"],
         "repo":         repo.html_url,
         "tier":         info["tier"],

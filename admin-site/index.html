@@ -205,6 +205,49 @@
     .check-text { color: var(--gray700); line-height: 1.5; }
     .check-text strong { color: var(--gray900); }
 
+    /* ── Message Modal ── */
+    .msg-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(15,23,42,.55); backdrop-filter: blur(2px);
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    .msg-backdrop.open { display: flex; }
+    .msg-modal {
+      background: var(--white); border-radius: 16px;
+      padding: 1.75rem; max-width: 480px; width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      position: relative;
+    }
+    .msg-modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: var(--gray100); border: none; border-radius: 8px;
+      width: 28px; height: 28px; cursor: pointer; font-size: .95rem;
+      color: var(--gray500); display: flex; align-items: center; justify-content: center;
+    }
+    .msg-modal-close:hover { background: var(--gray200); }
+    .msg-modal-title {
+      font-size: 1rem; font-weight: 800; color: var(--gray900); margin-bottom: .3rem;
+    }
+    .msg-modal-sub {
+      font-size: .82rem; color: var(--gray500); margin-bottom: 1.25rem;
+    }
+    .msg-options { display: flex; flex-direction: column; gap: .65rem; }
+    .msg-option {
+      display: flex; align-items: flex-start; gap: .85rem;
+      padding: .9rem 1rem; border: 1.5px solid var(--gray200);
+      border-radius: 10px; text-decoration: none; color: inherit;
+      transition: border-color .15s, background .15s; cursor: pointer;
+    }
+    .msg-option:hover { border-color: var(--indigo); background: #f0f5ff; }
+    .msg-option-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .msg-option-title { font-size: .9rem; font-weight: 700; color: var(--gray900); }
+    .msg-option-desc  { font-size: .78rem; color: var(--gray500); margin-top: .15rem; }
+    .msg-no-email {
+      font-size: .82rem; color: var(--coral); background: #fef2f2;
+      border: 1px solid #fecaca; border-radius: 8px; padding: .65rem .9rem;
+      margin-bottom: 1rem;
+    }
+
     /* ── Empty ── */
     .empty-row td {
       text-align: center; padding: 2.5rem;
@@ -372,6 +415,19 @@
   </main>
 </div>
 
+<!-- ── Message Modal ── -->
+<div class="msg-backdrop" id="msgBackdrop" onclick="closeMsgModal(event)">
+  <div class="msg-modal" id="msgModal">
+    <button class="msg-modal-close" onclick="closeMsgModal()">✕</button>
+    <div class="msg-modal-title" id="msgModalTitle">Message Client</div>
+    <div class="msg-modal-sub"   id="msgModalSub"></div>
+    <div id="msgNoEmail" class="msg-no-email" style="display:none;">
+      ⚠️ No email on file for this client. Add it to customers.json and re-run update_admin_data.py.
+    </div>
+    <div class="msg-options" id="msgOptions"></div>
+  </div>
+</div>
+
 <script>
   // Set date
   document.getElementById('pageDate').textContent = new Date().toLocaleDateString('en-US', {
@@ -438,6 +494,7 @@
               <a href="https://${c.subdomain}" target="_blank" class="btn btn-sm btn-ghost">App ↗</a>
               <a href="https://${c.subdomain}/portal/" target="_blank" class="btn btn-sm btn-ghost">Portal ↗</a>
               <a href="${c.repo}" target="_blank" class="btn btn-sm btn-ghost">Repo ↗</a>
+              <button class="btn btn-sm btn-ghost" onclick="openMsgModal(${JSON.stringify(c).replace(/"/g, '&quot;')})">✉️</button>
             </div>
           </td>
         </tr>
@@ -447,6 +504,99 @@
       document.getElementById('customerTable').innerHTML =
         '<tr class="empty-row"><td colspan="6">⚠️ Could not load data.json — push the latest customers file to GitHub.</td></tr>';
     });
+
+  // ── Messaging ─────────────────────────────────────────────────────────────
+
+  function gmailUrl(to, subject, body) {
+    return 'https://mail.google.com/mail/?view=cm'
+      + '&to='  + encodeURIComponent(to)
+      + '&su='  + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent(body);
+  }
+
+  function buildMessages(c) {
+    const firstName = c.client_name.split(' ')[0];
+    const appUrl    = 'https://' + c.subdomain;
+    const portalUrl = appUrl + '/portal/';
+
+    return [
+      {
+        icon:  '🚀',
+        title: 'App is Live',
+        desc:  'Tell them their app just went up',
+        subject: `Your app is live — ${c.client_name}! 🎉`,
+        body: `Hi ${firstName},\n\nGreat news — your app is live and ready to use!\n\n`
+          + `Your app: ${appUrl}\n`
+          + `Your portal: ${portalUrl}\n\n`
+          + `Bookmark both links. The portal lets you manage your data directly.\n\n`
+          + `If anything looks off or you want to make changes, just reply here.\n\n`
+          + `— Robert\nAppsForHire`,
+      },
+      {
+        icon:  '🔄',
+        title: 'App Updated',
+        desc:  'Notify them an update was just pushed',
+        subject: `Update live on your ${c.client_name} app`,
+        body: `Hi ${firstName},\n\nJust a heads-up — I pushed an update to your app. Everything should look and work the same, just improved under the hood.\n\n`
+          + `Your app: ${appUrl}\n\n`
+          + `Give it a quick check and let me know if anything looks different than expected.\n\n`
+          + `— Robert\nAppsForHire`,
+      },
+      {
+        icon:  '🔧',
+        title: 'App Down / Issue',
+        desc:  "Let them know you're aware and working on it",
+        subject: `Quick heads-up — looking into your ${c.client_name} app`,
+        body: `Hi ${firstName},\n\nJust a quick heads-up: I noticed an issue with your app and I'm already on it. You may see some brief downtime while I fix things up.\n\n`
+          + `I'll send another message as soon as it's back to normal.\n\n`
+          + `Thanks for your patience!\n\n`
+          + `— Robert\nAppsForHire`,
+      },
+      {
+        icon:  '💡',
+        title: 'Custom Message',
+        desc:  'Open Gmail compose to their address',
+        subject: `Re: your ${c.client_name} app`,
+        body: `Hi ${firstName},\n\n`,
+      },
+    ];
+  }
+
+  function openMsgModal(c) {
+    document.getElementById('msgModalTitle').textContent = `✉️ Message ${c.client_name}`;
+    document.getElementById('msgModalSub').textContent   = c.email || '(no email on file)';
+
+    const noEmailEl = document.getElementById('msgNoEmail');
+    const optionsEl = document.getElementById('msgOptions');
+
+    if (!c.email) {
+      noEmailEl.style.display = 'block';
+      optionsEl.innerHTML = '';
+    } else {
+      noEmailEl.style.display = 'none';
+      const msgs = buildMessages(c);
+      optionsEl.innerHTML = msgs.map(m => `
+        <a class="msg-option" href="${gmailUrl(c.email, m.subject, m.body)}" target="_blank" onclick="closeMsgModal()">
+          <span class="msg-option-icon">${m.icon}</span>
+          <div>
+            <div class="msg-option-title">${m.title}</div>
+            <div class="msg-option-desc">${m.desc}</div>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    document.getElementById('msgBackdrop').classList.add('open');
+  }
+
+  function closeMsgModal(event) {
+    if (event && event.target !== document.getElementById('msgBackdrop')) return;
+    document.getElementById('msgBackdrop').classList.remove('open');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeMsgModal();
+  });
 </script>
 
 </body>
