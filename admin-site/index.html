@@ -926,7 +926,46 @@
 
   const delay = ms => new Promise(r=>setTimeout(r,ms));
 
-  async function runPublish(b) {
+  // ── Publish preflight: check for recent admin repo activity ──
+  async function publishPreflight(b) {
+    try {
+      const commits = await ghFetch('/repos/cosmicwombat/appsforhire-admin/commits?per_page=1');
+      if (!commits || !commits.length) return true;
+      const latest = commits[0];
+      const when   = new Date(latest.commit.author.date);
+      const ageMin = (Date.now() - when.getTime()) / 60000;
+      if (ageMin < 10) {
+        const who = latest.commit.author.name;
+        const msg = latest.commit.message.split('\n')[0];
+        const agoStr = ageMin < 1 ? 'just now' : `${Math.round(ageMin)}m ago`;
+        return new Promise(resolve => {
+          const el = document.getElementById('pubContent');
+          el.innerHTML = `
+            <div style="padding:1.25rem;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:10px;margin-bottom:1rem;">
+              <div style="font-size:.85rem;font-weight:700;color:#fbbf24;margin-bottom:.5rem;">⚠ Recent Activity Detected</div>
+              <div style="font-size:.8rem;color:#cbd5e1;line-height:1.5;">
+                <strong>${who}</strong> committed <em style="color:#94a3b8">"${msg}"</em> ${agoStr}.<br>
+                Another publish may be in progress. Proceeding could cause a data conflict.
+              </div>
+            </div>`;
+          document.getElementById('pubActions').innerHTML = `
+            <button class="btn btn-ghost" onclick="closeModal('publishModal')">Cancel</button>
+            <button class="btn" style="background:#92400e;color:#fde68a;border:1px solid #b45309;"
+              onclick="document.getElementById('pubActions').innerHTML='';runPublish(${JSON.stringify(b).replace(/"/g,'&quot;')},true)">
+              Proceed Anyway
+            </button>`;
+          // resolve(false) never called — user must click
+        });
+      }
+    } catch(e) { /* network hiccup — don't block publish */ }
+    return true;
+  }
+
+  async function runPublish(b, bypassPreflight=false) {
+    if (!bypassPreflight) {
+      const ok = await publishPreflight(b);
+      if (ok !== true) return; // preflight showed warning UI, waiting for user
+    }
     const slug  = b.slug, repo = 'client-'+slug;
     const email = (document.getElementById('pubEmailInput')?.value || '').trim();
     document.getElementById('pubContent').innerHTML = '<div class="pub-log" id="pubLog"></div>';
