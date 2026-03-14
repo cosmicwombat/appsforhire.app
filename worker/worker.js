@@ -462,6 +462,101 @@ async function sendEmail(env, { to, subject, text }) {
   }
 }
 
+// ── /admin/cf-proxy ───────────────────────────────────────────────────────────
+// Proxies Cloudflare API calls from the admin portal.
+// Auth is the same ADMIN_SECRET bearer token used by all /admin/* routes.
+// Secrets used: CF_API_TOKEN, CF_ZONE_ID, CF_ACCOUNT_ID
+//
+// Body: { op: "dns-create" | "access-app-create" | "access-policy-create" | "cache-purge", ...params }
+async function handleCFProxy(request, env, origin) {
+  if (!env.CF_API_TOKEN) {
+    return jsonResponse({ error: "CF_API_TOKEN not configured in Worker secrets" }, 500, origin);
+  }
+  if (!env.CF_ZONE_ID || !env.CF_ACCOUNT_ID) {
+    return jsonResponse({ error: "CF_ZONE_ID / CF_ACCOUNT_ID not configured in Worker secrets" }, 500, origin);
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return jsonResponse({ error: "Invalid JSON body" }, 400, origin); }
+
+  const { op } = body;
+  const CF = "https://api.cloudflare.com/client/v4";
+  const headers = {
+    "Authorization": `Bearer ${env.CF_API_TOKEN}`,
+    "Content-Type":  "application/json",
+  };
+
+  try {
+    let cfUrl, cfBody;
+
+    if (op === "dns-create") {
+      // Create a proxied CNAME for a new client subdomain
+      const { subdomain } = body;
+      if (!subdomain) return jsonResponse({ error: "'subdomain' required" }, 400, origin);
+      // Extract just the subdomain name (e.g. "theghostinterpreter" from "theghostinterpreter.appsforhire.app")
+      const name = subdomain.replace(".appsforhire.app", "");
+      cfUrl  = `${CF}/zones/${env.CF_ZONE_ID}/dns_records`;
+      cfBody = JSON.stringify({
+        type:    "CNAME",
+        name,
+        content: "cosmicwombat.github.io",
+        proxied: true,
+        ttl:     1,
+      });
+
+    } else if (op === "access-app-create") {
+      // Create a Cloudflare Access self-hosted application
+      const { subdomain } = body;
+      if (!subdomain) return jsonResponse({ error: "'subdomain' required" }, 400, origin);
+      cfUrl  = `${CF}/accounts/${env.CF_ACCOUNT_ID}/access/apps`;
+      cfBody = JSON.stringify({
+        name:              subdomain,
+        domain:            subdomain,
+        type:              "self_hosted",
+        session_duration:  "24h",
+        allowed_idps:      [],
+        auto_redirect_to_identity: false,
+      });
+
+    } else if (op === "access-policy-create") {
+      // Create an email OTP policy on an existing Access app
+      const { appId, email } = body;
+      if (!appId || !email) return jsonResponse({ error: "'appId' and 'email' required" }, 400, origin);
+      cfUrl  = `${CF}/accounts/${env.CF_ACCOUNT_ID}/access/apps/${appId}/policies`;
+      cfBody = JSON.stringify({
+        name:       "Client email OTP",
+        decision:   "allow",
+        include:    [{ email: { email } }],
+        precedence: 1,
+      });
+
+    } else if (op === "cache-purge") {
+      // Purge everything for a subdomain's zone
+      const { subdomain } = body;
+      if (!subdomain) return jsonResponse({ error: "'subdomain' required" }, 400, origin);
+      cfUrl  = `${CF}/zones/${env.CF_ZONE_ID}/purge_cache`;
+      cfBody = JSON.stringify({ prefixes: [`https://${subdomain}/`] });
+
+    } else {
+      return jsonResponse({ error: `Unknown op: ${op}` }, 400, origin);
+    }
+
+    const cfRes  = await fetch(cfUrl, { method: "POST", headers, body: cfBody });
+    const cfData = await cfRes.json();
+
+    if (!cfRes.ok || !cfData.success) {
+      const msg = cfData.errors?.[0]?.message || JSON.stringify(cfData.errors);
+      return jsonResponse({ error: `CF API error: ${msg}`, details: cfData }, cfRes.status, origin);
+    }
+
+    return jsonResponse({ ok: true, result: cfData.result }, 200, origin);
+
+  } catch (e) {
+    return jsonResponse({ error: "CF proxy error", detail: e.message }, 500, origin);
+  }
+}
+
 // ── /health handler ───────────────────────────────────────────────────────────
 function handleHealth(env, origin) {
   return jsonResponse({
@@ -473,7 +568,9 @@ function handleHealth(env, origin) {
       admin_secret:  !!env.ADMIN_SECRET,
       stripe:        !!env.STRIPE_WEBHOOK_SECRET,
       resend:        !!env.RESEND_API_KEY,
-      cf:            !!env.CF_API_TOKEN,
+      cf_token:      !!env.CF_API_TOKEN,
+      cf_zone:       !!env.CF_ZONE_ID,
+      cf_account:    !!env.CF_ACCOUNT_ID,
       github:        !!env.GITHUB_TOKEN,
     },
     kv: {
@@ -523,6 +620,9 @@ export default {
         const slug = path.replace("/admin/get-client/", "").replace(/\//g, "");
         return handleGetClientConfig(slug, env, origin);
       }
+
+      if (request.method === "POST" && path === "/admin/cf-proxy")
+        return handleCFProxy(request, env, origin);
 
       return jsonResponse({ error: "Not found" }, 404, origin);
 

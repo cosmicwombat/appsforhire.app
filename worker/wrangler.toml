@@ -57,6 +57,12 @@ id      = "cf6d8d35fbec4e7db1846312f5fe5139"
 # ADMIN_EMAIL           Your email for build/subscription notifications
 #                       e.g. cosmicwombat@gmail.com
 #
-# CF_API_TOKEN          Cloudflare API token with Access Edit permission
+# CF_API_TOKEN          Cloudflare API token (DNS Edit + Cache Purge + Access Edit)
+#
+# CF_ZONE_ID            Cloudflare Zone ID for appsforhire.app
+#                       → Cloudflare Dashboard → appsforhire.app → Overview → Zone ID
+#
+# CF_ACCOUNT_ID         Cloudflare Account ID
+#                       → Cloudflare Dashboard → any zone → Overview → Account ID
 #
 # GITHUB_TOKEN          GitHub PAT

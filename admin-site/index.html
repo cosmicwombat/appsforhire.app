@@ -331,7 +331,7 @@
       <span id="ghIcon">🔗</span><span id="ghLabel">Connect GitHub</span>
     </button>
     <button class="topbar-btn" id="cfConnectBtn" onclick="openCFModal()">
-      <span id="cfIcon">☁️</span><span id="cfLabel">Connect CF</span>
+      <span id="cfIcon">🔑</span><span id="cfLabel">Admin Secret</span>
     </button>
     <a class="topbar-logout" href="/cdn-cgi/access/logout">Sign out</a>
   </div>
@@ -442,21 +442,17 @@
   </div>
 </div>
 
-<!-- Cloudflare Connect Modal -->
+<!-- Admin Secret Modal -->
 <div class="modal-backdrop" id="cfModal" onclick="closeModal('cfModal',event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('cfModal')">✕</button>
-    <div class="modal-title">☁️ Connect Cloudflare</div>
-    <div class="modal-sub">Stored in memory only — cleared on tab close. Token needs <strong>DNS:Edit</strong> + <strong>Access:Edit</strong> permissions.</div>
-    <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;margin-top:12px;">API Token</label>
-    <input class="modal-input" id="cfTokenInput" type="password" placeholder="CF API token…" autocomplete="off"/>
-    <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;margin-top:10px;">Zone ID <span style="font-weight:400;color:var(--text-dim)">(appsforhire.app zone — find in CF dashboard sidebar)</span></label>
-    <input class="modal-input" id="cfZoneInput" type="text" placeholder="32-char zone ID…" autocomplete="off" style="font-family:monospace;font-size:12px"/>
-    <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;margin-top:10px;">Account ID <span style="font-weight:400;color:var(--text-dim)">(find in CF dashboard sidebar, same place)</span></label>
-    <input class="modal-input" id="cfAccountInput" type="text" placeholder="32-char account ID…" autocomplete="off" style="font-family:monospace;font-size:12px"/>
+    <div class="modal-title">🔑 Admin Secret</div>
+    <div class="modal-sub">Stored in memory only — cleared on tab close. This unlocks Cloudflare DNS, Access, and cache-purge via the Worker proxy.</div>
+    <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;margin-top:12px;">ADMIN_SECRET</label>
+    <input class="modal-input" id="cfTokenInput" type="password" placeholder="Your Worker ADMIN_SECRET…" autocomplete="off"/>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('cfModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveCFToken()">Connect</button>
+      <button class="btn btn-primary" onclick="saveCFToken()">Unlock</button>
     </div>
   </div>
 </div>
@@ -492,10 +488,8 @@
   const tierHosting = { starter:15, custom:20, pro:29 };
   const tierColors  = { starter:'badge-starter', custom:'badge-custom', pro:'badge-pro' };
 
-  let ghToken   = null;
-  let cfToken   = null;
-  let cfZoneId  = null;
-  let cfAcctId  = null;
+  let ghToken     = null;
+  let adminSecret = null;  // ADMIN_SECRET for Worker /admin/cf-proxy calls
   let customers = [];
   let builds    = [];
 
@@ -533,40 +527,39 @@
   }
   document.getElementById('ghTokenInput').addEventListener('keydown', e => { if (e.key==='Enter') saveToken(); });
 
-  // ── Cloudflare token ──
+  // ── Admin Secret (unlocks Worker CF proxy) ──
   function openCFModal() {
     document.getElementById('cfModal').classList.add('open');
     setTimeout(() => document.getElementById('cfTokenInput').focus(), 80);
   }
   function saveCFToken() {
     const t = document.getElementById('cfTokenInput').value.trim();
-    const z = document.getElementById('cfZoneInput').value.trim();
-    const a = document.getElementById('cfAccountInput').value.trim();
-    if (!t || !z || !a) { toast('Fill in all three CF fields'); return; }
-    cfToken  = t;
-    cfZoneId = z;
-    cfAcctId = a;
-    document.getElementById('cfLabel').textContent = 'CF Connected';
+    if (!t) { toast('Enter your ADMIN_SECRET'); return; }
+    adminSecret = t;
+    document.getElementById('cfLabel').textContent = 'CF Unlocked';
     document.getElementById('cfIcon').textContent  = '✅';
     document.getElementById('cfConnectBtn').classList.add('connected');
     document.getElementById('cfTokenInput').value  = '';
     closeModal('cfModal');
-    toast('Cloudflare connected');
+    toast('Cloudflare proxy unlocked');
   }
+  document.getElementById('cfTokenInput').addEventListener('keydown', e => { if (e.key==='Enter') saveCFToken(); });
 
-  // ── Cloudflare API helper ──
-  async function cfFetch(path, opts={}) {
-    if (!cfToken) throw new Error('Cloudflare not connected');
-    const res = await fetch('https://api.cloudflare.com/client/v4' + path, {
-      ...opts,
+  // ── Worker CF proxy helper ──
+  // Calls https://worker.appsforhire.app/admin/cf-proxy with ADMIN_SECRET.
+  // The Worker holds CF_API_TOKEN, CF_ZONE_ID, CF_ACCOUNT_ID as secrets — never in the browser.
+  async function cfProxy(op, params={}) {
+    if (!adminSecret) throw new Error('Admin secret not set — click "Admin Secret" in the topbar');
+    const res = await fetch('https://worker.appsforhire.app/admin/cf-proxy', {
+      method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + cfToken,
-        'Content-Type': 'application/json',
-        ...(opts.headers || {}),
+        'Authorization': 'Bearer ' + adminSecret,
+        'Content-Type':  'application/json',
       },
+      body: JSON.stringify({ op, ...params }),
     });
     const data = await res.json();
-    if (!data.success) throw new Error(data.errors?.[0]?.message || 'CF API error');
+    if (!res.ok || !data.ok) throw new Error(data.error || 'CF proxy error');
     return data.result;
   }
 
@@ -725,9 +718,9 @@
     // Pre-fill email from loaded customers if available
     const existingCust = customers.find(c => c.client_slug === b.slug);
     const emailVal = existingCust?.email || '';
-    const cfNote = cfToken
-      ? '<div style="margin-top:8px;font-size:11px;color:var(--green)">☁️ Cloudflare connected — DNS &amp; Access will be automated.</div>'
-      : '<div style="margin-top:8px;font-size:11px;color:var(--text-dim)">☁️ Connect Cloudflare above to automate DNS &amp; Access setup.</div>';
+    const cfNote = adminSecret
+      ? '<div style="margin-top:8px;font-size:11px;color:var(--green)">☁️ CF proxy unlocked — DNS &amp; Access will be automated via Worker.</div>'
+      : '<div style="margin-top:8px;font-size:11px;color:var(--text-dim)">☁️ Enter Admin Secret above to automate DNS &amp; Access setup.</div>';
     document.getElementById('pubTitle').textContent = 'Publish: '+b.client_name;
     document.getElementById('pubContent').innerHTML = `
       <div class="pub-step"><div class="pub-step-label">Client</div><div class="pub-step-val">${b.client_name}</div></div>
@@ -854,16 +847,12 @@
         add('✓ Customer record updated','ok');
       } catch(e) { add('⚠ data.json update: '+e.message,''); }
 
-      // 9. Cloudflare DNS + Access
-      if (cfToken) {
+      // 9. Cloudflare DNS + Access (via Worker proxy — no CORS issues)
+      if (adminSecret) {
         // 9a. DNS CNAME
         add('⟳ Creating Cloudflare DNS record…','run');
         try {
-          await cfFetch(`/zones/${cfZoneId}/dns_records`, {
-            method: 'POST',
-            body: JSON.stringify({ type:'CNAME', name:slug,
-              content:`${GH_OWNER}.github.io`, ttl:1, proxied:true }),
-          });
+          await cfProxy('dns-create', { subdomain: `${slug}.${BASE_DOMAIN}` });
           add('✓ DNS CNAME created (proxied)','ok');
         } catch(e) {
           if (e.message.toLowerCase().includes('already exist')) add('✓ DNS CNAME already exists','ok');
@@ -874,17 +863,8 @@
         add('⟳ Creating Cloudflare Access app…','run');
         let appId = null;
         try {
-          const app = await cfFetch(`/accounts/${cfAcctId}/access/apps`, {
-            method: 'POST',
-            body: JSON.stringify({
-              name: `${b.client_name} — Portal`,
-              domain: `${slug}.${BASE_DOMAIN}`,
-              type: 'self_hosted',
-              session_duration: '168h',
-              auto_redirect_to_identity: false,
-            }),
-          });
-          appId = app.id || app.uid;
+          const app = await cfProxy('access-app-create', { subdomain: `${slug}.${BASE_DOMAIN}` });
+          appId = app?.id || app?.uid;
           add('✓ Access app created','ok');
         } catch(e) { add('⚠ Access app: '+e.message,''); }
 
@@ -892,22 +872,14 @@
         if (appId && email) {
           add(`⟳ Adding Access policy for ${email}…`,'run');
           try {
-            await cfFetch(`/accounts/${cfAcctId}/access/apps/${appId}/policies`, {
-              method: 'POST',
-              body: JSON.stringify({
-                name: 'Client email gate',
-                decision: 'allow',
-                precedence: 1,
-                include: [{ email: { email } }],
-              }),
-            });
+            await cfProxy('access-policy-create', { appId, email });
             add(`✓ Access policy set — ${email} can sign in via OTP`,'ok');
           } catch(e) { add('⚠ Access policy: '+e.message,''); }
         } else if (appId) {
           add('ℹ Access app created — add client email policy in CF dashboard','');
         }
       } else {
-        add('ℹ CF not connected — add DNS CNAME & Access manually','');
+        add('ℹ Admin Secret not set — add DNS CNAME &amp; Access manually','');
       }
 
       add('',''); add('🚀 Published!','ok');
@@ -930,12 +902,9 @@
 
   // ── Cache purge ──
   async function purgeCache(subdomain) {
-    if (!cfToken) { toast('Connect Cloudflare first'); return; }
+    if (!adminSecret) { toast('Enter Admin Secret first'); return; }
     try {
-      await cfFetch(`/zones/${cfZoneId}/purge_cache`, {
-        method: 'POST',
-        body: JSON.stringify({ prefixes: [subdomain] }),
-      });
+      await cfProxy('cache-purge', { subdomain });
       toast(`⚡ Cache purged for ${subdomain}`);
     } catch(e) {
       toast('Purge failed: ' + e.message);
