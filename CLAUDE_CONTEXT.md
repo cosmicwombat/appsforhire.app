@@ -190,6 +190,7 @@ Legacy ops `access-app-create` and `access-policy-create` still work but `access
 - **GitHub token persists** via localStorage (`afh_gh_token`, `afh_admin_secret`) — one-time connect per device
 - **Rate limit reset:** `npx wrangler kv key delete --binding=RATE_LIMIT "demo_ai:$(curl -s ifconfig.me)"`
 - **Push admin site after any changes:** `GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py`
+- **Rebuild plugin after doc changes:** Extract `appsforhire.plugin` → replace `skills/app-builder/references/context.md` with this file → rezip as `appsforhire.plugin` → commit. Co-authors reinstall from repo after `git pull`.
 - **builds.json status** values: `in_progress` → `ready` → `published`
 - **CF Access session** is set to **6h** in the Worker (access-app-create op) — customers auth once per session
 - **data.json apps[]** — always add new apps as nested entries under the correct customer, not as new customer rows

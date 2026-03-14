@@ -53,9 +53,38 @@ This becomes your local workspace folder. Mount this folder in Cowork.
 
 ## Step 4 — Install the Plugin
 
-1. In Cowork, go to Plugins
-2. Install `appsforhire.plugin` (find it in the `app_for_hire` root folder after cloning)
-3. The plugin gives you the full platform context, commands, and skills
+The plugin is included in the repo at `app_for_hire/appsforhire.plugin`. It gives Claude the full platform context, all commands, and the app-builder skill — so every Cowork session starts with the same knowledge base.
+
+**First-time install:**
+1. In Cowork, open the Plugins panel
+2. Click **Install from file**
+3. Browse to your `app_for_hire` folder and select `appsforhire.plugin`
+4. Accept the install — the plugin is now active in all your sessions
+
+**Keeping it up to date:**
+
+The plugin is rebuilt by Robert whenever the platform docs change (new apps, new routes, updated workflows). When you do your regular `git pull`, check if `appsforhire.plugin` was updated:
+
+```bash
+git pull
+git diff --name-only HEAD@{1} HEAD | grep appsforhire.plugin
+```
+
+If it shows up, reinstall it in Cowork: remove the old version from Plugins → install the new file from your local repo. Takes 30 seconds.
+
+**What's inside the plugin:**
+
+| Component | What it does |
+|-----------|-------------|
+| `skills/app-builder` | Loads full platform context when building apps — customers, design system, Worker API, rules |
+| `commands/new-build` | `/new-build` — scaffold a new app build |
+| `commands/push-portal` | `/push-portal` — push portal files to a client repo |
+| `commands/publish-status` | `/publish-status` — show current build/publish state |
+| `commands/health-check` | `/health-check` — verify Worker secrets are all configured |
+| `commands/reset-rate-limit` | `/reset-rate-limit` — clear AI call counter for testing |
+| `hooks/` | Automatically loads platform context at the start of each session |
+
+The `skills/app-builder` context is a direct copy of `CLAUDE_CONTEXT.md` in the repo root — so Claude always has the live customer list, API routes, design tokens, and gotchas when building an app.
 
 ---
 

@@ -1138,6 +1138,31 @@
             Register client API keys via <code style="color:var(--blue-light)">/admin/set-client-keys</code> endpoint.
           </div>`;
       }
+
+      // Post-publish Cowork prompt
+      const coworkPrompt = `App published: ${b.app_title} (${slug})
+Live at: https://${slug}.${BASE_DOMAIN}
+Client: ${b.client_name}
+
+Switch to your app_for_hire Cowork project and run these deploy steps:
+
+1. git stash && git pull --rebase && git stash pop
+2. GITHUB_TOKEN=xxx python3 scripts/push_portals.py ${slug}
+3. GITHUB_TOKEN=xxx python3 scripts/setup_admin_site.py
+4. git add builds/${slug} admin-site/data.json && git commit -m "Publish ${slug} — ${b.app_title}" && git push`;
+
+      document.getElementById('pubContent').innerHTML += `
+        <div style="margin-top:14px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:12px 14px;">
+          <div style="font-size:11px;font-weight:700;color:#4ade80;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+            <span>📋 Back to Dev Project</span>
+            <button onclick="navigator.clipboard.writeText(${JSON.stringify(coworkPrompt).replace(/"/g,'&quot;')});this.textContent='Copied!';setTimeout(()=>this.textContent='Copy prompt',1500);"
+              style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);color:#4ade80;border-radius:6px;padding:2px 10px;font-size:11px;cursor:pointer;">
+              Copy prompt
+            </button>
+          </div>
+          <pre style="font-size:11px;color:#94a3b8;white-space:pre-wrap;margin:0;line-height:1.6;">${coworkPrompt}</pre>
+        </div>`;
+
       document.getElementById('pubActions').innerHTML =
         '<button class="btn btn-primary" onclick="closeModal(\'publishModal\');loadAll();">Done ✓</button>';
       loadAll();
