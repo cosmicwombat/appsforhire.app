@@ -5,41 +5,61 @@
  * Secure backend for the AppsForHire platform.
  *
  * Routes:
- *   GET  /health    → Status check (all keys configured?)
- *   POST /ai        → AI proxy for demo apps (Claude or Gemini)
- *                     Rate-limited: 10 AI calls per IP per 7 days
- *   POST /webhook   → Stripe event handler
+ *   GET  /health                  → Status check (all keys configured?)
+ *   POST /ai                      → AI proxy — routes to correct key per client tier
+ *   POST /webhook                 → Stripe event handler
+ *   POST /admin/set-client-keys   → Store per-client API keys in KV (admin only)
+ *   GET  /admin/get-client/:slug  → Read a client's config from KV (admin only)
+ *
+ * Tier behavior:
+ *   Starter  → uses Robert's shared CLAUDE_API_KEY, 10-call / 7-day rate limit
+ *   Custom   → uses client's own claude_key OR gemini_key stored in CLIENT_CONFIG KV
+ *   Pro      → same as Custom, no rate limit
+ *
+ * How to add a new Custom/Pro client's keys (no redeploy needed):
+ *   curl -X POST https://worker.appsforhire.app/admin/set-client-keys \
+ *     -H "Authorization: Bearer <ADMIN_SECRET>" \
+ *     -H "Content-Type: application/json" \
+ *     -d '{"client":"smithsbakery","tier":"custom","claude_key":"sk-ant-..."}'
  *
  * Secrets (set via: npx wrangler secret put <NAME>):
- *   CLAUDE_API_KEY, GEMINI_API_KEY,
- *   STRIPE_WEBHOOK_SECRET, RESEND_API_KEY,
- *   ADMIN_EMAIL, CF_API_TOKEN, GITHUB_TOKEN
+ *   CLAUDE_API_KEY       — Robert's Anthropic key (Starter fallback)
+ *   GEMINI_API_KEY       — Robert's Google key (Starter Gemini fallback)
+ *   ADMIN_SECRET         — Token to protect /admin/* endpoints
+ *   STRIPE_WEBHOOK_SECRET
+ *   RESEND_API_KEY
+ *   ADMIN_EMAIL
+ *   CF_API_TOKEN
+ *   GITHUB_TOKEN
+ *
+ * KV Namespaces:
+ *   RATE_LIMIT     — tracks per-IP call counts for Starter/demo traffic
+ *   CLIENT_CONFIG  — stores per-client config JSON (tier + API keys)
  * ============================================================
  */
 
-// ── Origins allowed to call this worker ──────────────────────────────────────
-const ALLOWED_ORIGINS = new Set([
-  "https://demo.appsforhire.app",
-  "https://appsforhire.app",
-  "https://admin.appsforhire.app",
-  "http://localhost:8080",
-  "http://localhost:3000",
-  "http://127.0.0.1:8080",
-]);
+// ── AI model constants ────────────────────────────────────────────────────────
+const CLAUDE_MODEL  = "claude-haiku-4-5-20251001"; // fast + cheap
+const GEMINI_MODEL  = "gemini-1.5-flash";
+const DEMO_AI_LIMIT = 10;                          // calls per IP per window
+const DEMO_AI_TTL   = 7 * 24 * 60 * 60;           // 7 days in seconds
 
-// ── AI config ─────────────────────────────────────────────────────────────────
-const CLAUDE_MODEL   = "claude-haiku-4-5-20251001"; // fast + cheap, great for demos
-const GEMINI_MODEL   = "gemini-1.5-flash";
-const DEMO_AI_LIMIT  = 10;   // AI calls per IP per 7-day window
-const DEMO_AI_TTL    = 7 * 24 * 60 * 60; // 7 days in seconds
+// ── CORS ──────────────────────────────────────────────────────────────────────
+// Allows any *.appsforhire.app subdomain automatically — new clients just work.
+function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  if (/^https:\/\/[a-z0-9-]+\.appsforhire\.app$/.test(origin)) return true;
+  if (origin === "https://appsforhire.app") return true;
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  return false;
+}
 
-// ── CORS helpers ──────────────────────────────────────────────────────────────
 function corsHeaders(origin) {
-  const allowed = ALLOWED_ORIGINS.has(origin) ? origin : "";
+  const allowed = isAllowedOrigin(origin) ? origin : "";
   return {
     "Access-Control-Allow-Origin":  allowed,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age":       "86400",
   };
 }
@@ -51,8 +71,42 @@ function jsonResponse(data, status = 200, origin = "") {
   });
 }
 
+// ── Per-client key routing ────────────────────────────────────────────────────
+
+/**
+ * Extract client slug from the Origin header.
+ * "https://smithsbakery.appsforhire.app" → "smithsbakery"
+ * Returns null for demo, admin, apex, and localhost origins.
+ */
+function getClientSlug(request) {
+  const origin = request.headers.get("Origin") || "";
+  const match  = origin.match(/^https:\/\/([a-z0-9-]+)\.appsforhire\.app$/i);
+  if (!match) return null;
+  const sub = match[1].toLowerCase();
+  // These subdomains are platform-owned, not client apps
+  if (["demo", "admin", "www", "worker"].includes(sub)) return null;
+  return sub;
+}
+
+/**
+ * Fetch a client's config from the CLIENT_CONFIG KV namespace.
+ * Key pattern: "client:smithsbakery"
+ * Value: JSON  { tier, claude_key, gemini_key, use_gemini, updated }
+ *
+ * Returns null if no config exists (caller treats as Starter/demo).
+ */
+async function getClientConfig(kv, slug) {
+  if (!kv || !slug) return null;
+  try {
+    const raw = await kv.get(`client:${slug}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 // ── Rate limiting via KV ──────────────────────────────────────────────────────
-// Key: demo_ai:<ip>  Value: call count  TTL: 7 days (matches demo window)
+// Only applied when using Robert's shared keys (Starter / demo traffic).
 async function checkRateLimit(kv, ip) {
   if (!kv) return { allowed: true, count: 0, remaining: DEMO_AI_LIMIT };
 
@@ -95,17 +149,16 @@ async function callClaude(apiKey, systemPrompt, userMessage) {
 
 // ── Gemini API ────────────────────────────────────────────────────────────────
 async function callGemini(apiKey, systemPrompt, userMessage) {
-  const fullMessage = systemPrompt
-    ? `${systemPrompt}\n\n${userMessage}`
-    : userMessage;
-
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents:         [{ parts: [{ text: fullMessage }] }],
+        system_instruction: systemPrompt
+          ? { parts: [{ text: systemPrompt }] }
+          : undefined,
+        contents:         [{ role: "user", parts: [{ text: userMessage }] }],
         generationConfig: { maxOutputTokens: 1024 },
       }),
     }
@@ -122,19 +175,33 @@ async function callGemini(apiKey, systemPrompt, userMessage) {
 
 // ── /ai handler ───────────────────────────────────────────────────────────────
 async function handleAI(request, env, origin) {
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  // ── 1. Who is calling? ───────────────────────────────────────────────────
+  const slug         = getClientSlug(request);
+  const clientConfig = slug ? await getClientConfig(env.CLIENT_CONFIG, slug) : null;
 
-  // Rate limit check
-  const limit = await checkRateLimit(env.RATE_LIMIT, ip);
-  if (!limit.allowed) {
-    return jsonResponse({
-      error:     "demo_limit_reached",
-      message:   "You've hit the 10-call demo limit. Ready for an app of your own?",
-      cta_url:   "https://appsforhire.app/#contact",
-      cta_label: "Request Your Build →",
-    }, 429, origin);
+  // ── 2. Pick the right key ─────────────────────────────────────────────────
+  //   Custom/Pro clients store their own keys in KV.
+  //   Starter clients (and demo site) fall back to Robert's shared keys.
+  const clientClaudeKey  = clientConfig?.claude_key  || null;
+  const clientGeminiKey  = clientConfig?.gemini_key  || null;
+  const isOwnKey         = !!(clientClaudeKey || clientGeminiKey);
+
+  // ── 3. Rate limit ONLY for shared-key (Starter / demo) calls ─────────────
+  let limit = { allowed: true, count: 0, remaining: DEMO_AI_LIMIT };
+  if (!isOwnKey) {
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    limit = await checkRateLimit(env.RATE_LIMIT, ip);
+    if (!limit.allowed) {
+      return jsonResponse({
+        error:     "demo_limit_reached",
+        message:   "You've hit the 10-call demo limit. Ready for an app of your own?",
+        cta_url:   "https://appsforhire.app/#contact",
+        cta_label: "Request Your Build →",
+      }, 429, origin);
+    }
   }
 
+  // ── 4. Parse request body ─────────────────────────────────────────────────
   let body;
   try {
     body = await request.json();
@@ -145,25 +212,99 @@ async function handleAI(request, env, origin) {
   const { message, system, model = "claude" } = body;
   if (!message) return jsonResponse({ error: "'message' is required" }, 400, origin);
 
+  // ── 5. Call the AI ────────────────────────────────────────────────────────
   try {
     let response;
-    if (model === "gemini" && env.GEMINI_API_KEY) {
-      response = await callGemini(env.GEMINI_API_KEY, system || "", message);
-    } else if (env.CLAUDE_API_KEY) {
-      response = await callClaude(env.CLAUDE_API_KEY, system || "", message);
+
+    const useGemini = (model === "gemini") || (clientConfig?.use_gemini === true);
+    const geminiKey = clientGeminiKey || env.GEMINI_API_KEY;
+    const claudeKey = clientClaudeKey || env.CLAUDE_API_KEY;
+
+    if (useGemini && geminiKey) {
+      response = await callGemini(geminiKey, system || "", message);
+    } else if (claudeKey) {
+      response = await callClaude(claudeKey, system || "", message);
     } else {
       return jsonResponse({ error: "No AI key configured on server" }, 500, origin);
     }
 
     return jsonResponse({
       response,
-      calls_used:      limit.count,
-      calls_remaining: limit.remaining,
+      // Only surface rate-limit counters for shared-key calls
+      ...(isOwnKey ? {} : {
+        calls_used:      limit.count,
+        calls_remaining: limit.remaining,
+      }),
     }, 200, origin);
 
   } catch (e) {
     return jsonResponse({ error: "AI call failed", detail: e.message }, 500, origin);
   }
+}
+
+// ── /admin/set-client-keys ────────────────────────────────────────────────────
+// Stores or updates a client's config in CLIENT_CONFIG KV.
+// Protected by ADMIN_SECRET bearer token.
+//
+// Body: {
+//   client:     "smithsbakery",       ← required (the subdomain slug)
+//   tier:       "custom",             ← "starter" | "custom" | "pro"
+//   claude_key: "sk-ant-...",         ← null to remove / use shared key
+//   gemini_key: "AIza...",            ← null if not using Gemini
+//   use_gemini: false                 ← true to default this client to Gemini
+// }
+async function handleSetClientKeys(request, env, origin) {
+  // Auth
+  const auth = request.headers.get("Authorization") || "";
+  if (!env.ADMIN_SECRET || auth !== `Bearer ${env.ADMIN_SECRET}`) {
+    return jsonResponse({ error: "Unauthorized" }, 401, origin);
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return jsonResponse({ error: "Invalid JSON" }, 400, origin); }
+
+  const { client, tier, claude_key, gemini_key, use_gemini } = body;
+  if (!client) return jsonResponse({ error: "'client' slug is required" }, 400, origin);
+  if (!env.CLIENT_CONFIG) return jsonResponse({ error: "CLIENT_CONFIG KV not bound" }, 500, origin);
+
+  const config = {
+    tier:       tier       || "custom",
+    claude_key: claude_key || null,
+    gemini_key: gemini_key || null,
+    use_gemini: !!use_gemini,
+    updated:    new Date().toISOString(),
+  };
+
+  await env.CLIENT_CONFIG.put(`client:${client}`, JSON.stringify(config));
+
+  console.log(`[admin] set-client-keys: ${client} → tier=${config.tier}, claude=${!!config.claude_key}, gemini=${!!config.gemini_key}`);
+
+  return jsonResponse({ ok: true, client, tier: config.tier }, 200, origin);
+}
+
+// ── /admin/get-client/:slug ───────────────────────────────────────────────────
+// Returns a client's config. Keys are masked for safety (first 8 + "...").
+async function handleGetClientConfig(slug, env, origin) {
+  const auth = (arguments[3] || ""); // passed as extra arg from router
+  // auth check handled in router, re-check here for safety
+  if (!env.ADMIN_SECRET) {
+    return jsonResponse({ error: "ADMIN_SECRET not configured" }, 500, origin);
+  }
+
+  if (!env.CLIENT_CONFIG) return jsonResponse({ error: "CLIENT_CONFIG KV not bound" }, 500, origin);
+
+  const config = await getClientConfig(env.CLIENT_CONFIG, slug);
+  if (!config) return jsonResponse({ error: "Client not found", slug }, 404, origin);
+
+  // Mask key values — never return raw keys via the API
+  const masked = {
+    ...config,
+    claude_key: config.claude_key ? config.claude_key.slice(0, 8) + "..." : null,
+    gemini_key: config.gemini_key ? config.gemini_key.slice(0, 8) + "..." : null,
+  };
+
+  return jsonResponse({ ok: true, slug, config: masked }, 200, origin);
 }
 
 // ── Stripe signature verification ─────────────────────────────────────────────
@@ -175,14 +316,14 @@ async function verifyStripeSignature(payload, sigHeader, secret) {
     const { t: timestamp, v1: signature } = parts;
     if (!timestamp || !signature) return false;
 
-    const encoder    = new TextEncoder();
-    const key        = await crypto.subtle.importKey(
+    const encoder = new TextEncoder();
+    const key     = await crypto.subtle.importKey(
       "raw", encoder.encode(secret),
       { name: "HMAC", hash: "SHA-256" },
       false, ["sign"]
     );
-    const signed     = await crypto.subtle.sign("HMAC", key, encoder.encode(`${timestamp}.${payload}`));
-    const expected   = Array.from(new Uint8Array(signed))
+    const signed   = await crypto.subtle.sign("HMAC", key, encoder.encode(`${timestamp}.${payload}`));
+    const expected = Array.from(new Uint8Array(signed))
       .map(b => b.toString(16).padStart(2, "0")).join("");
 
     return expected === signature;
@@ -194,16 +335,15 @@ async function verifyStripeSignature(payload, sigHeader, secret) {
 // ── Stripe event handlers ─────────────────────────────────────────────────────
 
 async function handleBuildFeePaid(session, env) {
-  const email  = session.customer_details?.email || "unknown";
-  const name   = session.customer_details?.name  || "Someone";
-  const amount = ((session.amount_total || 0) / 100).toFixed(2);
+  const email   = session.customer_details?.email || "unknown";
+  const name    = session.customer_details?.name  || "Someone";
+  const amount  = ((session.amount_total || 0) / 100).toFixed(2);
 
-  // Check if promo code FIRSTAPP2026 was used
-  const discounts  = session.total_details?.breakdown?.discounts || [];
-  const usedPromo  = discounts.some(d =>
+  const discounts = session.total_details?.breakdown?.discounts || [];
+  const usedPromo = discounts.some(d =>
     d.discount?.promotion_code?.code === "FIRSTAPP2026"
   );
-  const promoNote  = usedPromo ? "\n⚠️  FIRSTAPP2026 promo used — one slot claimed." : "";
+  const promoNote = usedPromo ? "\n⚠️  FIRSTAPP2026 promo used — one slot claimed." : "";
 
   await sendEmail(env, {
     to:      env.ADMIN_EMAIL,
@@ -226,14 +366,12 @@ async function handleSubscriptionCreated(sub, env) {
 async function handleSubscriptionCancelled(sub, env) {
   const email = sub.customer_email || "";
 
-  // Notify you
   await sendEmail(env, {
     to:      env.ADMIN_EMAIL,
     subject: `⚠️  Subscription cancelled — ${email}`,
-    text:    `${email} cancelled their hosting subscription.\n\nSubscription ID: ${sub.id}\n\nAction needed:\n1. Remove their Cloudflare Access policy (provision_demo.py --revoke)\n2. Run update_admin_data.py`,
+    text:    `${email} cancelled their hosting subscription.\n\nSubscription ID: ${sub.id}\n\nAction needed:\n1. Remove their Cloudflare Access policy\n2. Run update_admin_data.py`,
   });
 
-  // Notify customer
   if (email) {
     await sendEmail(env, {
       to:      email,
@@ -269,8 +407,7 @@ async function handleWebhook(request, env, origin) {
   }
 
   const rawBody = await request.text();
-
-  const valid = await verifyStripeSignature(rawBody, sig, env.STRIPE_WEBHOOK_SECRET);
+  const valid   = await verifyStripeSignature(rawBody, sig, env.STRIPE_WEBHOOK_SECRET);
   if (!valid) {
     return jsonResponse({ error: "Signature verification failed" }, 401, origin);
   }
@@ -281,22 +418,17 @@ async function handleWebhook(request, env, origin) {
   try {
     switch (event.type) {
       case "checkout.session.completed":
-        await handleBuildFeePaid(event.data.object, env);
-        break;
+        await handleBuildFeePaid(event.data.object, env); break;
       case "customer.subscription.created":
-        await handleSubscriptionCreated(event.data.object, env);
-        break;
+        await handleSubscriptionCreated(event.data.object, env); break;
       case "customer.subscription.deleted":
-        await handleSubscriptionCancelled(event.data.object, env);
-        break;
+        await handleSubscriptionCancelled(event.data.object, env); break;
       case "invoice.payment_failed":
-        await handlePaymentFailed(event.data.object, env);
-        break;
+        await handlePaymentFailed(event.data.object, env); break;
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
   } catch (e) {
-    // Log but still return 200 — Stripe will retry on non-200
     console.error(`Handler error for ${event.type}: ${e.message}`);
   }
 
@@ -335,14 +467,18 @@ function handleHealth(env, origin) {
     status:  "ok",
     service: "appsforhire-worker",
     keys: {
-      claude:  !!env.CLAUDE_API_KEY,
-      gemini:  !!env.GEMINI_API_KEY,
-      stripe:  !!env.STRIPE_WEBHOOK_SECRET,
-      resend:  !!env.RESEND_API_KEY,
-      cf:      !!env.CF_API_TOKEN,
-      github:  !!env.GITHUB_TOKEN,
+      claude:        !!env.CLAUDE_API_KEY,
+      gemini:        !!env.GEMINI_API_KEY,
+      admin_secret:  !!env.ADMIN_SECRET,
+      stripe:        !!env.STRIPE_WEBHOOK_SECRET,
+      resend:        !!env.RESEND_API_KEY,
+      cf:            !!env.CF_API_TOKEN,
+      github:        !!env.GITHUB_TOKEN,
     },
-    rate_limit_kv: !!env.RATE_LIMIT,
+    kv: {
+      rate_limit:    !!env.RATE_LIMIT,
+      client_config: !!env.CLIENT_CONFIG,
+    },
   }, 200, origin);
 }
 
@@ -358,15 +494,34 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
-    // Origin check — only allow our own sites (and localhost for dev)
-    if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    // Origin check — allow any *.appsforhire.app subdomain or localhost
+    // Webhook from Stripe has no Origin header — that's fine, signature protects it
+    if (origin && !isAllowedOrigin(origin) && path !== "/webhook") {
       return jsonResponse({ error: "Origin not allowed" }, 403, origin);
     }
 
+    // Admin endpoints — require ADMIN_SECRET bearer token
+    if (path.startsWith("/admin/")) {
+      const auth = request.headers.get("Authorization") || "";
+      if (!env.ADMIN_SECRET || auth !== `Bearer ${env.ADMIN_SECRET}`) {
+        return jsonResponse({ error: "Unauthorized" }, 401, origin);
+      }
+    }
+
     try {
+      // ── Public routes ──────────────────────────────────────────────────
       if (request.method === "GET"  && path === "/health")  return handleHealth(env, origin);
       if (request.method === "POST" && path === "/ai")      return handleAI(request, env, origin);
       if (request.method === "POST" && path === "/webhook") return handleWebhook(request, env, origin);
+
+      // ── Admin routes ───────────────────────────────────────────────────
+      if (request.method === "POST" && path === "/admin/set-client-keys")
+        return handleSetClientKeys(request, env, origin);
+
+      if (request.method === "GET" && path.startsWith("/admin/get-client/")) {
+        const slug = path.replace("/admin/get-client/", "").replace(/\//g, "");
+        return handleGetClientConfig(slug, env, origin);
+      }
 
       return jsonResponse({ error: "Not found" }, 404, origin);
 

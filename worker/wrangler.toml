@@ -1,8 +1,10 @@
 # ── AppsForHire Cloudflare Worker ────────────────────────────────────────────
 # Handles:
-#   POST /ai       — AI proxy for demo apps (Claude or Gemini)
-#   POST /webhook  — Stripe event handler
-#   GET  /health   — Health check
+#   POST /ai                     — AI proxy, routes to correct key per client tier
+#   POST /webhook                — Stripe event handler
+#   GET  /health                 — Health check
+#   POST /admin/set-client-keys  — Store a client's API keys in KV (admin only)
+#   GET  /admin/get-client/:slug — Read a client's config from KV (admin only)
 
 name             = "appsforhire-worker"
 main             = "worker.js"
@@ -19,21 +21,31 @@ preview_urls     = false
 # Until then, the worker is reachable at:
 #   https://appsforhire-worker.<your-subdomain>.workers.dev
 
-# ── KV namespace for AI rate limiting ─────────────────────────────────────────
-# Create the namespace first:
-#   npx wrangler kv:namespace create "RATE_LIMIT"
-# Paste the returned id below.
+# ── KV namespace: rate limiting (Starter / demo AI calls) ─────────────────────
+# Already created. ID is fixed.
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
 id      = "bf759cd2061a4370b93f0bbbd0a5aea5"
 
+# ── KV namespace: per-client API key config ────────────────────────────────────
+# Create once with:
+#   npx wrangler kv namespace create "CLIENT_CONFIG"
+# Then paste the returned id below.
+# REPLACE_WITH_CLIENT_CONFIG_KV_ID is a placeholder — run the command above first.
+[[kv_namespaces]]
+binding = "CLIENT_CONFIG"
+id      = "REPLACE_WITH_CLIENT_CONFIG_KV_ID"
+
 # ── Secrets — set each one with: npx wrangler secret put <NAME> ──────────────
 #
-# CLAUDE_API_KEY        Your Anthropic Claude API key
+# CLAUDE_API_KEY        Robert's Anthropic Claude key (Starter / demo fallback)
 #                       → console.anthropic.com → API Keys
 #
-# GEMINI_API_KEY        Your Google Gemini API key (optional — Claude is default)
+# GEMINI_API_KEY        Robert's Google Gemini key (optional Starter fallback)
 #                       → aistudio.google.com → Get API Key
+#
+# ADMIN_SECRET          A strong random token you make up — protects /admin/* routes
+#                       Generate one: openssl rand -hex 32
 #
 # STRIPE_WEBHOOK_SECRET Signing secret for this specific webhook endpoint
 #                       → Stripe Dashboard → Developers → Webhooks → your endpoint
@@ -46,7 +58,5 @@ id      = "bf759cd2061a4370b93f0bbbd0a5aea5"
 #                       e.g. cosmicwombat@gmail.com
 #
 # CF_API_TOKEN          Cloudflare API token with Access Edit permission
-#                       (for future auto-revoke on subscription cancel)
 #
 # GITHUB_TOKEN          GitHub PAT
-#                       (for future auto-update of admin dashboard)

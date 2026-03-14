@@ -26,23 +26,27 @@ This opens a browser window. Log in with your Cloudflare account.
 
 ---
 
-## Step 3 — Create the KV namespace
+## Step 3 — Create the KV namespaces
+
+The `RATE_LIMIT` namespace is already created (ID is in `wrangler.toml`).
+
+Create the new `CLIENT_CONFIG` namespace (stores per-client API keys):
 
 ```bash
-npx wrangler kv:namespace create "RATE_LIMIT"
+npx wrangler kv namespace create "CLIENT_CONFIG"
 ```
 
 You'll get output like:
 ```
-✅ Created namespace with ID "abc123def456..."
+✅  Created namespace with ID "xyz789abc123..."
 ```
 
-Open `wrangler.toml` and replace `PASTE_KV_NAMESPACE_ID_HERE` with that ID:
+Open `wrangler.toml` and replace `REPLACE_WITH_CLIENT_CONFIG_KV_ID` with that ID:
 
 ```toml
 [[kv_namespaces]]
-binding = "RATE_LIMIT"
-id      = "abc123def456..."   # ← paste here
+binding = "CLIENT_CONFIG"
+id      = "xyz789abc123..."   # ← paste here
 ```
 
 ---
@@ -54,6 +58,7 @@ Run each of these one at a time. You'll be prompted to paste the value:
 ```bash
 npx wrangler secret put CLAUDE_API_KEY
 npx wrangler secret put GEMINI_API_KEY
+npx wrangler secret put ADMIN_SECRET
 npx wrangler secret put STRIPE_WEBHOOK_SECRET
 npx wrangler secret put RESEND_API_KEY
 npx wrangler secret put ADMIN_EMAIL
@@ -64,8 +69,9 @@ npx wrangler secret put GITHUB_TOKEN
 **Where to get each value:**
 | Secret | Source |
 |---|---|
-| `CLAUDE_API_KEY` | console.anthropic.com → API Keys |
-| `GEMINI_API_KEY` | aistudio.google.com → Get API key |
+| `CLAUDE_API_KEY` | console.anthropic.com → API Keys (Robert's shared key) |
+| `GEMINI_API_KEY` | aistudio.google.com → Get API key (Robert's shared key) |
+| `ADMIN_SECRET` | Make one up: run `openssl rand -hex 32` in your terminal |
 | `STRIPE_WEBHOOK_SECRET` | Stripe dashboard → Developers → Webhooks (after Step 6) |
 | `RESEND_API_KEY` | resend.com → API Keys |
 | `ADMIN_EMAIL` | Your email — cosmicwombat@gmail.com |
@@ -73,6 +79,7 @@ npx wrangler secret put GITHUB_TOKEN
 | `GITHUB_TOKEN` | github.com → Settings → Developer settings → Personal access tokens |
 
 > You can skip `GEMINI_API_KEY`, `CF_API_TOKEN`, and `GITHUB_TOKEN` for now — the worker runs fine without them.
+> `ADMIN_SECRET` is important — it protects the `/admin/set-client-keys` endpoint.
 
 ---
 
@@ -178,7 +185,64 @@ npx wrangler deploy
 
 ## How the rate limit works
 
-- Key: `demo_ai:<visitor-ip>` stored in KV
+- Key: `demo_ai:<visitor-ip>` stored in RATE_LIMIT KV
 - Limit: 10 AI calls per IP per 7 days
 - When limit is hit: 429 response with CTA to contact page
-- The demo apps display the remaining count after each call
+- Only applies to **Starter** clients and demo apps (using Robert's shared key)
+- Custom / Pro clients using their own API key have **no rate limit**
+
+---
+
+## How per-client API key routing works
+
+When a client app at `smithsbakery.appsforhire.app` calls `/ai`:
+
+1. Worker reads the `Origin` header → extracts slug `smithsbakery`
+2. Looks up `client:smithsbakery` in the `CLIENT_CONFIG` KV namespace
+3. **If the client has their own key** → uses it, no rate limit
+4. **If no config found (Starter)** → uses Robert's `CLAUDE_API_KEY`, rate limited
+
+### Adding a new Custom/Pro client's API keys (no redeploy needed)
+
+After receiving the client's key via OneTimeSecret link:
+
+```bash
+curl -X POST https://worker.appsforhire.app/admin/set-client-keys \
+  -H "Authorization: Bearer YOUR_ADMIN_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "client":     "smithsbakery",
+    "tier":       "custom",
+    "claude_key": "sk-ant-api03-...",
+    "gemini_key": null,
+    "use_gemini": false
+  }'
+```
+
+To switch a client to Gemini instead of Claude:
+
+```bash
+-d '{
+  "client":     "smithsbakery",
+  "tier":       "custom",
+  "claude_key": null,
+  "gemini_key": "AIzaSy...",
+  "use_gemini": true
+}'
+```
+
+### Checking a client's config
+
+```bash
+curl https://worker.appsforhire.app/admin/get-client/smithsbakery \
+  -H "Authorization: Bearer YOUR_ADMIN_SECRET"
+```
+
+Keys are masked in the response (first 8 chars + `...`) for safety.
+
+### Tier summary
+
+| Tier | API Key Used | Rate Limited? |
+|---|---|---|
+| Starter (default) | Robert's shared `CLAUDE_API_KEY` | Yes — 10 calls / 7 days |
+| Custom / Pro | Client's own key from KV | No |
