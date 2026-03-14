@@ -85,6 +85,13 @@ def enable_github_pages(token, repo_full_name):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="AppsForHire admin site setup")
+    parser.add_argument("--force-data", action="store_true",
+                        help="Force-push local admin-site/data.json to the admin repo "
+                             "(use when the live copy is corrupt or missing)")
+    args = parser.parse_args()
+
     print("\n══════════════════════════════════════════════════════════════")
     print("  AppsForHire — Admin Site Setup")
     print("══════════════════════════════════════════════════════════════\n")
@@ -123,15 +130,18 @@ def main():
         github_path = str(abs_path.relative_to(ADMIN_SITE_DIR)).replace("\\", "/")
 
         # data.json is owned by the publish flow — only seed it if it doesn't
-        # exist yet in the repo (first-time setup). Never overwrite a live copy.
+        # exist yet in the repo (first-time setup). Never overwrite a live copy
+        # unless --force-data is passed (recovery from corrupt/missing file).
         if github_path == "data.json":
-            try:
-                repo.get_contents("data.json")
-                print(f"   [skip] data.json — live version preserved (managed by publish flow)")
-                continue
-            except GithubException:
-                print(f"   [{i:02d}/{len(files):02d}] {github_path} (first-time seed)")
-
+            if args.force_data:
+                print(f"   [{i:02d}/{len(files):02d}] {github_path} (force-push)")
+            else:
+                try:
+                    repo.get_contents("data.json")
+                    print(f"   [skip] data.json — live version preserved (use --force-data to override)")
+                    continue
+                except GithubException:
+                    print(f"   [{i:02d}/{len(files):02d}] {github_path} (first-time seed)")
         else:
             print(f"   [{i:02d}/{len(files):02d}] {github_path}")
 
