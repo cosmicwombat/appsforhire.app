@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You're In — AppsForHire</title>
+  <meta name="description" content="Your Starter Bundle is confirmed. Here's what happens next." />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1a1f36" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1a1f36;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+
+    .check-circle {
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+      margin: 0 auto 1.75rem;
+      box-shadow: 0 0 40px rgba(16,185,129,.35);
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    h1 span { color: #a78bfa; }
+
+    .sub {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,.7);
+      max-width: 500px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+
+    .next-steps {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px;
+      padding: 1.75rem 2rem;
+      max-width: 520px;
+      width: 100%;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+
+    .next-steps h2 {
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.4);
+      margin-bottom: 1.25rem;
+    }
+
+    .next-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.1rem;
+    }
+    .next-step:last-child { margin-bottom: 0; }
+
+    .step-dot {
+      flex-shrink: 0;
+      width: 1.8rem; height: 1.8rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 800;
+    }
+
+    .step-text strong {
+      display: block;
+      font-size: .95rem;
+      margin-bottom: .2rem;
+    }
+    .step-text p {
+      font-size: .85rem;
+      color: rgba(255,255,255,.6);
+      line-height: 1.6;
+    }
+
+    .btn-cta {
+      display: inline-block;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      text-decoration: none;
+      padding: 1rem 2.5rem;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(109,40,217,.4);
+      transition: transform .15s, box-shadow .15s;
+      margin-bottom: 1.25rem;
+    }
+    .btn-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(109,40,217,.55);
+    }
+
+    .back-link {
+      font-size: .85rem;
+      color: rgba(255,255,255,.35);
+      text-decoration: none;
+    }
+    .back-link:hover { color: rgba(255,255,255,.6); }
+  </style>
+</head>
+<body>
+
+  <div class="check-circle">✓</div>
+
+  <h1>You're in.<br><span>Let's build something.</span></h1>
+  <p class="sub">Your Starter Bundle is confirmed and your promo code was applied. Check your email for a Stripe receipt. Here's what happens next.</p>
+
+  <div class="next-steps">
+    <h2>What happens now</h2>
+
+    <div class="next-step">
+      <div class="step-dot">1</div>
+      <div class="step-text">
+        <strong>Tell us what you want built</strong>
+        <p>Fill out the contact form on the main site — describe your problem, your workflow, and any ideas you have. The more detail the better.</p>
+      </div>
+    </div>
+
+    <div class="next-step">
+      <div class="step-dot">2</div>
+      <div class="step-text">
+        <strong>We'll confirm and scope your build</strong>
+        <p>We'll respond within one business day to confirm you're one of the first 10 and scope out exactly what we're building for you.</p>
+      </div>
+    </div>
+
+    <div class="next-step">
+      <div class="step-dot">3</div>
+      <div class="step-text">
+        <strong>Your app goes live</strong>
+        <p>Most Starter apps are ready in 1–7 business days. You'll get a secure, 2FA-protected link and we'll walk you through how to use it.</p>
+      </div>
+    </div>
+  </div>
+
+  <a class="btn-cta" href="/#contact">Tell Us What You Want Built →</a>
+  <br>
+  <a class="back-link" href="/">← Back to appsforhire.app</a>
+
+</body>
+</html>
