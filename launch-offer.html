@@ -226,13 +226,14 @@
 <section class="offer-hero">
   <div class="offer-badge">🎉 Launch Offer — Limited Spots</div>
   <h1>Your first app is on us.<br><span>Almost.</span></h1>
-  <p>The first 10 customers get a free Starter app build + 3 months of hosting included. That's a $240 value, yours free when you sign up for hosting with code <strong>FIRSTAPP2026</strong>.</p>
+  <p>The first 10 customers get a free Starter app build + 3 months of hosting included — the full Starter Bundle ($249 value), yours free with code <strong>FIRSTAPP2026</strong> at checkout.</p>
 </section>
 
 <!-- What's included -->
 <div class="value-strip">
-  <div class="value-item"><span class="check">✓</span> Free Starter app build ($200–$500 value)</div>
-  <div class="value-item"><span class="check">✓</span> 3 months hosting included ($45 value)</div>
+  <div class="value-item"><span class="check">✓</span> Starter app build included</div>
+  <div class="value-item"><span class="check">✓</span> 3 months hosting included</div>
+  <div class="value-item"><span class="check">✓</span> $249 bundle → $0 with code</div>
   <div class="value-item"><span class="check">✓</span> 2FA security on your app</div>
   <div class="value-item"><span class="check">✓</span> Shared AI access (Gemini + Claude)</div>
 </div>
@@ -258,8 +259,8 @@
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-body">
-        <strong>Start your hosting subscription below</strong>
-        <p>Click "Subscribe" in the Stripe checkout. When you see the <em>Promo code</em> field, paste <strong>FIRSTAPP2026</strong> and hit Apply — your first 3 months will drop to $0.</p>
+        <strong>Claim your bundle in the checkout below</strong>
+        <p>Click "Buy" in the Stripe checkout. When you see the <em>Add promotion code</em> field, paste <strong>FIRSTAPP2026</strong> and hit Apply — the $249 price will drop to $0.</p>
       </div>
     </div>
 
@@ -275,39 +276,16 @@
 </section>
 
 <hr class="divider" />
-<p class="checkout-heading">Step 2 — Start your Starter hosting subscription</p>
+<p class="checkout-heading">Step 2 — Claim your Starter Bundle below</p>
 
 <!-- ── Stripe Checkout Embed ── -->
 <div class="stripe-wrapper">
 
-  <!--
-    OPTION A — Stripe Buy Button (preferred, renders embedded checkout)
-    ─────────────────────────────────────────────────────────────────────
-    1. In Stripe Dashboard → Payment Links → find your Starter hosting link
-    2. Click "..." → "Create buy button"
-    3. Copy the buy-button-id and publishable-key and paste below
-    4. Delete the OPTION B fallback block below once these are filled in
-  -->
-  <!--
   <script async src="https://js.stripe.com/v3/buy-button.js"></script>
   <stripe-buy-button
-    buy-button-id="buy_btn_REPLACE_ME"
-    publishable-key="pk_live_REPLACE_ME"
+    buy-button-id="buy_btn_1TAv17Gsk9fomNK8KTG2Xpff"
+    publishable-key="pk_live_51T6MtjGsk9fomNK8zl6ZJtyesypQmppfPbMxIh4ejYpGhYhTjOgNe44myGObp7m7i3S2sKOeEueW5g5PeepaVkz4003PTX0Spx"
   ></stripe-buy-button>
-  -->
-
-  <!-- OPTION B — Direct link (active until Buy Button IDs are set above) -->
-  <div class="stripe-fallback">
-    <a class="btn-stripe"
-       href="https://buy.stripe.com/aFafZh2Nk24Ye7X7r62880c?prefilled_promo_code=FIRSTAPP2026"
-       target="_blank">
-      🔒 Start Starter Hosting — Apply FIRSTAPP2026 →
-    </a>
-    <p class="stripe-note">
-      Opens Stripe in a new tab with your promo code pre-filled.<br>
-      Hit <strong>Apply</strong> on the promo code field and your first 3 months will be free.
-    </p>
-  </div>
 
 </div>
 
