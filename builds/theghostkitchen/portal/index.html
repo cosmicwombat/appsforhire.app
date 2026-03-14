@@ -174,18 +174,131 @@
     .app-meta {
       font-size: 12px; color: var(--dim); margin-bottom: 12px;
     }
+    .app-actions {
+      display: flex; gap: 8px;
+    }
     .app-open {
       display: flex; align-items: center; justify-content: center; gap: 6px;
       background: var(--accent);
       color: white; padding: 10px 16px; border-radius: 8px;
       font-weight: 600; font-size: 14px; text-decoration: none;
-      transition: opacity .15s;
+      transition: opacity .15s; flex: 1;
     }
     .app-open:hover { opacity: .9; }
     .app-open.disabled {
       background: var(--surface2); color: var(--dim);
       border: 1px solid var(--border);
       pointer-events: none;
+    }
+    .feedback-toggle {
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface2);
+      color: var(--muted); padding: 10px 14px; border-radius: 8px;
+      font-size: 14px; cursor: pointer;
+      border: 1px solid var(--border);
+      transition: color .15s, border-color .15s;
+      flex-shrink: 0;
+    }
+    .feedback-toggle:hover { color: var(--accent2); border-color: var(--accent2); }
+
+    /* ── Feedback form (per app) ── */
+    .feedback-panel {
+      display: none; margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .feedback-panel.open { display: block; }
+    .feedback-panel label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--muted); margin-bottom: 5px;
+    }
+    .feedback-panel select,
+    .feedback-panel textarea {
+      width: 100%; padding: 8px 10px;
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px;
+      font-family: inherit; font-size: 13px;
+      outline: none; resize: vertical;
+    }
+    .feedback-panel select:focus,
+    .feedback-panel textarea:focus { border-color: var(--accent2); }
+    .feedback-panel textarea { min-height: 70px; margin-bottom: 10px; }
+    .feedback-panel select { margin-bottom: 10px; }
+    .feedback-row {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .feedback-send {
+      padding: 8px 16px; border-radius: 8px;
+      background: var(--accent); color: white;
+      font-weight: 600; font-size: 13px;
+      border: none; cursor: pointer;
+      transition: opacity .15s;
+    }
+    .feedback-send:hover { opacity: .88; }
+    .feedback-send:disabled { opacity: .5; cursor: not-allowed; }
+    .feedback-sent {
+      font-size: 12px; color: var(--green); font-weight: 600;
+      display: none;
+    }
+
+    /* ── Request New App card ── */
+    .request-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 32px;
+    }
+    .request-card h3 {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      margin-bottom: 4px; display: flex; align-items: center; gap: 8px;
+    }
+    .request-card > p {
+      font-size: 13px; color: var(--muted); margin-bottom: 14px;
+    }
+    .request-toggle-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px; border-radius: 8px;
+      background: var(--accent2); color: var(--bg);
+      font-weight: 700; font-size: 14px;
+      border: none; cursor: pointer;
+      transition: opacity .15s;
+    }
+    .request-toggle-btn:hover { opacity: .88; }
+    .request-form {
+      display: none; margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .request-form.open { display: block; }
+    .request-form .form-group { margin-bottom: 12px; }
+    .request-form label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--muted); margin-bottom: 5px;
+    }
+    .request-form input,
+    .request-form textarea {
+      width: 100%; padding: 8px 10px;
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px;
+      font-family: inherit; font-size: 13px;
+      outline: none; resize: vertical;
+    }
+    .request-form input:focus,
+    .request-form textarea:focus { border-color: var(--accent2); }
+    .request-form textarea { min-height: 80px; }
+    .request-submit {
+      padding: 10px 24px; border-radius: 8px;
+      background: var(--accent2); color: var(--bg);
+      font-weight: 700; font-size: 14px;
+      border: none; cursor: pointer;
+      transition: opacity .15s;
+    }
+    .request-submit:hover { opacity: .88; }
+    .request-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .request-sent {
+      font-size: 13px; color: var(--green); font-weight: 600;
+      margin-top: 10px; display: none;
     }
 
     /* ── Info Cards ── */
@@ -272,6 +385,31 @@
     <!-- Populated by JavaScript -->
   </div>
 
+  <div class="section-label">Request a New App</div>
+  <div class="request-card">
+    <h3>💡 Have an idea for a new app?</h3>
+    <p>Tell us what you need and we'll scope it out — no commitment required.</p>
+    <button class="request-toggle-btn" id="requestToggle" onclick="toggleRequestForm()">
+      ➕ Request New App
+    </button>
+    <div class="request-form" id="requestForm">
+      <div class="form-group">
+        <label for="reqTitle">App name or working title</label>
+        <input type="text" id="reqTitle" placeholder="e.g. Recipe Cost Calculator" />
+      </div>
+      <div class="form-group">
+        <label for="reqDesc">What should the app do?</label>
+        <textarea id="reqDesc" placeholder="Describe what you'd like — the more detail the better. What problem does it solve? Who will use it?"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="reqTimeline">Timeline</label>
+        <input type="text" id="reqTimeline" placeholder="e.g. No rush, Within a week, ASAP" />
+      </div>
+      <button class="request-submit" id="reqSubmit" onclick="submitRequest()">Send Request →</button>
+      <div class="request-sent" id="reqSent">✓ Request sent! We'll follow up by email within 1 business day.</div>
+    </div>
+  </div>
+
   <div class="section-label">Account & Support</div>
   <div class="info-grid">
 
@@ -302,10 +440,6 @@
           <span class="si-icon">📱</span>
           <span>Install any app to your home screen — open it, tap Share → Add to Home Screen on iPhone, or the install prompt on Android.</span>
         </div>
-        <div class="support-item">
-          <span class="si-icon">➕</span>
-          <span>Want to add another app? <a href="https://appsforhire.app/#contact" target="_blank">Request a build →</a></span>
-        </div>
       </div>
     </div>
 
@@ -328,9 +462,9 @@
   const tierLabels = { starter: '⭐ Starter Plan', custom: '✦ Custom Plan', pro: '🚀 Pro Plan' };
   document.getElementById('tierBadge').textContent = tierLabels[CUSTOMER.tier] || CUSTOMER.tier;
 
-  // Render app cards
+  // Render app cards with feedback forms
   const grid = document.getElementById('appsGrid');
-  CUSTOMER.apps.forEach(app => {
+  CUSTOMER.apps.forEach((app, idx) => {
     const isActive = app.status === 'active';
     const isComing = app.status === 'coming_soon';
     const statusMap = {
@@ -351,10 +485,30 @@
         <div class="app-name">${app.name}</div>
         <div class="app-desc">${app.description}</div>
         <div class="app-meta">Launched: ${app.launched}</div>
-        <a href="${app.url}" class="app-open ${isComing ? 'disabled' : ''}"
-           ${isActive ? 'target="_blank"' : ''}>
-          ${isComing ? 'Coming Soon' : '↗ Open App'}
-        </a>
+        <div class="app-actions">
+          <a href="${app.url}" class="app-open ${isComing ? 'disabled' : ''}"
+             ${isActive ? 'target="_blank"' : ''}>
+            ${isComing ? 'Coming Soon' : '↗ Open App'}
+          </a>
+          ${isActive ? `<button class="feedback-toggle" onclick="toggleFeedback(${idx})" title="Send feedback">💬</button>` : ''}
+        </div>
+        ${isActive ? `
+        <div class="feedback-panel" id="feedback-${idx}">
+          <label for="fbType-${idx}">What kind of feedback?</label>
+          <select id="fbType-${idx}">
+            <option value="general">General feedback</option>
+            <option value="bug">Bug report</option>
+            <option value="feature">Feature request</option>
+            <option value="love">Something I love</option>
+          </select>
+          <label for="fbMsg-${idx}">Your message</label>
+          <textarea id="fbMsg-${idx}" placeholder="Tell us what you think about ${app.name}…"></textarea>
+          <div class="feedback-row">
+            <button class="feedback-send" id="fbSend-${idx}" onclick="submitFeedback(${idx}, '${app.name.replace(/'/g, "\\'")}')">Send Feedback</button>
+            <span class="feedback-sent" id="fbSent-${idx}">✓ Sent — thank you!</span>
+          </div>
+        </div>
+        ` : ''}
       </div>
     `;
   });
@@ -364,6 +518,82 @@
   const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.getElementById('subgreeting').textContent =
     `${timeGreeting}, ${CUSTOMER.name}. Here are your secure apps — click any card to open.`;
+
+  // ── Feedback per app ──
+
+  function toggleFeedback(idx) {
+    const panel = document.getElementById(`feedback-${idx}`);
+    panel.classList.toggle('open');
+  }
+
+  function submitFeedback(idx, appName) {
+    const type = document.getElementById(`fbType-${idx}`).value;
+    const msg  = document.getElementById(`fbMsg-${idx}`).value.trim();
+    if (!msg) { alert('Please write a message before sending.'); return; }
+
+    const btn  = document.getElementById(`fbSend-${idx}`);
+    const sent = document.getElementById(`fbSent-${idx}`);
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    // Send feedback via mailto (works without a backend)
+    const subject = encodeURIComponent(`[Feedback] ${appName} — ${type}`);
+    const body    = encodeURIComponent(
+      `App: ${appName}\nType: ${type}\nCustomer: ${CUSTOMER.name}\n\n${msg}`
+    );
+    window.location.href = `mailto:${CUSTOMER.support_email}?subject=${subject}&body=${body}`;
+
+    // Show confirmation
+    setTimeout(() => {
+      btn.textContent = 'Send Feedback';
+      btn.disabled    = false;
+      sent.style.display = 'inline';
+      document.getElementById(`fbMsg-${idx}`).value = '';
+      setTimeout(() => { sent.style.display = 'none'; }, 4000);
+    }, 500);
+  }
+
+  // ── Request New App ──
+
+  function toggleRequestForm() {
+    const form = document.getElementById('requestForm');
+    const btn  = document.getElementById('requestToggle');
+    const isOpen = form.classList.toggle('open');
+    btn.textContent = isOpen ? '✕ Cancel' : '➕ Request New App';
+  }
+
+  function submitRequest() {
+    const title    = document.getElementById('reqTitle').value.trim();
+    const desc     = document.getElementById('reqDesc').value.trim();
+    const timeline = document.getElementById('reqTimeline').value.trim();
+
+    if (!title || !desc) {
+      alert('Please fill in at least the app name and description.');
+      return;
+    }
+
+    const btn  = document.getElementById('reqSubmit');
+    const sent = document.getElementById('reqSent');
+    btn.disabled    = true;
+    btn.textContent = 'Sending…';
+
+    const subject = encodeURIComponent(`[New App Request] ${title} — ${CUSTOMER.name}`);
+    const body    = encodeURIComponent(
+      `Customer: ${CUSTOMER.name}\nPlan: ${CUSTOMER.tier}\n\n` +
+      `App Name: ${title}\n\nDescription:\n${desc}\n\nTimeline: ${timeline || 'Not specified'}`
+    );
+    window.location.href = `mailto:${CUSTOMER.support_email}?subject=${subject}&body=${body}`;
+
+    setTimeout(() => {
+      btn.textContent = 'Send Request →';
+      btn.disabled    = false;
+      sent.style.display = 'block';
+      document.getElementById('reqTitle').value    = '';
+      document.getElementById('reqDesc').value     = '';
+      document.getElementById('reqTimeline').value = '';
+      setTimeout(() => { sent.style.display = 'none'; }, 5000);
+    }, 500);
+  }
 </script>
 
 </body>

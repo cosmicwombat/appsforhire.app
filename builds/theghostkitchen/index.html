@@ -306,12 +306,12 @@
 
 <div id="tooltip"></div>
 
-<!-- Demo overlay -->
+<!-- Rate-limit overlay -->
 <div id="demoOverlay">
-  <div class="ov-icon">🚀</div>
-  <h2>Want your own app?</h2>
-  <p>You've hit the free demo limit. Get a custom app built for your community.</p>
-  <a href="https://appsforhire.app/#contact">Get Your Build →</a>
+  <div class="ov-icon">🌋</div>
+  <h2>Daily limit reached</h2>
+  <p>You've used all 50 AI analyses for today. Your limit resets at midnight — check back tomorrow!</p>
+  <a href="javascript:document.getElementById('demoOverlay').classList.remove('show')">Got it ←</a>
 </div>
 
 <footer>
@@ -958,9 +958,9 @@ Analyze the timing patterns across quakes, tides, and temps — make it funny an
 function updateWarning(remaining) {
   const bar = document.getElementById('warningBar');
   if (!bar) return;
-  if (remaining !== null && remaining !== undefined && remaining <= 2) {
+  if (remaining !== null && remaining !== undefined && remaining <= 5) {
     bar.style.display = 'block';
-    bar.textContent   = `⚠ ${remaining} demo analysis${remaining === 1 ? '' : 'es'} remaining.`;
+    bar.textContent   = `⚠ ${remaining} analysis${remaining === 1 ? '' : 'es'} remaining today. Resets at midnight.`;
   }
 }
 
