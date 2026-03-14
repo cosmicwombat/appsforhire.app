@@ -78,8 +78,30 @@
         }
       ]
     }
+    {
+      "client_name": "The Ghost Kitchen",
+      "client_slug": "theghostkitchen",
+      "email": "andrewkeller@legoebayuc.com",
+      "subdomain": "theghostkitchen.appsforhire.app",
+      "repo": "https://github.com/cosmicwombat/client-theghostkitchen",
+      "tier": "starter",
+      "theme_color": "#0f172a",
+      "created": "2026-03-14",
+      "stripe_hosting": null,
+      "status": "active",
+      "apps": [
+        {
+          "slug": "theghostkitchen",
+          "title": "The Quake Whisperer",
+          "description": "Quakes, Tides and Temps oh my!",
+          "icon": "🌋",
+          "status": "live",
+          "url": "https://theghostkitchen.appsforhire.app"
+        }
+      ]
+    }
   ],
-  "mrr": 45,
+  "mrr": 60,
   "capacity": 100,
   "generated": "2026-03-14"
 }
