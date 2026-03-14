@@ -387,12 +387,13 @@
         <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
         <div class="section-hd"><span class="section-title">New Customer Workflow</span></div>
         <div class="checklist">
-          <div class="check-item"><div class="check-num">1</div><div class="check-text"><strong>Run new_build.py</strong> — <code>python3 scripts/new_build.py</code> — sets up the build folder and prints the Cowork prompt. Commit <code>builds/</code> after.</div></div>
-          <div class="check-item"><div class="check-num">2</div><div class="check-text"><strong>Open a new Cowork session</strong> — paste the generated prompt. Claude builds the app in <code>builds/{slug}/</code>. Review, tweak, done.</div></div>
-          <div class="check-item"><div class="check-num">3</div><div class="check-text"><strong>Publish from the Builds tab</strong> — connect GitHub (token), find the build, click Publish. Creates the client repo and enables Pages automatically.</div></div>
-          <div class="check-item"><div class="check-num">4</div><div class="check-text"><strong>Add Cloudflare DNS</strong> — CNAME <code>{slug}</code> → <code>cosmicwombat.github.io</code>, Proxy ON. Cloudflare Access policy with client email.</div></div>
-          <div class="check-item"><div class="check-num">5</div><div class="check-text"><strong>Custom/Pro only</strong> — register client API keys: <code>curl -X POST worker.appsforhire.app/admin/set-client-keys</code>.</div></div>
-          <div class="check-item"><div class="check-num">6</div><div class="check-text"><strong>Message the client</strong> — ✉️ button in Customers sends the "App is Live" email with their URL.</div></div>
+          <div class="check-item"><div class="check-num">1</div><div class="check-text"><strong>Add the customer</strong> — Customers tab → <strong>+ Add Customer</strong>. Fills in name, slug, email, tier, and theme colour.</div></div>
+          <div class="check-item"><div class="check-num">2</div><div class="check-text"><strong>Create the app</strong> — Builds tab → <strong>🛠️ New App</strong>. Scaffolds the build folder in GitHub and generates a Cowork prompt to paste into a new session.</div></div>
+          <div class="check-item"><div class="check-num">3</div><div class="check-text"><strong>Build in Cowork</strong> — open a new Cowork session, paste the prompt. Claude builds the app in <code>builds/{slug}/</code>. Review, commit, push.</div></div>
+          <div class="check-item"><div class="check-num">4</div><div class="check-text"><strong>Mark Ready</strong> — back in the Builds tab, set the build status to <strong>Ready</strong> so the Publish button appears.</div></div>
+          <div class="check-item"><div class="check-num">5</div><div class="check-text"><strong>Publish</strong> — click <strong>Publish</strong>. Everything is automatic: GitHub repo, Pages, DNS, Cloudflare Access OTP policy, and portal cascade to all of the customer's existing apps.</div></div>
+          <div class="check-item"><div class="check-num">6</div><div class="check-text"><strong>Follow the post-publish prompt</strong> — copy the generated prompt and switch to the main Cowork project to run push_portals and setup_admin_site.</div></div>
+          <div class="check-item"><div class="check-num">7</div><div class="check-text"><strong>Custom / Pro tier only</strong> — register the client's own API keys via <code>POST worker.appsforhire.app/admin/set-client-keys</code> after publishing.</div></div>
         </div>
       </div>
 
