@@ -770,8 +770,11 @@
         });
         add('✓ Repo created','ok');
       } catch(e) {
-        if (e.message.toLowerCase().includes('exist')) add('✓ Repo exists — updating','ok');
-        else throw e;
+        // GitHub returns "Repository creation failed." (422) when repo already exists
+        const msg = e.message.toLowerCase();
+        if (msg.includes('exist') || msg.includes('creation failed') || msg.includes('422')) {
+          add('✓ Repo already exists — updating files','ok');
+        } else throw e;
       }
       await delay(1500);
 
