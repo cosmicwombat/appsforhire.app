@@ -138,4 +138,4 @@ After any new app is published via the Admin portal:
 | The Gathering Place | thegatheringplace | Daily Offerations | published |
 | The Gathering Place | tgpscripture | Daily Word | published |
 | The Ghost Interpreter | theghostinterpreter | Random Sentence Generator | published |
-| The Ghost Interpreter | tgihorror | Ghost Story Generator | in_progress |
+| The Ghost Interpreter | tgihorror | Ghost Story Generator | published |

@@ -48,7 +48,7 @@ app_for_hire/
 | The Gathering Place | thegatheringplace | Daily Offerations | thegatheringplace.appsforhire.app | #d97706 amber | published |
 | The Gathering Place | tgpscripture | Daily Word | tgpscripture.appsforhire.app | #d97706 amber | published |
 | The Ghost Interpreter | theghostinterpreter | Random Sentence Generator | theghostinterpreter.appsforhire.app | #7c3aed violet | published |
-| The Ghost Interpreter | tgihorror | Ghost Story Generator | tgihorror.appsforhire.app | #7c3aed violet | in_progress |
+| The Ghost Interpreter | tgihorror | Ghost Story Generator | tgihorror.appsforhire.app | #7c3aed violet | published |
 
 **data.json nesting rule:** apps[] under each customer, not as separate customer rows.
 
