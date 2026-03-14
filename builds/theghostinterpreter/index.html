@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Ghost Interpreter — Random Sentence Generator</title>
+  <meta name="description" content="Five sources. One surreal sentence. Pure chaos." />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f1117" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#222536; --border:#2e3147;
+      --accent:#7c3aed; --accent-dark:#6d28d9; --accent2:#22d3ee;
+      --green:#34d399; --amber:#fbbf24; --red:#f87171;
+      --text:#e2e8f0; --muted:#94a3b8; --dim:#64748b; --radius:12px;
+    }
+    body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; }
+    header { background:#0a0a14; border-bottom:1px solid var(--border); padding:.85rem 1.5rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
+    .header-left { display:flex; flex-direction:column; }
+    .header-logo { font-size:1.05rem; font-weight:800; letter-spacing:-.02em; }
+    .header-sub { font-size:.72rem; color:var(--muted); margin-top:2px; }
+    .header-right { display:flex; align-items:center; gap:.6rem; }
+    .back-link { display:inline-flex; align-items:center; background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.2); border-radius:100px; padding:.3rem .8rem; font-size:.75rem; font-weight:600; color:white; text-decoration:none; transition:background .15s; }
+    .back-link:hover { background:rgba(0,0,0,.35); }
+    .header-badge { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.3); border-radius:100px; padding:.3rem .8rem; font-size:.75rem; font-weight:600; }
+    main { max-width:720px; margin:0 auto; padding:2.5rem 1.25rem 4rem; }
+    .intro { text-align:center; margin-bottom:2.5rem; }
+    .intro-icon { font-size:3rem; margin-bottom:.75rem; filter:drop-shadow(0 0 16px rgba(124,58,237,.6)); animation:float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+    .intro h1 { font-size:clamp(1.5rem,4vw,2.1rem); font-weight:900; letter-spacing:-.03em; margin-bottom:.4rem; background:linear-gradient(135deg,#a78bfa,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .intro p { font-size:.9rem; color:var(--muted); line-height:1.6; }
+    .btn-generate { display:flex; align-items:center; justify-content:center; gap:.6rem; width:100%; padding:1rem 1.5rem; background:linear-gradient(135deg,var(--accent),#9333ea); border:none; border-radius:var(--radius); color:white; font-size:1rem; font-weight:700; font-family:inherit; cursor:pointer; transition:opacity .15s,transform .1s; margin-bottom:2rem; box-shadow:0 0 24px rgba(124,58,237,.3); }
+    .btn-generate:hover:not(:disabled) { opacity:.92; transform:translateY(-1px); }
+    .btn-generate:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+    .sources-label { font-size:.72rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.75rem; }
+    .sources-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:2rem; }
+    @media(max-width:500px){ .sources-grid{grid-template-columns:1fr} }
+    .source-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:.9rem 1rem; transition:border-color .2s; }
+    .source-card.loaded { border-color:rgba(124,58,237,.4); }
+    .source-card.error  { border-color:rgba(248,113,113,.3); }
+    .source-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:.5rem; }
+    .source-name { font-size:.72rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:.04em; }
+    .source-dot { width:6px; height:6px; border-radius:50%; background:var(--border); transition:background .3s; }
+    .source-card.loaded .source-dot { background:var(--green); }
+    .source-card.loading .source-dot { background:var(--amber); animation:pulse .8s infinite; }
+    .source-card.error .source-dot  { background:var(--red); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .source-text { font-size:.82rem; color:var(--muted); line-height:1.5; min-height:2.5rem; font-style:italic; }
+    .source-text.placeholder { color:var(--dim); font-style:normal; }
+    .result-section { display:none; }
+    .result-section.show { display:block; }
+    .result-label { font-size:.72rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.75rem; display:flex; align-items:center; gap:.5rem; }
+    .result-label::before,.result-label::after { content:''; flex:1; height:1px; background:var(--border); }
+    .result-card { background:linear-gradient(135deg,#1a1128,#0f1a2a); border:1px solid rgba(124,58,237,.35); border-radius:var(--radius); padding:2rem 1.75rem; text-align:center; position:relative; overflow:hidden; }
+    .result-card::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,.12) 0%,transparent 70%); }
+    .result-text { position:relative; z-index:1; font-size:clamp(1.05rem,2.5vw,1.3rem); font-weight:700; line-height:1.6; color:#f0e6ff; text-shadow:0 0 40px rgba(124,58,237,.4); }
+    .result-footer { display:flex; align-items:center; justify-content:flex-end; gap:.5rem; margin-top:1rem; }
+    .btn-sm { padding:.35rem .85rem; border-radius:7px; font-size:.78rem; font-weight:700; font-family:inherit; cursor:pointer; border:1px solid transparent; transition:opacity .15s; }
+    .btn-sm:hover { opacity:.85; }
+    .btn-copy { background:var(--surface2); border-color:var(--border); color:var(--text); }
+    .btn-again { background:rgba(124,58,237,.15); border-color:rgba(124,58,237,.35); color:#a78bfa; }
+    .ai-loading { text-align:center; padding:1.5rem; display:none; }
+    .ai-loading.show { display:block; }
+    .ghost-spin { font-size:2rem; display:inline-block; animation:ghostFloat 1.2s ease-in-out infinite; }
+    @keyframes ghostFloat { 0%,100%{transform:translateY(0) rotate(-5deg);opacity:.7} 50%{transform:translateY(-8px) rotate(5deg);opacity:1} }
+    .ai-loading p { font-size:.85rem; color:var(--muted); margin-top:.5rem; font-style:italic; }
+    .error-box { background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.25); border-radius:10px; padding:.85rem 1.1rem; color:var(--red); font-size:.88rem; margin-bottom:1.25rem; display:none; }
+    .error-box.show { display:block; }
+    #demoOverlay { display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.88); align-items:center; justify-content:center; padding:1.5rem; }
+    #demoOverlay.show { display:flex; }
+    .overlay-box { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:2rem 1.75rem; max-width:400px; width:100%; text-align:center; }
+    .overlay-icon { font-size:2.5rem; margin-bottom:1rem; }
+    .overlay-box h2 { font-size:1.2rem; font-weight:800; margin-bottom:.6rem; }
+    .overlay-box p { font-size:.88rem; color:var(--muted); line-height:1.6; margin-bottom:1.25rem; }
+    .overlay-box a { display:inline-flex; align-items:center; gap:.4rem; background:linear-gradient(135deg,var(--accent),#9333ea); color:white; padding:.65rem 1.4rem; border-radius:9px; font-weight:700; font-size:.9rem; text-decoration:none; }
+    footer { text-align:center; padding:2rem 1rem; border-top:1px solid var(--border); font-size:.75rem; color:var(--dim); }
+    footer a { color:var(--accent2); text-decoration:none; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <div class="header-logo">The Ghost Interpreter</div>
+    <div class="header-sub">Random Sentence Generator</div>
+  </div>
+  <div class="header-right">
+    <a href="/portal/" class="back-link">← My Apps</a>
+    <div class="header-badge">Secure App</div>
+  </div>
+</header>
+<main>
+  <div class="intro">
+    <div class="intro-icon">👻</div>
+    <h1>The Ghost Interpreter</h1>
+    <p>Pulls from five corners of the internet.<br>The ghost weaves it into one sentence.</p>
+  </div>
+  <button class="btn-generate" id="generateBtn" onclick="runGenerate()">👻 Summon a Sentence</button>
+  <div class="sources-label">Five Sources</div>
+  <div class="sources-grid" id="sourcesGrid">
+    <div class="source-card" id="src-quote">
+      <div class="source-header"><span class="source-name">💬 Quote</span><span class="source-dot"></span></div>
+      <div class="source-text placeholder" id="txt-quote">Waiting…</div>
+    </div>
+    <div class="source-card" id="src-joke">
+      <div class="source-header"><span class="source-name">😂 Joke</span><span class="source-dot"></span></div>
+      <div class="source-text placeholder" id="txt-joke">Waiting…</div>
+    </div>
+    <div class="source-card" id="src-advice">
+      <div class="source-header"><span class="source-name">🎯 Advice</span><span class="source-dot"></span></div>
+      <div class="source-text placeholder" id="txt-advice">Waiting…</div>
+    </div>
+    <div class="source-card" id="src-cat">
+      <div class="source-header"><span class="source-name">🐱 Cat Fact</span><span class="source-dot"></span></div>
+      <div class="source-text placeholder" id="txt-cat">Waiting…</div>
+    </div>
+    <div class="source-card" id="src-fact" style="grid-column:span 2">
+      <div class="source-header"><span class="source-name">🌀 Useless Fact</span><span class="source-dot"></span></div>
+      <div class="source-text placeholder" id="txt-fact">Waiting…</div>
+    </div>
+  </div>
+  <div class="error-box" id="errorBox"></div>
+  <div class="ai-loading" id="aiLoading">
+    <div class="ghost-spin">👻</div>
+    <p>The ghost is interpreting…</p>
+  </div>
+  <div class="result-section" id="resultSection">
+    <div class="result-label">The Interpretation</div>
+    <div class="result-card">
+      <div class="result-text" id="resultText"></div>
+    </div>
+    <div class="result-footer">
+      <button class="btn-sm btn-copy" id="copyBtn" onclick="copyResult()">Copy</button>
+      <button class="btn-sm btn-again" onclick="runGenerate()">Again →</button>
+    </div>
+  </div>
+</main>
+<footer>
+  <p>Hosted by <a href="https://appsforhire.app" target="_blank">AppsForHire</a> · Secured by Cloudflare</p>
+</footer>
+<div id="demoOverlay">
+  <div class="overlay-box">
+    <div class="overlay-icon">👻</div>
+    <h2>The ghost needs rest</h2>
+    <p>You've hit the daily limit for this demo. Want unlimited interpretations?</p>
+    <a href="https://appsforhire.app/#contact" target="_blank">Get Full Access →</a>
+  </div>
+</div>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+  const WORKER_URL = 'https://worker.appsforhire.app/ai';
+  let currentResult = '';
+
+  async function fetchQuote() {
+    const d = await (await fetch('https://api.quotable.io/random')).json();
+    return '"' + d.content + '" — ' + d.author;
+  }
+  async function fetchJoke() {
+    const d = await (await fetch('https://official-joke-api.appspot.com/random_joke')).json();
+    return d.setup + ' ' + d.punchline;
+  }
+  async function fetchAdvice() {
+    const d = await (await fetch('https://api.adviceslip.com/advice', {cache:'no-cache'})).json();
+    return d.slip.advice;
+  }
+  async function fetchCatFact() {
+    const d = await (await fetch('https://catfact.ninja/fact')).json();
+    return d.fact;
+  }
+  async function fetchUselessFact() {
+    const d = await (await fetch('https://uselessfacts.jsph.pl/api/v2/facts/random?language=en')).json();
+    return d.text;
+  }
+
+  function setSourceState(id, state, text) {
+    const card = document.getElementById('src-' + id);
+    const txtEl = document.getElementById('txt-' + id);
+    card.className = 'source-card ' + state;
+    if (text) { txtEl.textContent = text; txtEl.classList.remove('placeholder'); }
+    else { txtEl.textContent = state === 'loading' ? 'Fetching…' : 'Waiting…'; txtEl.classList.add('placeholder'); }
+  }
+
+  async function runGenerate() {
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    document.getElementById('resultSection').classList.remove('show');
+    document.getElementById('aiLoading').classList.remove('show');
+    document.getElementById('errorBox').style.display = 'none';
+
+    ['quote','joke','advice','cat','fact'].forEach(id => setSourceState(id, 'loading'));
+
+    const fetchers = [
+      {id:'quote', fn:fetchQuote}, {id:'joke', fn:fetchJoke},
+      {id:'advice', fn:fetchAdvice}, {id:'cat', fn:fetchCatFact},
+      {id:'fact', fn:fetchUselessFact},
+    ];
+
+    const results = await Promise.all(fetchers.map(async ({id, fn}) => {
+      try { const text = await fn(); setSourceState(id,'loaded',text); return {id, text, ok:true}; }
+      catch(e) { setSourceState(id,'error','Could not fetch'); return {id, text:'', ok:false}; }
+    }));
+
+    const good = results.filter(r => r.ok);
+    if (!good.length) { showMsg('All sources failed — check your connection.','error'); btn.disabled=false; return; }
+
+    const lines = good.map(r => '- ' + r.id.toUpperCase() + ': ' + r.text).join('\n');
+    const system = 'You are The Ghost Interpreter — a mysterious entity that weaves unrelated fragments into a single surreal, poetic, and slightly eerie sentence. Combine the given snippets into exactly ONE sentence that is strange, beautiful, and unexpected. It should feel like it belongs in a dream. Return only the single sentence with no explanation.';
+    const message = 'Weave these fragments into one surreal sentence:\n' + lines;
+
+    document.getElementById('aiLoading').classList.add('show');
+    try {
+      const response = await callAI(system, message);
+      if (!response) return;
+      currentResult = response.trim();
+      document.getElementById('resultText').textContent = currentResult;
+      document.getElementById('resultSection').classList.add('show');
+      document.getElementById('copyBtn').textContent = 'Copy';
+      document.getElementById('copyBtn').style.color = '';
+    } catch(e) {
+      showMsg('The ghost encountered an error: ' + e.message, 'error');
+    } finally {
+      document.getElementById('aiLoading').classList.remove('show');
+      btn.disabled = false;
+    }
+  }
+
+  async function callAI(system, message) {
+    const res = await fetch(WORKER_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'gemini', system, message}),
+    });
+    const data = await res.json();
+    if (res.status === 429) { document.getElementById('demoOverlay').classList.add('show'); return null; }
+    if (!res.ok) throw new Error(data.error || 'AI error');
+    if (data.remaining !== undefined && data.remaining <= 2)
+      showMsg(data.remaining + ' interpretation' + (data.remaining===1?'':'s') + ' remaining today.', 'warn');
+    return data.response;
+  }
+
+  function showMsg(msg, type) {
+    const box = document.getElementById('errorBox');
+    box.textContent = '⚠️ ' + msg;
+    if (type === 'warn') {
+      box.style.cssText = 'background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:var(--amber);display:block;border-radius:10px;padding:.85rem 1.1rem;font-size:.88rem;margin-bottom:1.25rem;';
+    } else {
+      box.style.cssText = 'background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:var(--red);display:block;border-radius:10px;padding:.85rem 1.1rem;font-size:.88rem;margin-bottom:1.25rem;';
+    }
+  }
+
+  function copyResult() {
+    if (!currentResult) return;
+    navigator.clipboard.writeText(currentResult).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied ✓'; btn.style.color = 'var(--green)';
+      setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 2000);
+    });
+  }
+</script>
+</body>
+</html>

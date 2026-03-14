@@ -10,5 +10,17 @@
     "theme_dark": "#1e293b",
     "created": "2026-03-13",
     "status": "published"
+  },
+  {
+    "slug": "theghostinterpreter",
+    "client_name": "The Ghost Interpreter",
+    "app_title": "Random Sentence Generator",
+    "app_desc": "Five sources. One surreal sentence. Pure chaos.",
+    "tier": "starter",
+    "api_type": "starter-gemini",
+    "theme_color": "#7c3aed",
+    "theme_dark": "#6d28d9",
+    "created": "2026-03-13",
+    "status": "in_progress"
   }
 ]
