@@ -51,7 +51,7 @@
     "slug": "tgpscripture",
     "client_name": "The Gathering Place",
     "app_title": "Daily Word",
-    "app_desc": "Scripture and reflection for today ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ from your pastoral community.",
+    "app_desc": "Scripture and reflection for today ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ from your pastoral community.",
     "tier": "starter",
     "api_type": "starter-gemini",
     "theme_color": "#d97706",
@@ -69,6 +69,6 @@
     "theme_color": "#0f172a",
     "theme_dark": "#1e293b",
     "created": "2026-03-14",
-    "status": "ready"
+    "status": "published"
   }
 ]
