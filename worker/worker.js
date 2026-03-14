@@ -7,6 +7,7 @@
  * Routes:
  *   GET  /health                  → Status check (all keys configured?)
  *   POST /ai                      → AI proxy — routes to correct key per client tier
+ *   POST /places                  → Google Places lookup (hours, phone, website, address)
  *   POST /webhook                 → Stripe event handler
  *   POST /admin/set-client-keys   → Store per-client API keys in KV (admin only)
  *   GET  /admin/get-client/:slug  → Read a client's config from KV (admin only)
@@ -25,6 +26,7 @@
  * Secrets (set via: npx wrangler secret put <NAME>):
  *   CLAUDE_API_KEY       — Robert's Anthropic key (Starter fallback)
  *   GEMINI_API_KEY       — Robert's Google key (Starter Gemini fallback)
+ *   GOOGLE_PLACES_KEY    — Google Places API (New) key for business lookups
  *   ADMIN_SECRET         — Token to protect /admin/* endpoints
  *   STRIPE_WEBHOOK_SECRET
  *   RESEND_API_KEY
@@ -172,6 +174,73 @@ async function callGemini(apiKey, systemPrompt, userMessage) {
 
   const data = await res.json();
   return data.candidates[0].content.parts[0].text;
+}
+
+// ── Google Places API ─────────────────────────────────────────────────────
+// Uses the Places API (New) — Text Search to find a business and return
+// hours, phone, website, address.  Requires GOOGLE_PLACES_KEY secret.
+//
+// POST /places  { query: "Kuru Kuru Bellingham WA" }
+// Returns: { name, address, phone, website, hours, open_now, maps_url }
+async function handlePlaces(request, env, origin) {
+  if (!env.GOOGLE_PLACES_KEY) {
+    return jsonResponse({ error: "GOOGLE_PLACES_KEY not configured" }, 500, origin);
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return jsonResponse({ error: "Invalid JSON body" }, 400, origin); }
+
+  const { query } = body;
+  if (!query) return jsonResponse({ error: "'query' is required" }, 400, origin);
+
+  try {
+    // Step 1: Text Search to find the place
+    const searchRes = await fetch(
+      "https://places.googleapis.com/v1/places:searchText",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":    "application/json",
+          "X-Goog-Api-Key":  env.GOOGLE_PLACES_KEY,
+          "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.internationalPhoneNumber,places.websiteUri,places.regularOpeningHours,places.currentOpeningHours,places.googleMapsUri",
+        },
+        body: JSON.stringify({ textQuery: query, maxResultCount: 1 }),
+      }
+    );
+
+    if (!searchRes.ok) {
+      const err = await searchRes.text();
+      throw new Error(`Places API ${searchRes.status}: ${err.slice(0, 300)}`);
+    }
+
+    const searchData = await searchRes.json();
+    const place = searchData.places?.[0];
+
+    if (!place) {
+      return jsonResponse({ found: false, query }, 200, origin);
+    }
+
+    // Extract opening hours into a clean structure
+    const hours = (place.regularOpeningHours?.weekdayDescriptions) || [];
+    const openNow = place.currentOpeningHours?.openNow
+      ?? place.regularOpeningHours?.openNow
+      ?? null;
+
+    return jsonResponse({
+      found:   true,
+      name:    place.displayName?.text || null,
+      address: place.formattedAddress || null,
+      phone:   place.nationalPhoneNumber || place.internationalPhoneNumber || null,
+      website: place.websiteUri || null,
+      hours,
+      open_now: openNow,
+      maps_url: place.googleMapsUri || null,
+    }, 200, origin);
+
+  } catch (e) {
+    return jsonResponse({ error: "Places lookup failed", detail: e.message }, 500, origin);
+  }
 }
 
 // ── /ai handler ───────────────────────────────────────────────────────────────
@@ -646,6 +715,7 @@ function handleHealth(env, origin) {
       admin_secret:  !!env.ADMIN_SECRET,
       stripe:        !!env.STRIPE_WEBHOOK_SECRET,
       resend:        !!env.RESEND_API_KEY,
+      google_places: !!env.GOOGLE_PLACES_KEY,
       cf_token:      !!env.CF_API_TOKEN,
       cf_zone:       !!env.CF_ZONE_ID,
       cf_account:    !!env.CF_ACCOUNT_ID,
@@ -688,6 +758,7 @@ export default {
       // ── Public routes ──────────────────────────────────────────────────
       if (request.method === "GET"  && path === "/health")  return handleHealth(env, origin);
       if (request.method === "POST" && path === "/ai")      return handleAI(request, env, origin);
+      if (request.method === "POST" && path === "/places")  return handlePlaces(request, env, origin);
       if (request.method === "POST" && path === "/webhook") return handleWebhook(request, env, origin);
 
       // ── Admin routes ───────────────────────────────────────────────────

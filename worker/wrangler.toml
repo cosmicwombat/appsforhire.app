@@ -44,6 +44,10 @@ id      = "cf6d8d35fbec4e7db1846312f5fe5139"
 # GEMINI_API_KEY        Robert's Google Gemini key (optional Starter fallback)
 #                       → aistudio.google.com → Get API Key
 #
+# GOOGLE_PLACES_KEY     Google Places API (New) key for business lookups
+#                       → console.cloud.google.com → APIs & Services → Credentials
+#                       Enable "Places API (New)" in your GCP project first
+#
 # ADMIN_SECRET          A strong random token you make up — protects /admin/* routes
 #                       Generate one: openssl rand -hex 32
 #

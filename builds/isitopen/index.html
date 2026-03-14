@@ -547,13 +547,13 @@
     var callsBadge     = document.getElementById('callsBadge');
     var copyToast      = document.getElementById('copyToast');
 
-    // ── AI Call ──
-    var WORKER_URL = 'https://worker.appsforhire.app/ai';
+    // ── Worker URLs ──
+    var WORKER_BASE = 'https://worker.appsforhire.app';
     var modelSelect = document.getElementById('modelSelect');
 
     async function callAI(system, userMessage) {
       var selectedModel = modelSelect.value;
-      var res = await fetch(WORKER_URL, {
+      var res = await fetch(WORKER_BASE + '/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: selectedModel, system: system, message: userMessage }),
@@ -580,6 +580,22 @@
       return data.response;
     }
 
+    // ── Google Places Lookup ──
+    async function lookupPlace(query) {
+      try {
+        var res = await fetch(WORKER_BASE + '/places', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query }),
+        });
+        if (!res.ok) return null;
+        var data = await res.json();
+        return data.found ? data : null;
+      } catch (e) {
+        return null; // Places lookup is best-effort — fall back to AI only
+      }
+    }
+
     // ── Form Submission ──
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -598,7 +614,7 @@
 
       // Show loading
       submitBtn.disabled = true;
-      btnText.textContent = 'Checking...';
+      btnText.textContent = 'Looking up...';
       loadingArea.classList.add('show');
 
       var now = new Date();
@@ -606,13 +622,42 @@
       var timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
       var dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-      var systemPrompt = 'You are a helpful assistant that knows typical business hours. The current date and time is ' + dayName + ', ' + dateStr + ' at ' + timeStr + ' (user\'s local time).\n\nWhen the user asks about a business, respond with:\n1. Whether it is likely OPEN or CLOSED right now\n2. Today\'s typical hours\n3. If closed, when it next opens\n4. The business phone number if known\n5. The business website URL if known\n6. A brief note if hours may vary by location\n\nKeep your response concise and friendly. Use plain text, no markdown. If you aren\'t sure about exact hours, give the most common/typical hours and note that the user should verify with the specific location. Always try to include a phone number and website when available.';
-
-      var userMsg = location
-        ? 'Is "' + name + '" in ' + location + ' open right now?'
-        : 'Is "' + name + '" open right now?';
-
       try {
+        // Step 1: Look up real business data from Google Places
+        var placeQuery = location ? name + ' ' + location : name;
+        var place = await lookupPlace(placeQuery);
+
+        // Step 2: Build the AI prompt with real data if available
+        var systemPrompt, userMsg;
+
+        if (place) {
+          // We have real data — ask AI to format it nicely
+          var hoursText = place.hours && place.hours.length
+            ? place.hours.join('\n')
+            : 'Hours not available';
+
+          systemPrompt = 'You are a friendly assistant that presents business information clearly. The current date and time is ' + dayName + ', ' + dateStr + ' at ' + timeStr + ' (user\'s local time).\n\nYou will receive REAL business data from Google. Present it in a clear, friendly format:\n1. Start with whether the business is OPEN or CLOSED right now (based on the open_now field and current time)\n2. Show today\'s hours prominently\n3. If closed, say when it opens next based on the weekly hours\n4. Include the phone number and website\n5. Include the address\n\nUse plain text, no markdown. Be concise and helpful.';
+
+          userMsg = 'Here is the real data for "' + name + '":\n\n'
+            + 'Business: ' + (place.name || name) + '\n'
+            + 'Address: ' + (place.address || 'Not available') + '\n'
+            + 'Phone: ' + (place.phone || 'Not available') + '\n'
+            + 'Website: ' + (place.website || 'Not available') + '\n'
+            + 'Currently open: ' + (place.open_now === true ? 'Yes' : place.open_now === false ? 'No' : 'Unknown') + '\n'
+            + 'Weekly hours:\n' + hoursText + '\n'
+            + (place.maps_url ? '\nGoogle Maps: ' + place.maps_url : '')
+            + '\n\nPlease tell me: is this business open right now?';
+        } else {
+          // No Places data — fall back to AI knowledge
+          systemPrompt = 'You are a helpful assistant. The current date and time is ' + dayName + ', ' + dateStr + ' at ' + timeStr + ' (user\'s local time).\n\nThe user is asking about a business but we could not find it in Google Places. Do your best to answer based on what you know about typical hours for this type of business. Be upfront that these are estimated hours and the user should verify directly with the business.\n\nRespond with:\n1. Whether it is likely OPEN or CLOSED right now\n2. Typical hours for this type of business\n3. A clear note that these are estimates\n\nUse plain text, no markdown. Be concise.';
+
+          userMsg = location
+            ? 'Is "' + name + '" in ' + location + ' open right now?'
+            : 'Is "' + name + '" open right now?';
+        }
+
+        // Step 3: Call AI to format the response
+        btnText.textContent = 'Checking...';
         var response = await callAI(systemPrompt, userMsg);
 
         if (response) {
