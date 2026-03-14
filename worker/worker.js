@@ -160,7 +160,7 @@ async function callGemini(apiKey, systemPrompt, userMessage) {
           ? { parts: [{ text: systemPrompt }] }
           : undefined,
         contents:         [{ role: "user", parts: [{ text: userMessage }] }],
-        generationConfig: { maxOutputTokens: 1024 },
+        generationConfig: { maxOutputTokens: 2048 },
       }),
     }
   );
