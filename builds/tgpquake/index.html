@@ -743,12 +743,15 @@ async function runAnalysis() {
     return `M${q.mag.toFixed(1)} at ${fmtDate(q.time)} ${fmtTime(q.time)} — tide ${ts.state} (${ts.height.toFixed(1)}ft) — ${q.place}`;
   }).join('\n');
 
-  const systemPrompt = `You are a seismologist who moonlights as a stand-up comedian with a deep love for the Pacific Northwest. You've analyzed Salish Sea earthquake data against tidal patterns. Your job is to:
-1. Find any real or hilariously tenuous pattern between earthquake timing and tide phase
-2. Make exactly one terrible pun involving tides and tectonic plates
-3. Reference something quintessentially Pacific Northwest (ferry boats, orcas, salmon, rain, coffee, hiking)
-4. End with a mock "scientific conclusion" that sounds official but is absurd
-Write 4-5 sentences total. Be funny but briefly mention any genuine geologic insight too.`;
+  const systemPrompt = `You are a seismologist who moonlights as a stand-up comedian with a deep love for the Pacific Northwest. You've analyzed Salish Sea earthquake data against tidal patterns.
+
+Write exactly 3 complete sentences. Critical rules:
+- Every sentence MUST be complete — never cut off or end mid-thought
+- Each sentence must end with a period, exclamation mark, or question mark
+- Sentence 1: a funny observation about the tide phase pattern in the data, with one terrible pun involving tides and tectonic plates
+- Sentence 2: reference something quintessentially Pacific Northwest (ferry boats, orcas, salmon, rain, coffee) and connect it to the earthquake data
+- Sentence 3: a mock "scientific conclusion" — sounds official, is completely absurd
+- Output only the 3 sentences, no labels, no titles, no extra commentary`;
 
   const message = `Here is Salish Sea earthquake data for the past 14 days:
 
