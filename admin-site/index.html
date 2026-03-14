@@ -400,7 +400,10 @@
       <div class="panel" id="panel-builds">
         <div class="page-hd">
           <div><div class="page-title">Builds</div><div class="page-sub">Apps in progress — build in Cowork, then publish to the client's repo</div></div>
-          <button class="btn btn-ghost btn-sm" onclick="loadBuilds()">↻ Refresh</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="loadBuilds()">↻ Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="openCreateAppModal()">🛠️ New App</button>
+          </div>
         </div>
         <div id="buildsNoGH" style="display:none;margin-bottom:16px;">
           <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--text-secondary);">
@@ -484,6 +487,69 @@
   </div>
 </div>
 
+<!-- Create App Modal -->
+<div class="modal-backdrop" id="createAppModal" onclick="closeModal('createAppModal',event)">
+  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto;">
+    <button class="modal-close" onclick="closeModal('createAppModal')">✕</button>
+    <div class="modal-title">🛠️ New App Build</div>
+    <div class="modal-sub">Scaffolds the build folder in GitHub and generates the Cowork prompt to paste into a new session.</div>
+
+    <!-- Step 1: form -->
+    <div id="caForm" style="display:flex;flex-direction:column;gap:14px;margin-top:16px;">
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Customer</label>
+        <select class="modal-input" id="caCustomer" onchange="populateApiTypes()" style="cursor:pointer;">
+          <option value="">— select customer —</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <div style="flex:3;">
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">App Title</label>
+          <input class="modal-input" id="caTitle" type="text" placeholder="e.g. Daily Menu Writer" autocomplete="off" oninput="autoSlug()"/>
+        </div>
+        <div style="flex:2;">
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Slug <span style="font-weight:400">(URL key)</span></label>
+          <input class="modal-input" id="caSlug" type="text" placeholder="e.g. dailymenu" autocomplete="off" style="font-family:monospace;"/>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Short Description <span style="font-weight:400">(subtitle shown in header &amp; portal)</span></label>
+        <input class="modal-input" id="caDesc" type="text" placeholder="e.g. AI-powered daily specials in seconds" autocomplete="off"/>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">App Concept <span style="font-weight:400">(what does it do? plain English — goes into the Cowork prompt)</span></label>
+        <textarea class="modal-input" id="caConcept" rows="4" placeholder="e.g. User types in today's ingredients. AI writes a short daily specials menu in the restaurant's voice. Output can be copied to clipboard." style="resize:vertical;font-size:13px;line-height:1.5;"></textarea>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">AI Model</label>
+        <select class="modal-input" id="caApiType" style="cursor:pointer;"></select>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Theme Color</label>
+        <div id="caColorSwatches" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;"></div>
+        <input type="hidden" id="caColorVal"  value="#4f46e5"/>
+        <input type="hidden" id="caColorDark" value="#3730a3"/>
+        <input type="hidden" id="caColorName" value="Indigo"/>
+      </div>
+      <div id="caStatus" style="min-height:18px;font-size:12px;color:var(--text-dim);"></div>
+    </div>
+
+    <!-- Step 2: progress + prompt -->
+    <div id="caProgress" style="display:none;margin-top:16px;">
+      <div class="pub-log" id="caLog"></div>
+      <div id="caPromptWrap" style="display:none;margin-top:16px;">
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">Cowork Prompt — copy and paste into a new Cowork session:</label>
+        <textarea id="caPromptText" readonly style="width:100%;height:180px;padding:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);font-family:monospace;font-size:11px;line-height:1.5;resize:vertical;outline:none;"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions" id="caActions">
+      <button class="btn btn-ghost" onclick="closeModal('createAppModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createApp()">Create Build →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Add Customer Modal -->
 <div class="modal-backdrop" id="addCustModal" onclick="closeModal('addCustModal',event)">
   <div class="modal" style="max-width:480px;">
@@ -531,6 +597,16 @@
   const BASE_DOMAIN = 'appsforhire.app';
   const tierHosting = { starter:15, custom:20, pro:29 };
   const tierColors  = { starter:'badge-starter', custom:'badge-custom', pro:'badge-pro' };
+  const BUILD_COLORS = [
+    { color:'#4f46e5', dark:'#3730a3', name:'Indigo' },
+    { color:'#0ea5e9', dark:'#0284c7', name:'Sky Blue' },
+    { color:'#0d9488', dark:'#0f766e', name:'Teal' },
+    { color:'#16a34a', dark:'#15803d', name:'Green' },
+    { color:'#7c3aed', dark:'#6d28d9', name:'Violet' },
+    { color:'#e11d48', dark:'#be123c', name:'Rose' },
+    { color:'#d97706', dark:'#b45309', name:'Amber' },
+    { color:'#0f172a', dark:'#1e293b', name:'Slate/Dark' },
+  ];
 
   let ghToken     = null;
   let adminSecret = null;  // ADMIN_SECRET for Worker /admin/cf-proxy calls
@@ -1076,6 +1152,301 @@
         <div><div class="msg-option-title">${m.title}</div><div class="msg-option-desc">${m.desc}</div></div>
       </a>`).join('');
     document.getElementById('msgModal').classList.add('open');
+  }
+
+  // ── Create App (new build scaffold) ──
+  function autoSlug() {
+    const t = document.getElementById('caTitle').value;
+    document.getElementById('caSlug').value = t.toLowerCase().replace(/[^a-z0-9]/g,'');
+  }
+
+  function populateApiTypes() {
+    const idx  = document.getElementById('caCustomer').value;
+    const cust = idx !== '' ? customers[parseInt(idx)] : null;
+    const tier = cust?.tier || 'starter';
+    const sel  = document.getElementById('caApiType');
+    sel.innerHTML = tier === 'starter'
+      ? `<option value="starter-gemini">Gemini only (Robert's shared key, rate-limited)</option>
+         <option value="starter-claude">Claude only (Robert's shared key, rate-limited)</option>`
+      : `<option value="custom-claude">Claude only (client's own key, no rate limit)</option>
+         <option value="custom-gemini">Gemini only (client's own key, no rate limit)</option>
+         <option value="custom-both">Both Claude + Gemini (client's own keys)</option>`;
+  }
+
+  function updateColorSelection(color, dark, name, el) {
+    document.getElementById('caColorVal').value  = color;
+    document.getElementById('caColorDark').value = dark;
+    document.getElementById('caColorName').value = name;
+    document.querySelectorAll('#caColorSwatches .cs').forEach(s => {
+      s.style.outline = s === el ? '3px solid white' : 'none';
+      s.style.outlineOffset = '2px';
+    });
+  }
+
+  function openCreateAppModal() {
+    if (!ghToken) { toast('Connect GitHub first'); return; }
+    const sel = document.getElementById('caCustomer');
+    sel.innerHTML = '<option value="">— select customer —</option>' +
+      customers.map((c,i)=>`<option value="${i}">${c.client_name} (${c.tier})</option>`).join('');
+    document.getElementById('caTitle').value   = '';
+    document.getElementById('caSlug').value    = '';
+    document.getElementById('caDesc').value    = '';
+    document.getElementById('caConcept').value = '';
+    document.getElementById('caStatus').textContent = '';
+    document.getElementById('caForm').style.display     = '';
+    document.getElementById('caProgress').style.display = 'none';
+    document.getElementById('caActions').innerHTML =
+      '<button class="btn btn-ghost" onclick="closeModal(\'createAppModal\')">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="createApp()">Create Build →</button>';
+    const sw = document.getElementById('caColorSwatches');
+    sw.innerHTML = BUILD_COLORS.map((c,i)=>
+      `<div class="cs" title="${c.name}"
+        onclick="updateColorSelection('${c.color}','${c.dark}','${c.name}',this)"
+        style="width:28px;height:28px;border-radius:6px;background:${c.color};cursor:pointer;flex-shrink:0;
+               ${i===0?'outline:3px solid white;outline-offset:2px;':''}"></div>`
+    ).join('');
+    document.getElementById('caColorVal').value  = BUILD_COLORS[0].color;
+    document.getElementById('caColorDark').value = BUILD_COLORS[0].dark;
+    document.getElementById('caColorName').value = BUILD_COLORS[0].name;
+    populateApiTypes();
+    document.getElementById('createAppModal').classList.add('open');
+    setTimeout(()=>document.getElementById('caCustomer').focus(), 80);
+  }
+
+  function buildAIInstructions(info) {
+    const WU    = 'https://worker.appsforhire.app/ai';
+    const model = info.api_type.includes('gemini') ? 'gemini' : 'claude';
+    const mName = info.api_type.includes('gemini') ? 'Gemini' : 'Claude';
+    if (info.api_type === 'custom-both') {
+      return `\n### AI Calls \u2014 Both Models Available\n\nThe worker will use the client\u2019s own Claude AND Gemini keys (no rate limit).\nUse \`Promise.all()\` for parallel calls:\n\n\`\`\`javascript\nconst WORKER_URL = '${WU}';\n\nasync function callAI(model, system, userMessage) {\n  const res  = await fetch(WORKER_URL, {\n    method: 'POST', headers: {'Content-Type':'application/json'},\n    body: JSON.stringify({ model, system, message: userMessage }),\n  });\n  const data = await res.json();\n  if (!res.ok) throw new Error(data.error || 'AI error');\n  return data.response;\n}\nasync function callBoth(system, userMessage) {\n  const [claude, gemini] = await Promise.all([\n    callAI('claude', system, userMessage),\n    callAI('gemini', system, userMessage),\n  ]);\n  return { claude, gemini };\n}\n\`\`\`\n\nYou can show both responses side-by-side or let the user choose a model.\n\n---\n`;
+    }
+    const limitNote = info.api_type.startsWith('starter')
+      ? `> **Rate limit**: Starter app on Robert\u2019s shared key. Worker enforces 10 AI calls/IP/day.\n> Include a **demo overlay** that triggers on 429, encouraging contact with AppsForHire.\n\n`
+      : '';
+    return `\n### AI Calls \u2014 ${mName} Only\n\nWorker URL: \`${WU}\`  Model param: \`"${model}"\`\n\n${limitNote}Exact fetch pattern:\n\n\`\`\`javascript\nconst WORKER_URL = '${WU}';\n\nasync function callAI(system, userMessage) {\n  const res  = await fetch(WORKER_URL, {\n    method: 'POST', headers: {'Content-Type':'application/json'},\n    body: JSON.stringify({ model: '${model}', system, message: userMessage }),\n  });\n  const data = await res.json();\n  if (res.status === 429) { document.getElementById('demoOverlay').classList.add('show'); return null; }\n  if (!res.ok) throw new Error(data.error || 'AI error');\n  return data.response;\n}\n\`\`\`\n\nThe worker returns \`{ "response": "...", "calls_used": N, "remaining": N }\`.\nShow a soft overlay when \`remaining\` reaches 1\u20132.\n\n---\n`;
+  }
+
+  function buildCoworkPrompt(info) {
+    const isStarter = info.tier === 'starter';
+    const aiBlock   = buildAIInstructions(info);
+    const apiLabels = {
+      'starter-claude': "Claude only (Robert's shared key, rate-limited)",
+      'starter-gemini': "Gemini only (Robert's shared key, rate-limited)",
+      'custom-claude':  "Claude only (client's own key, no rate limit)",
+      'custom-gemini':  "Gemini only (client's own key, no rate limit)",
+      'custom-both':    "Both Claude + Gemini (client's own keys, can compare)",
+    };
+    return (
+`# AppsForHire \u2014 Build: ${info.app_title}
+**Client:** ${info.client_name}
+**Slug:** \`${info.slug}\`
+**Live URL:** https://${info.slug}.appsforhire.app
+**Tier:** ${info.tier.charAt(0).toUpperCase()+info.tier.slice(1)}
+**API type:** ${apiLabels[info.api_type]||info.api_type}
+
+---
+
+## Your Task
+
+Build a polished, mobile-friendly single-page web app and save it to:
+
+\`\`\`
+/app_for_hire/builds/${info.slug}/index.html
+\`\`\`
+
+The scaffold files are already there (template HTML, manifest.json, sw.js, icons).
+**Replace \`index.html\` completely** \u2014 don't just edit the scaffold.
+
+---
+
+## What the App Does
+
+${info.app_concept}
+
+---
+
+## Brand & Design System
+
+- **Business name:** ${info.client_name}
+- **App title:** ${info.app_title}
+- **Subtitle / description:** ${info.app_desc}
+- **Brand accent color:** \`${info.theme_color}\` (${info.color_name}) \u2014 use as \`--accent\`
+- **Brand accent dark:** \`${info.theme_dark}\` \u2014 use as \`--accent-dark\`
+
+All AppsForHire apps share a **unified dark design system**. Use exactly these CSS variables:
+
+\`\`\`css
+:root {
+  --bg:         #0f1117;
+  --surface:    #1a1d27;
+  --surface2:   #222536;
+  --border:     #2e3147;
+  --accent:     ${info.theme_color};
+  --accent-dark:${info.theme_dark};
+  --accent2:    #22d3ee;
+  --green:      #34d399;
+  --amber:      #fbbf24;
+  --red:        #f87171;
+  --text:       #e2e8f0;
+  --muted:      #94a3b8;
+  --dim:        #64748b;
+  --radius:     12px;
+}
+\`\`\`
+
+**Design rules:** Dark background (\`--bg\`) with cards on \`--surface\`, inputs on \`--surface2\`. All borders: \`1px solid var(--border)\`. Buttons: \`background: var(--accent)\`, white text. Mobile-first; \`max-width: 860px\` centered layout.
+
+---
+
+## Architecture & Constraints
+
+- **Single file:** Everything in \`index.html\`. No separate CSS or JS files.
+- **No frameworks:** Vanilla HTML, CSS, JavaScript only. No npm, no build step.
+- **PWA-ready:** \`manifest.json\` and \`sw.js\` are already there \u2014 register the service worker (\`navigator.serviceWorker.register('sw.js')\`).
+- **No localStorage for auth/data** \u2014 just for run counters if needed.
+
+---
+${aiBlock}
+## Required UI Elements
+
+1. **Header** \u2014 sticky, brand color background, shows \`${info.client_name}\` + \`${info.app_title}\`. Right side must have two pill elements: a **\`\u2190 My Apps\` back link** (\`<a href="/portal/" class="back-link">\u2190 My Apps</a>\`, \`background:rgba(0,0,0,.2)\`, \`border:1px solid rgba(255,255,255,.2)\`, \`border-radius:100px\`) and a **"Secure App" badge** (\`background:rgba(255,255,255,.18)\`, \`border:1px solid rgba(255,255,255,.3)\`). Wrap both in \`<div class="header-right" style="display:flex;align-items:center;gap:.6rem">\`.
+2. **Input form** \u2014 clean card, labeled fields, submit button in brand color.
+3. **AI response area** \u2014 card that appears after AI responds, with copy-to-clipboard button.
+4. **Loading state** \u2014 spinner or animated dots while waiting for AI.
+5. **Error state** \u2014 friendly message if the call fails.${isStarter ? '\n6. **Demo overlay** \u2014 full-screen modal on 429, encouraging user to contact AppsForHire.' : ''}
+
+---
+
+## Code Quality
+
+- Semantic HTML (\`<main>\`, \`<section>\`, \`<label>\`, etc.)
+- All form fields must have matching \`<label>\` elements
+- Button disabled while loading (prevent double-submit)
+- Handle empty/whitespace input \u2014 don't call AI if nothing typed
+- CSS variables for all colors \u2014 no hardcoded hex in rules
+
+---
+
+## What to Deliver
+
+Write the complete \`index.html\` to:
+\`\`\`
+/app_for_hire/builds/${info.slug}/index.html
+\`\`\`
+
+Then confirm you've written it and show me the first 30 lines so I can verify.`).trim();
+  }
+
+  async function createApp() {
+    const idx      = document.getElementById('caCustomer').value;
+    const cust     = idx !== '' ? customers[parseInt(idx)] : null;
+    const appTitle = document.getElementById('caTitle').value.trim();
+    const slug     = document.getElementById('caSlug').value.trim().toLowerCase();
+    const appDesc  = document.getElementById('caDesc').value.trim();
+    const concept  = document.getElementById('caConcept').value.trim();
+    const apiType  = document.getElementById('caApiType').value;
+    const color    = document.getElementById('caColorVal').value  || '#4f46e5';
+    const colorDk  = document.getElementById('caColorDark').value || '#3730a3';
+    const colorNm  = document.getElementById('caColorName').value || 'Custom';
+    const st       = document.getElementById('caStatus');
+    if (!cust)     { st.textContent = '\u26a0 Select a customer.'; return; }
+    if (!appTitle) { st.textContent = '\u26a0 App title is required.'; return; }
+    if (!slug)     { st.textContent = '\u26a0 Slug is required.'; return; }
+    if (!concept)  { st.textContent = '\u26a0 App concept is required.'; return; }
+    if (builds.find(b=>b.slug===slug)) { st.textContent = `\u26a0 Slug "${slug}" already exists.`; return; }
+
+    const info = {
+      client_name: cust.client_name, slug, app_title: appTitle,
+      app_desc: appDesc, app_concept: concept,
+      tier: cust.tier, api_type: apiType,
+      theme_color: color, theme_dark: colorDk, color_name: colorNm,
+    };
+
+    document.getElementById('caForm').style.display     = 'none';
+    document.getElementById('caProgress').style.display = '';
+    document.getElementById('caActions').innerHTML      = '';
+    const log    = document.getElementById('caLog');
+    const addLog = (msg, cls='') => { log.innerHTML += `<div class="${cls}">${msg}</div>`; };
+
+    try {
+      // Copy template text files
+      addLog('\u23f3 Copying template files\u2026', 'run');
+      const textFiles = ['index.html','manifest.json','sw.js','portal/index.html'];
+      for (const f of textFiles) {
+        try {
+          const src  = await ghGet(MAIN_REPO, `template/${f}`);
+          const text = decodeURIComponent(escape(atob(src.content.replace(/\n/g,''))));
+          let sha = null;
+          try { sha = (await ghGet(MAIN_REPO, `builds/${slug}/${f}`)).sha; } catch(e){}
+          await ghPut(MAIN_REPO, `builds/${slug}/${f}`, text, `Scaffold ${slug}: ${f}`, sha);
+        } catch(e) { addLog(`\u26a0 ${f}: ${e.message}`, ''); }
+      }
+      addLog('\u2713 Template files copied', 'ok');
+
+      // Copy icons (binary)
+      addLog('\u23f3 Copying icons\u2026', 'run');
+      for (const ip of ['icons/icon-192.png','icons/icon-512.png']) {
+        try {
+          const src = await ghGet(MAIN_REPO, `template/${ip}`);
+          let sha = null;
+          try { sha = (await ghGet(MAIN_REPO, `builds/${slug}/${ip}`)).sha; } catch(e){}
+          await ghPutBin(MAIN_REPO, `builds/${slug}/${ip}`, src.content.replace(/\n/g,''),
+            `Scaffold ${slug}: ${ip}`, sha);
+        } catch(e) { addLog(`\u26a0 ${ip}: ${e.message}`, ''); }
+      }
+      addLog('\u2713 Icons copied', 'ok');
+
+      // Generate + write portal customer-config.js
+      addLog('\u23f3 Writing portal config\u2026', 'run');
+      const today     = new Date().toISOString().split('T')[0];
+      const monthYear = new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
+      const esc = s => (s||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+      const configJs = `// AppsForHire \u2014 Customer Portal Config\nconst CUSTOMER = {\n  name:          "${esc(info.client_name)}",\n  tier:          "${info.tier}",\n  since:         "${monthYear}",\n  support_email: "info@ghostkitchen.shop",\n  stripe_portal: "https://billing.stripe.com/p/login/YOUR_PORTAL_LINK",\n  apps: [\n    {\n      name:        "${esc(info.app_title)}",\n      description: "${esc(info.app_desc)}",\n      url:         "https://${slug}.appsforhire.app",\n      icon:        "\uD83D\uDCF1",\n      status:      "active",\n      launched:    "${monthYear}",\n    },\n  ]\n};\n`;
+      let cfgSha = null;
+      try { cfgSha = (await ghGet(MAIN_REPO, `builds/${slug}/portal/customer-config.js`)).sha; } catch(e){}
+      await ghPut(MAIN_REPO, `builds/${slug}/portal/customer-config.js`,
+        configJs, `Scaffold ${slug}: portal config`, cfgSha);
+      addLog('\u2713 Portal config written', 'ok');
+
+      // Generate + write COWORK_PROMPT.md
+      addLog('\u23f3 Generating Cowork prompt\u2026', 'run');
+      const prompt = buildCoworkPrompt(info);
+      let pmSha = null;
+      try { pmSha = (await ghGet(MAIN_REPO, `builds/${slug}/COWORK_PROMPT.md`)).sha; } catch(e){}
+      await ghPut(MAIN_REPO, `builds/${slug}/COWORK_PROMPT.md`,
+        prompt, `Scaffold ${slug}: Cowork prompt`, pmSha);
+      addLog('\u2713 COWORK_PROMPT.md written', 'ok');
+
+      // Register in builds.json
+      addLog('\u23f3 Registering in builds.json\u2026', 'run');
+      const bj = await ghGet(MAIN_REPO, 'builds/builds.json');
+      let bjData = JSON.parse(atob(bj.content.replace(/\n/g,'')));
+      bjData = bjData.filter(b=>b.slug!==slug);
+      bjData.push({
+        slug, client_name:info.client_name,
+        app_title:info.app_title, app_desc:info.app_desc,
+        tier:info.tier, api_type:info.api_type,
+        theme_color:info.theme_color, theme_dark:info.theme_dark,
+        created:today, status:'in_progress',
+      });
+      builds = bjData;
+      await ghPut(MAIN_REPO, 'builds/builds.json', JSON.stringify(bjData,null,2),
+        `Add build: ${info.client_name} \u2014 ${info.app_title}`, bj.sha);
+      addLog('\u2713 Registered in builds.json', 'ok');
+
+      addLog('', ''); addLog('\uD83D\uDEE0\uFE0F Build scaffolded! Copy the prompt below and paste into a new Cowork session.', 'ok');
+      document.getElementById('caPromptWrap').style.display = '';
+      document.getElementById('caPromptText').value = prompt;
+      document.getElementById('caActions').innerHTML =
+        `<button class="btn btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('caPromptText').value).then(()=>toast('Prompt copied \u2713'))">Copy Prompt</button>` +
+        `<button class="btn btn-primary" onclick="closeModal('createAppModal');loadBuilds();">Done \u2713</button>`;
+      loadBuilds();
+
+    } catch(err) {
+      addLog('\u2715 Error: '+err.message, 'err');
+      document.getElementById('caActions').innerHTML =
+        '<button class="btn btn-ghost" onclick="closeModal(\'createAppModal\')">Close</button>';
+    }
   }
 
   // ── Portal config generator ──
