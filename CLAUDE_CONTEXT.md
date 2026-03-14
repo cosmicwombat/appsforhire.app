@@ -157,7 +157,7 @@ Legacy ops `access-app-create` and `access-policy-create` still work but `access
 ## New App Workflow
 1. `python3 scripts/new_build.py` → creates `builds/{slug}/` + prints Cowork prompt
 2. Open new Cowork session → paste prompt → Claude builds app
-3. Review app, commit, push: `git add builds/ && git commit && git push`
+3. Review app, commit, push (use safe git block — see Operational Rules)
 4. Admin portal → connect GitHub + enter Admin Secret → Builds tab → Mark Ready
 5. Customers tab → Publish → enter client email
 6. Portal auto-handles: repo create, file push, Pages enable, DNS, CF Access (6h session)
@@ -219,6 +219,20 @@ Legacy ops `access-app-create` and `access-policy-create` still work but `access
 **Always give Robert the commands to run — never run them silently.**
 When any step produces a terminal command (git push, wrangler deploy, python scripts, etc.),
 output the exact command for Robert to run. Never skip it or assume it's been done.
+
+**Git: Never give a bare `git push`.** The remote is frequently ahead from other
+Cowork sessions. Always provide a single copy-paste block that handles dirty
+worktrees and remote-ahead:
+```bash
+git stash --include-untracked \
+  && git pull --rebase \
+  && git stash pop; \
+git add {files} \
+  && git commit -m '{message}' \
+  && git push
+```
+If Robert reports a conflict: tell him to resolve the files, then
+`git add . && git commit -m 'Resolve conflict' && git push`.
 
 ---
 
