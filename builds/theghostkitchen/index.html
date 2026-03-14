@@ -1,64 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- CUSTOMIZE: Update title and description for each client -->
-  <title>{{CLIENT_NAME}} — {{APP_TITLE}}</title>
-  <meta name="description" content="{{APP_DESCRIPTION}}" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="{{THEME_COLOR}}" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Ghost Kitchen — The Quake Wisperer</title>
+  <meta name="description" content="Quakes, Tides and Temps oh my!"/>
+  <meta name="theme-color" content="#0f172a"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <!-- Leaflet.js — open source interactive maps, no API key needed -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* CUSTOMIZE: Brand colors for this client */
-      --primary:   {{THEME_COLOR}};
-      --primary-dark: {{THEME_COLOR_DARK}};
-      --bg:        #f8fafc;
-      --white:     #ffffff;
-      --gray100:   #f1f5f9;
-      --gray200:   #e2e8f0;
-      --gray500:   #64748b;
-      --gray700:   #334155;
-      --gray900:   #0f172a;
-      --radius:    12px;
-      --shadow:    0 4px 16px rgba(0,0,0,.08);
+      --bg:         #0f1117;
+      --surface:    #1a1d27;
+      --surface2:   #222536;
+      --border:     #2e3147;
+      --text:       #e2e8f0;
+      --muted:      #94a3b8;
+      --dim:        #64748b;
+      --accent:     #0f172a;
+      --accent-dark:#1e293b;
+      --accent2:    #22d3ee;
+      --green:      #34d399;
+      --amber:      #fbbf24;
+      --red:        #f87171;
+      --tide:       #22d3ee;
+      --tide-lo:    rgba(34,211,238,0.12);
+      --temp:       #f97316;
+      --temp-lo:    rgba(249,115,22,0.12);
+      --quake:      #a78bfa;
+      --quake-lo:   rgba(167,139,250,0.15);
+      --radius:     12px;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    html, body {
       background: var(--bg);
-      color: var(--gray700);
-      min-height: 100vh;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
     }
 
     /* ── Header ── */
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 1rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    .app-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 20px;
+      background: var(--accent);
+      border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10;
     }
-    .header-logo {
-      font-size: 1.15rem; font-weight: 800; letter-spacing: -.02em;
+    .header-left h1 {
+      font-size: 1.05rem; font-weight: 800; color: #fff;
+      letter-spacing: -.02em; line-height: 1.2;
     }
-    .header-sub {
-      font-size: .75rem; opacity: .75; margin-top: .1rem;
+    .header-left p {
+      font-size: .7rem; color: rgba(255,255,255,.65); margin-top: 1px;
     }
     .header-right {
       display: flex; align-items: center; gap: .6rem;
-    }
-    .header-badge {
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 100px; padding: .3rem .8rem;
-      font-size: .75rem; font-weight: 600;
     }
     .back-link {
       display: inline-flex; align-items: center; gap: .3rem;
@@ -69,128 +72,208 @@
       text-decoration: none; transition: background .15s;
     }
     .back-link:hover { background: rgba(0,0,0,.35); }
-
-    /* ── Main Layout ── */
-    main {
-      max-width: 860px; margin: 0 auto;
-      padding: 2rem 1.25rem;
+    .header-badge {
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 100px; padding: .3rem .8rem;
+      font-size: .75rem; font-weight: 600; color: white;
     }
 
-    /* ── Cards ── */
-    .card {
-      background: var(--white);
-      border: 1px solid var(--gray200);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      margin-bottom: 1.25rem;
-    }
-    .card-title {
-      font-size: 1rem; font-weight: 700; color: var(--gray900);
-      margin-bottom: 1rem; padding-bottom: .75rem;
-      border-bottom: 1px solid var(--gray200);
-      display: flex; align-items: center; gap: .5rem;
-    }
-    .card-title .icon { font-size: 1.1rem; }
+    /* ── Main ── */
+    .container { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
 
-    /* ── Grid ── */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    @media (max-width: 580px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    /* ── Hero ── */
+    .hero { text-align: center; padding: 24px 0 16px; }
+    .hero-icon {
+      font-size: 52px; display: block; margin-bottom: 8px;
+      animation: wobble 3s ease-in-out infinite;
+    }
+    @keyframes wobble {
+      0%, 100% { transform: rotate(-3deg); }
+      50%       { transform: rotate(3deg); }
+    }
+    .hero h2 { font-size: 24px; font-weight: 700; color: var(--text); }
+    .hero p  { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+      margin: 12px 0 16px;
+    }
+    .status-chip {
+      font-size: 11px; padding: 4px 10px; border-radius: 20px;
+      border: 1px solid var(--border); color: var(--muted);
+      background: var(--surface2);
+    }
+    .status-chip.ok   { border-color: rgba(34,211,238,.4); color: var(--tide); }
+    .status-chip.warn { border-color: rgba(251,191,36,.4); color: var(--amber); }
+    .status-chip.err  { border-color: rgba(248,113,113,.4); color: var(--red); }
+
+    /* ── Chart card ── */
+    .chart-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
+    }
+    .chart-title {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+    .legend-dot  { width: 10px; height: 10px; border-radius: 50%; }
+    .legend-line { width: 20px; height: 2px; border-radius: 1px; }
+    canvas { display: block; width: 100%; border-radius: 6px; cursor: crosshair; }
+
+    /* ── Tooltip ── */
+    #tooltip {
+      position: fixed; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--text);
+      pointer-events: none; opacity: 0; transition: opacity .15s;
+      max-width: 220px; z-index: 20; line-height: 1.5;
     }
 
-    /* ── Stat Tiles ── */
-    .stat-tile {
-      background: var(--gray100);
-      border-radius: 10px; padding: 1.1rem;
-      text-align: center;
+    /* ── Stats grid ── */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    @media (min-width: 600px) {
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
     }
-    .stat-tile .val {
-      font-size: 1.8rem; font-weight: 800; color: var(--primary);
-      line-height: 1.1; letter-spacing: -.03em;
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px;
     }
-    .stat-tile .lbl {
-      font-size: .78rem; color: var(--gray500); margin-top: .2rem; font-weight: 600;
+    .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .stat-value { font-size: 22px; font-weight: 700; color: var(--accent2); }
+    .stat-sub   { font-size: 11px; color: var(--dim); margin-top: 2px; }
+
+    /* ── Tide breakdown ── */
+    .tide-breakdown {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px; margin-bottom: 16px;
+    }
+    .tide-breakdown h3 { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .tide-bars { display: flex; flex-direction: column; gap: 6px; }
+    .tide-bar-row { display: flex; align-items: center; gap: 8px; }
+    .tide-bar-label { font-size: 12px; color: var(--muted); width: 60px; flex-shrink: 0; }
+    .tide-bar-track {
+      flex: 1; height: 8px; background: var(--surface2);
+      border-radius: 4px; overflow: hidden;
+    }
+    .tide-bar-fill { height: 100%; border-radius: 4px; background: var(--accent2); transition: width .6s; }
+    .tide-bar-count { font-size: 12px; color: var(--dim); width: 28px; text-align: right; flex-shrink: 0; }
+
+    /* ── Temp summary ── */
+    .temp-summary {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px; margin-bottom: 16px;
+    }
+    .temp-summary h3 { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .temp-stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .temp-stat { text-align: center; }
+    .temp-stat .val { font-size: 20px; font-weight: 700; color: var(--temp); }
+    .temp-stat .lbl { font-size: 11px; color: var(--dim); margin-top: 2px; }
+
+    /* ── Analyze button ── */
+    .analyze-btn {
+      width: 100%; padding: 14px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      margin-bottom: 16px; transition: opacity .2s;
+    }
+    .analyze-btn:hover:not(:disabled) { opacity: .85; }
+    .analyze-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── AI output ── */
+    .ai-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; display: none; margin-bottom: 16px;
+    }
+    .ai-card.visible { display: block; }
+    .ai-label {
+      font-size: 11px; color: var(--accent2); font-weight: 600;
+      text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .ai-text { font-size: 14px; line-height: 1.65; color: var(--text); white-space: pre-wrap; }
+    .ai-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .btn-sm {
+      flex: 1; padding: 8px; border-radius: 8px; font-size: 13px;
+      font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--muted); transition: color .2s, border-color .2s;
+    }
+    .btn-sm:hover { color: var(--text); border-color: var(--muted); }
+    .btn-sm.copied { color: var(--green); border-color: var(--green); }
+
+    /* ── Warning ── */
+    .warning-bar {
+      background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.3);
+      border-radius: 8px; padding: 10px 14px; font-size: 13px;
+      color: var(--amber); margin-bottom: 12px; display: none;
     }
 
-    /* ── Table ── */
-    .data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-    .data-table th {
-      background: var(--gray100); color: var(--gray700);
-      font-size: .75rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .05em; padding: .6rem .85rem; text-align: left;
-      border-bottom: 2px solid var(--gray200);
+    /* ── Loading ── */
+    .loading-state { text-align: center; padding: 40px 20px; }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid var(--border);
+      border-top-color: var(--accent2); border-radius: 50%;
+      animation: spin .8s linear infinite; margin: 0 auto 12px;
     }
-    .data-table td {
-      padding: .7rem .85rem;
-      border-bottom: 1px solid var(--gray200);
-      color: var(--gray700);
-    }
-    .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: var(--gray100); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-state p { font-size: 13px; color: var(--muted); }
 
-    /* ── Badges ── */
-    .badge {
-      display: inline-block; padding: .2rem .6rem; border-radius: 100px;
-      font-size: .72rem; font-weight: 700;
+    /* ── Error ── */
+    .error-state {
+      text-align: center; padding: 32px 20px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
     }
-    .badge-green  { background: #dcfce7; color: #15803d; }
-    .badge-yellow { background: #fef9c3; color: #a16207; }
-    .badge-red    { background: #fee2e2; color: #b91c1c; }
-    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .error-state p { font-size: 13px; color: var(--muted); margin-top: 8px; }
 
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex; align-items: center; gap: .4rem;
-      padding: .6rem 1.2rem; border-radius: 8px;
-      font-weight: 700; font-size: .88rem;
-      border: none; cursor: pointer; text-decoration: none;
-      transition: opacity .15s;
+    /* ── Map ── */
+    .map-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 16px;
     }
-    .btn:hover { opacity: .88; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
-    .btn-sm { padding: .35rem .8rem; font-size: .8rem; }
+    .map-card-title {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      padding: 12px 16px 0; display: flex; align-items: center; gap: 6px;
+    }
+    #quakeMap { height: 260px; width: 100%; }
+    .leaflet-tile { filter: brightness(0.75) saturate(0.6) hue-rotate(190deg); }
+    .leaflet-container { background: var(--bg); }
 
-    /* ── Form ── */
-    .form-group { margin-bottom: .9rem; }
-    label { display: block; font-size: .82rem; font-weight: 600; color: var(--gray700); margin-bottom: .3rem; }
-    input, select, textarea {
-      width: 100%; padding: .6rem .85rem;
-      border: 1.5px solid var(--gray200); border-radius: 8px;
-      font-size: .92rem; color: var(--gray900); background: white;
-      outline: none; font-family: inherit;
-      transition: border-color .2s;
+    /* ── Demo overlay ── */
+    #demoOverlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,17,23,0.95); z-index: 100;
+      flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 24px;
     }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-    textarea { resize: vertical; min-height: 90px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
-
-    /* ── Empty State ── */
-    .empty {
-      text-align: center; padding: 3rem 1rem;
-      color: var(--gray500); font-size: .9rem;
+    #demoOverlay.show { display: flex; }
+    #demoOverlay .ov-icon { font-size: 56px; margin-bottom: 12px; }
+    #demoOverlay h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    #demoOverlay p  { font-size: 14px; color: var(--muted); margin-bottom: 20px; max-width: 320px; }
+    #demoOverlay a  {
+      display: inline-block; padding: 12px 28px;
+      background: var(--accent2); color: var(--bg); text-decoration: none;
+      border-radius: 10px; font-weight: 600; font-size: 15px;
     }
-    .empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
 
     /* ── Footer ── */
     footer {
       text-align: center; padding: 2rem 1rem;
-      font-size: .78rem; color: var(--gray500);
-      border-top: 1px solid var(--gray200);
+      font-size: .78rem; color: var(--dim);
+      border-top: 1px solid var(--border);
       margin-top: 2rem;
     }
-    footer a { color: var(--primary); text-decoration: none; }
+    footer a { color: var(--accent2); text-decoration: none; }
   </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <div class="header-logo">{{CLIENT_NAME}}</div>
-    <div class="header-sub">{{APP_TITLE}}</div>
+<header class="app-header">
+  <div class="header-left">
+    <h1>The Ghost Kitchen</h1>
+    <p>The Quake Wisperer</p>
   </div>
   <div class="header-right">
     <a href="/portal/" class="back-link">← My Apps</a>
@@ -198,119 +281,759 @@
   </div>
 </header>
 
-<main>
+<main class="container">
 
-  <!-- CUSTOMIZE: Replace the sections below with the actual app content -->
+  <section class="hero">
+    <span class="hero-icon">🌋</span>
+    <h2>The Quake Wisperer</h2>
+    <p>Quakes, Tides and Temps oh my! · Friday Harbor, WA · 14 days</p>
+  </section>
 
-  <!-- Example: Stats row -->
-  <div class="grid-3" style="margin-bottom: 1.25rem;">
-    <div class="stat-tile">
-      <div class="val" id="stat1">—</div>
-      <div class="lbl">{{STAT_1_LABEL}}</div>
-    </div>
-    <div class="stat-tile">
-      <div class="val" id="stat2">—</div>
-      <div class="lbl">{{STAT_2_LABEL}}</div>
-    </div>
-    <div class="stat-tile">
-      <div class="val" id="stat3">—</div>
-      <div class="lbl">{{STAT_3_LABEL}}</div>
-    </div>
+  <div id="statusBar" class="status-bar">
+    <span class="status-chip" id="chipQuakes">⏳ Loading quakes…</span>
+    <span class="status-chip" id="chipTides">⏳ Loading tides…</span>
+    <span class="status-chip" id="chipTemps">⏳ Loading temps…</span>
   </div>
 
-  <!-- Example: Data table card -->
-  <div class="card">
-    <div class="card-title">
-      <span class="icon">📋</span> {{TABLE_TITLE}}
+  <div id="mainContent">
+    <div class="loading-state" id="loadingState">
+      <div class="spinner"></div>
+      <p>Fetching Salish Sea data…<br>asking the tectonics nicely</p>
     </div>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>{{COL_1}}</th>
-          <th>{{COL_2}}</th>
-          <th>{{COL_3}}</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr>
-          <td colspan="4">
-            <div class="empty">
-              <div class="empty-icon">📭</div>
-              No data yet — add your first entry below.
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Example: Input form card -->
-  <div class="card">
-    <div class="card-title">
-      <span class="icon">➕</span> Add {{ITEM_NAME}}
-    </div>
-    <form id="mainForm">
-      <div class="form-row">
-        <div class="form-group">
-          <label>{{FIELD_1_LABEL}}</label>
-          <input type="text" name="field1" placeholder="{{FIELD_1_PLACEHOLDER}}" required />
-        </div>
-        <div class="form-group">
-          <label>{{FIELD_2_LABEL}}</label>
-          <input type="text" name="field2" placeholder="{{FIELD_2_PLACEHOLDER}}" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <textarea name="notes" placeholder="Any additional notes..."></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Save {{ITEM_NAME}}</button>
-    </form>
   </div>
 
 </main>
 
+<div id="tooltip"></div>
+
+<!-- Demo overlay -->
+<div id="demoOverlay">
+  <div class="ov-icon">🚀</div>
+  <h2>Want your own app?</h2>
+  <p>You've hit the free demo limit. Get a custom app built for your community.</p>
+  <a href="https://appsforhire.app/#contact">Get Your Build →</a>
+</div>
+
 <footer>
-  <p>Hosted by <a href="https://appsforhire.app" target="_blank">AppsForHire</a> &nbsp;·&nbsp; Secured by Cloudflare</p>
+  <p>Hosted by <a href="https://appsforhire.app" target="_blank">AppsForHire</a> · Secured by Cloudflare</p>
 </footer>
 
 <script>
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+// ═══════════════════════════════════════════════════════
+// The Quake Wisperer — Earthquake × Tide × Temperature
+// USGS + NOAA + Open-Meteo APIs, Gemini analysis
+// ═══════════════════════════════════════════════════════
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+const WORKER = 'https://worker.appsforhire.app';
+const SALISH_LAT  = 48.5;
+const SALISH_LON  = -122.5;
+const NOAA_STATION = '9449880'; // Friday Harbor
+
+let quakeData = [];
+let tideData  = [];
+let tempData  = [];   // { time (ms), tempF }
+let callsLeft = null;
+let analyzing = false;
+
+// ── Date helpers ────────────────────────────────────────
+
+const now         = new Date();
+const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+function toNoaaDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
+}
+
+function toISODate(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function parseNoaaTime(t) {
+  const [datePart, timePart] = t.split(' ');
+  const [year, month, day]   = datePart.split('-').map(Number);
+  const [hour, min]          = timePart.split(':').map(Number);
+  const isDST = (month === 3 && day >= 8 && hour >= 2) || month > 3;
+  const offsetH = isDST ? 7 : 8;
+  return new Date(Date.UTC(year, month - 1, day, hour + offsetH, min));
+}
+
+function fmtDate(ms) {
+  return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function fmtTime(ms) {
+  return new Date(ms).toLocaleTimeString('en-US',
+    { hour: 'numeric', minute: '2-digit', hour12: true,
+      timeZone: 'America/Los_Angeles' });
+}
+
+// ── Data loading ─────────────────────────────────────────
+
+const USGS_URL = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson` +
+  `&latitude=${SALISH_LAT}&longitude=${SALISH_LON}&maxradiuskm=300` +
+  `&minmagnitude=1.5&orderby=time&limit=200` +
+  `&starttime=${toISODate(twoWeeksAgo)}&endtime=${toISODate(now)}`;
+
+const NOAA_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter` +
+  `?station=${NOAA_STATION}&product=predictions&datum=MLLW` +
+  `&time_zone=lst_ldt&interval=h&units=english&application=web_services&format=json` +
+  `&begin_date=${toNoaaDate(twoWeeksAgo)}&end_date=${toNoaaDate(now)}`;
+
+// Open-Meteo — free, no API key, CORS-friendly
+const TEMP_URL = `https://api.open-meteo.com/v1/forecast` +
+  `?latitude=${SALISH_LAT}&longitude=${SALISH_LON}` +
+  `&hourly=temperature_2m&temperature_unit=fahrenheit` +
+  `&start_date=${toISODate(twoWeeksAgo)}&end_date=${toISODate(now)}` +
+  `&timezone=America/Los_Angeles&past_days=14`;
+
+async function loadData() {
+  const [usgsRes, noaaRes, tempRes] = await Promise.all([
+    fetch(USGS_URL),
+    fetch(NOAA_URL),
+    fetch(TEMP_URL)
+  ]);
+  const [usgsJson, noaaJson, tempJson] = await Promise.all([
+    usgsRes.json(),
+    noaaRes.json(),
+    tempRes.json()
+  ]);
+
+  // Process earthquakes
+  quakeData = (usgsJson.features || []).map(f => ({
+    time:  f.properties.time,
+    mag:   f.properties.mag,
+    place: f.properties.place,
+    lon:   f.geometry?.coordinates?.[0] ?? null,
+    lat:   f.geometry?.coordinates?.[1] ?? null,
+    depth: f.geometry?.coordinates?.[2] ?? 0
+  }));
+
+  // Process tides
+  tideData = (noaaJson.predictions || []).map(p => ({
+    time:   parseNoaaTime(p.t).getTime(),
+    height: parseFloat(p.v),
+    label:  p.t
+  }));
+
+  // Process temperature
+  const hourlyTime = tempJson.hourly?.time || [];
+  const hourlyTemp = tempJson.hourly?.temperature_2m || [];
+  tempData = hourlyTime.map((t, i) => {
+    // Open-Meteo returns ISO strings in local timezone
+    const d = new Date(t);
+    return { time: d.getTime(), tempF: hourlyTemp[i] };
+  }).filter(t => t.tempF !== null && t.tempF !== undefined);
+
+  return { quakes: quakeData.length, tides: tideData.length, temps: tempData.length };
+}
+
+// ── Tide state at a given time ─────────────────────────────
+
+function getTideStateAt(utcMs) {
+  if (!tideData.length) return { height: 0, state: 'unknown' };
+  let best = 0, bestDiff = Infinity;
+  for (let i = 0; i < tideData.length; i++) {
+    const diff = Math.abs(tideData[i].time - utcMs);
+    if (diff < bestDiff) { bestDiff = diff; best = i; }
   }
+  const h  = tideData[best].height;
+  const hP = best > 0 ? tideData[best - 1].height : h;
+  const hN = best < tideData.length - 1 ? tideData[best + 1].height : h;
+  const vals  = tideData.map(t => t.height);
+  const mn    = Math.min(...vals);
+  const mx    = Math.max(...vals);
+  const range = mx - mn;
+  const pct   = (h - mn) / range;
 
-  // CUSTOMIZE: Replace with actual app logic
-  const form = document.getElementById('mainForm');
-  let items = JSON.parse(localStorage.getItem('app_data') || '[]');
+  let state;
+  if (pct > 0.8)      state = 'high';
+  else if (pct < 0.2) state = 'low';
+  else if (hN > hP)   state = 'rising';
+  else                 state = 'falling';
 
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(form));
-    data.id = Date.now();
-    data.date = new Date().toLocaleDateString();
-    items.unshift(data);
-    localStorage.setItem('app_data', JSON.stringify(items));
-    renderTable();
-    form.reset();
+  return { height: h, state };
+}
+
+// ── Temp at a given time ─────────────────────────────────
+
+function getTempAt(utcMs) {
+  if (!tempData.length) return null;
+  let best = 0, bestDiff = Infinity;
+  for (let i = 0; i < tempData.length; i++) {
+    const diff = Math.abs(tempData[i].time - utcMs);
+    if (diff < bestDiff) { bestDiff = diff; best = i; }
+  }
+  return tempData[best].tempF;
+}
+
+// ── Stats ──────────────────────────────────────────────────
+
+function calcStats() {
+  if (!quakeData.length) return null;
+  const maxMag   = Math.max(...quakeData.map(q => q.mag));
+  const bigQuake = quakeData.find(q => q.mag === maxMag);
+
+  const tally = { high: 0, rising: 0, falling: 0, low: 0 };
+  quakeData.forEach(q => {
+    const { state } = getTideStateAt(q.time);
+    if (tally[state] !== undefined) tally[state]++;
   });
 
-  function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    if (!items.length) return;
-    tbody.innerHTML = items.map(item => `
-      <tr>
-        <td>${item.field1 || '—'}</td>
-        <td>${item.field2 || '—'}</td>
-        <td>${item.notes || '—'}</td>
-        <td><span class="badge badge-green">Active</span></td>
-      </tr>
-    `).join('');
-    document.getElementById('stat1').textContent = items.length;
+  const byDay = {};
+  quakeData.forEach(q => {
+    const d = fmtDate(q.time);
+    byDay[d] = (byDay[d] || 0) + 1;
+  });
+  const busiestDay = Object.entries(byDay).sort((a,b) => b[1]-a[1])[0];
+
+  // Temp stats
+  const temps = tempData.map(t => t.tempF);
+  const tempMin = temps.length ? Math.min(...temps) : null;
+  const tempMax = temps.length ? Math.max(...temps) : null;
+  const tempAvg = temps.length ? temps.reduce((a,b) => a + b, 0) / temps.length : null;
+
+  return { maxMag, bigQuake, tally, busiestDay, total: quakeData.length,
+           tempMin, tempMax, tempAvg };
+}
+
+// ── Canvas chart (dual axis: tides + temps, quake dots) ────
+
+let chartQuakeDots = [];
+
+function drawChart(canvas) {
+  const dpr    = window.devicePixelRatio || 1;
+  const W      = canvas.clientWidth;
+  const H      = 300;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  const ctx    = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const PAD = { top: 14, right: 50, bottom: 36, left: 44 };
+  const cW  = W - PAD.left - PAD.right;
+  const cH  = H - PAD.top  - PAD.bottom;
+
+  const startMs = twoWeeksAgo.getTime();
+  const endMs   = now.getTime();
+  const span    = endMs - startMs;
+
+  // Tide range
+  const tVals  = tideData.map(t => t.height);
+  const tMin   = Math.min(...tVals);
+  const tMax   = Math.max(...tVals);
+  const tRange = tMax - tMin || 1;
+
+  // Temp range
+  const tmpVals  = tempData.map(t => t.tempF);
+  const tmpMin   = tmpVals.length ? Math.min(...tmpVals) - 2 : 30;
+  const tmpMax   = tmpVals.length ? Math.max(...tmpVals) + 2 : 60;
+  const tmpRange = tmpMax - tmpMin || 1;
+
+  function xOf(ms)     { return PAD.left + ((ms - startMs) / span) * cW; }
+  function yOfTide(h)  { return PAD.top + cH - ((h - tMin) / tRange) * cH; }
+  function yOfTemp(t)  { return PAD.top + cH - ((t - tmpMin) / tmpRange) * cH; }
+
+  // ── Grid ─
+  ctx.strokeStyle = 'rgba(46,49,71,0.7)';
+  ctx.lineWidth   = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = PAD.top + (cH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + cW, y); ctx.stroke();
   }
 
-  renderTable();
+  // ── Left Y-axis labels (tide) ─
+  ctx.fillStyle = 'rgba(34,211,238,0.6)';
+  ctx.font      = '10px system-ui';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const v = tMin + (tRange / 4) * (4 - i);
+    const y = PAD.top + (cH / 4) * i;
+    ctx.fillText(v.toFixed(1) + 'ft', PAD.left - 5, y + 3);
+  }
+
+  // ── Right Y-axis labels (temp) ─
+  ctx.fillStyle = 'rgba(249,115,22,0.6)';
+  ctx.textAlign = 'left';
+  for (let i = 0; i <= 4; i++) {
+    const v = tmpMin + (tmpRange / 4) * (4 - i);
+    const y = PAD.top + (cH / 4) * i;
+    ctx.fillText(Math.round(v) + '°F', PAD.left + cW + 5, y + 3);
+  }
+
+  // ── X-axis day labels ─
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(148,163,184,0.7)';
+  ctx.font      = '10px system-ui';
+  for (let d = 0; d <= 14; d += 2) {
+    const ms  = startMs + d * 24 * 60 * 60 * 1000;
+    const x   = xOf(ms);
+    const lbl = new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    ctx.fillText(lbl, x, H - 6);
+    ctx.strokeStyle = 'rgba(46,49,71,0.4)';
+    ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + cH); ctx.stroke();
+  }
+
+  // ── Temperature area + line ─
+  if (tempData.length > 1) {
+    const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + cH);
+    grad.addColorStop(0, 'rgba(249,115,22,0.18)');
+    grad.addColorStop(1, 'rgba(249,115,22,0.02)');
+
+    ctx.beginPath();
+    ctx.moveTo(xOf(tempData[0].time), yOfTemp(tempData[0].tempF));
+    for (let i = 1; i < tempData.length; i++) {
+      ctx.lineTo(xOf(tempData[i].time), yOfTemp(tempData[i].tempF));
+    }
+    ctx.lineTo(xOf(tempData[tempData.length-1].time), PAD.top + cH);
+    ctx.lineTo(xOf(tempData[0].time), PAD.top + cH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(xOf(tempData[0].time), yOfTemp(tempData[0].tempF));
+    for (let i = 1; i < tempData.length; i++) {
+      ctx.lineTo(xOf(tempData[i].time), yOfTemp(tempData[i].tempF));
+    }
+    ctx.strokeStyle = 'rgba(249,115,22,0.7)';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  }
+
+  // ── Tide area + line ─
+  if (tideData.length) {
+    const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + cH);
+    grad.addColorStop(0, 'rgba(34,211,238,0.25)');
+    grad.addColorStop(1, 'rgba(34,211,238,0.02)');
+
+    ctx.beginPath();
+    ctx.moveTo(xOf(tideData[0].time), yOfTide(tideData[0].height));
+    for (let i = 1; i < tideData.length; i++) {
+      ctx.lineTo(xOf(tideData[i].time), yOfTide(tideData[i].height));
+    }
+    ctx.lineTo(xOf(tideData[tideData.length-1].time), PAD.top + cH);
+    ctx.lineTo(xOf(tideData[0].time), PAD.top + cH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(xOf(tideData[0].time), yOfTide(tideData[0].height));
+    for (let i = 1; i < tideData.length; i++) {
+      ctx.lineTo(xOf(tideData[i].time), yOfTide(tideData[i].height));
+    }
+    ctx.strokeStyle = 'rgba(34,211,238,0.8)';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  }
+
+  // ── Earthquake dots ─
+  chartQuakeDots = [];
+  quakeData.forEach(q => {
+    const x  = xOf(q.time);
+    const ts = getTideStateAt(q.time);
+    const y  = yOfTide(ts.height);
+    const r  = Math.max(3.5, Math.min(10, (q.mag - 1.5) * 3 + 3));
+
+    if (q.mag >= 3.0) {
+      ctx.beginPath();
+      ctx.arc(x, y, r + 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(167,139,250,0.25)';
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle   = q.mag >= 3.0 ? '#c084fc' : 'rgba(167,139,250,0.85)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth   = 1;
+    ctx.fill();
+    ctx.stroke();
+
+    chartQuakeDots.push({ x, y, r, q });
+  });
+}
+
+// ── Hover tooltip ──────────────────────────────────────────
+
+const tooltip = document.getElementById('tooltip');
+
+function setupHover(canvas) {
+  function handleMove(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const mx   = clientX - rect.left;
+    const my   = clientY - rect.top;
+    const scale = canvas.clientWidth / rect.width;
+
+    let hit = null;
+    for (const dot of chartQuakeDots) {
+      const dist = Math.hypot((dot.x - mx) * scale, (dot.y - my) * scale);
+      if (dist <= dot.r * scale + 8) { hit = dot; break; }
+    }
+
+    if (hit) {
+      const ts = getTideStateAt(hit.q.time);
+      const tmp = getTempAt(hit.q.time);
+      const tmpStr = tmp !== null ? `<br>🌡 ${Math.round(tmp)}°F` : '';
+      tooltip.innerHTML =
+        `<strong>M${hit.q.mag.toFixed(1)}</strong><br>` +
+        `${hit.q.place}<br>` +
+        `🌊 ${ts.height.toFixed(1)}ft — tide ${ts.state}${tmpStr}<br>` +
+        `🕐 ${fmtDate(hit.q.time)} ${fmtTime(hit.q.time)}`;
+      tooltip.style.opacity = '1';
+      tooltip.style.left    = (clientX + 12) + 'px';
+      tooltip.style.top     = (clientY - 10) + 'px';
+    } else {
+      tooltip.style.opacity = '0';
+    }
+  }
+
+  canvas.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+  canvas.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    handleMove(t.clientX, t.clientY);
+  }, { passive: true });
+  canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
+  canvas.addEventListener('touchend', () => { tooltip.style.opacity = '0'; });
+}
+
+// ── Leaflet map ─────────────────────────────────────────────
+
+function buildMap() {
+  const mapEl = document.getElementById('quakeMap');
+  if (!mapEl || !window.L) return;
+
+  const map = L.map('quakeMap', {
+    center: [48.5, -122.5],
+    zoom: 8,
+    zoomControl: true,
+    attributionControl: false,
+    scrollWheelZoom: false,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 14,
+  }).addTo(map);
+
+  L.control.attribution({ prefix: false })
+    .addAttribution('© <a href="https://openstreetmap.org">OSM</a>')
+    .addTo(map);
+
+  quakeData.forEach(q => {
+    if (!q.lat || !q.lon) return;
+    const radius  = Math.max(4000, q.mag * 6000);
+    const color   = q.mag >= 3.0 ? '#c084fc' : '#a78bfa';
+    const opacity = q.mag >= 3.0 ? 0.85 : 0.65;
+
+    const circle = L.circle([q.lat, q.lon], {
+      radius,
+      color,
+      weight: 1.5,
+      fillColor: color,
+      fillOpacity: opacity * 0.4,
+    }).addTo(map);
+
+    const tmp = getTempAt(q.time);
+    const tmpStr = tmp !== null ? `<br>Temp: ${Math.round(tmp)}°F` : '';
+    circle.bindPopup(
+      `<strong>M${q.mag.toFixed(1)}</strong><br>` +
+      `${q.place}<br>` +
+      `${fmtDate(q.time)} ${fmtTime(q.time)}<br>` +
+      `Depth: ${q.depth.toFixed(1)} km${tmpStr}`
+    );
+  });
+
+  const tideIcon = L.divIcon({
+    html: '<div style="font-size:18px;filter:drop-shadow(0 1px 2px #000)">🌊</div>',
+    className: '', iconAnchor: [9, 18]
+  });
+  L.marker([48.5353, -123.0167], { icon: tideIcon })
+    .addTo(map)
+    .bindPopup('<strong>Friday Harbor</strong><br>NOAA tide station 9449880');
+}
+
+// ── Build UI ────────────────────────────────────────────────
+
+function buildUI(stats) {
+  const mc = document.getElementById('mainContent');
+
+  const maxTally = Math.max(...Object.values(stats.tally), 1);
+  const tideBarHTML = ['high','rising','falling','low'].map(state => {
+    const count = stats.tally[state] || 0;
+    const pct   = (count / maxTally * 100).toFixed(0);
+    const label = { high:'⬆ High', rising:'↗ Rising', falling:'↘ Falling', low:'⬇ Low' }[state];
+    return `
+      <div class="tide-bar-row">
+        <span class="tide-bar-label">${label}</span>
+        <div class="tide-bar-track">
+          <div class="tide-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <span class="tide-bar-count">${count}</span>
+      </div>`;
+  }).join('');
+
+  mc.innerHTML = `
+    <div class="map-card">
+      <div class="map-card-title">📍 Earthquake Locations — Salish Sea region</div>
+      <div id="quakeMap"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">
+        🌊 Tides · 🌡 Temps · 🌎 Quakes — ${fmtDate(twoWeeksAgo.getTime())} to ${fmtDate(now.getTime())}
+      </div>
+      <canvas id="chart"></canvas>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-line" style="background:var(--tide)"></div>
+          Tide (ft, left)
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="background:var(--temp)"></div>
+          Temp (°F, right)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--quake)"></div>
+          Earthquake
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Earthquakes</div>
+        <div class="stat-value">${stats.total}</div>
+        <div class="stat-sub">past 14 days · M1.5+</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Largest</div>
+        <div class="stat-value">M${stats.maxMag.toFixed(1)}</div>
+        <div class="stat-sub">${fmtDate(stats.bigQuake.time)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Temp Range</div>
+        <div class="stat-value" style="color:var(--temp)">${stats.tempMin !== null ? Math.round(stats.tempMin) + '–' + Math.round(stats.tempMax) : '—'}°</div>
+        <div class="stat-sub">avg ${stats.tempAvg !== null ? Math.round(stats.tempAvg) : '—'}°F</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Busiest Day</div>
+        <div class="stat-value">${stats.busiestDay ? stats.busiestDay[1] : 0}</div>
+        <div class="stat-sub">${stats.busiestDay ? stats.busiestDay[0] : '—'}</div>
+      </div>
+    </div>
+
+    <div class="tide-breakdown">
+      <h3>🌊 Tide phase when earthquakes struck</h3>
+      <div class="tide-bars">${tideBarHTML}</div>
+    </div>
+
+    <div class="temp-summary">
+      <h3>🌡 Temperature over the past 14 days</h3>
+      <div class="temp-stats-row">
+        <div class="temp-stat">
+          <div class="val">${stats.tempMin !== null ? Math.round(stats.tempMin) : '—'}°F</div>
+          <div class="lbl">Low</div>
+        </div>
+        <div class="temp-stat">
+          <div class="val">${stats.tempAvg !== null ? Math.round(stats.tempAvg) : '—'}°F</div>
+          <div class="lbl">Average</div>
+        </div>
+        <div class="temp-stat">
+          <div class="val">${stats.tempMax !== null ? Math.round(stats.tempMax) : '—'}°F</div>
+          <div class="lbl">High</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="warningBar" class="warning-bar"></div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">
+      ✦ Ask Gemini What's Going On
+    </button>
+
+    <div class="ai-card" id="aiCard">
+      <div class="ai-label">✦ Gemini's Seismic Weather Report</div>
+      <div class="ai-text" id="aiText"></div>
+      <div class="ai-actions">
+        <button class="btn-sm" id="copyBtn" onclick="copyResult()">📋 Copy</button>
+        <button class="btn-sm" onclick="runAnalysis()">↺ Again</button>
+      </div>
+    </div>
+  `;
+
+  buildMap();
+
+  const canvas = document.getElementById('chart');
+  requestAnimationFrame(() => {
+    drawChart(canvas);
+    setupHover(canvas);
+  });
+
+  window.addEventListener('resize', () => {
+    requestAnimationFrame(() => drawChart(canvas));
+  });
+}
+
+// ── Gemini analysis ─────────────────────────────────────────
+
+async function runAnalysis() {
+  if (analyzing) return;
+  analyzing = true;
+
+  const btn    = document.getElementById('analyzeBtn');
+  const aiCard = document.getElementById('aiCard');
+  const aiText = document.getElementById('aiText');
+  btn.disabled    = true;
+  btn.textContent = '✦ Reading the fault lines…';
+
+  const stats = calcStats();
+
+  const quakeSummary = quakeData.slice(0, 30).map(q => {
+    const ts  = getTideStateAt(q.time);
+    const tmp = getTempAt(q.time);
+    const tmpStr = tmp !== null ? `, ${Math.round(tmp)}°F` : '';
+    return `M${q.mag.toFixed(1)} at ${fmtDate(q.time)} ${fmtTime(q.time)} — tide ${ts.state} (${ts.height.toFixed(1)}ft${tmpStr}) — ${q.place}`;
+  }).join('\n');
+
+  const systemPrompt = `You are a seismologist and amateur meteorologist who moonlights as a stand-up comedian with a deep love for the Pacific Northwest. You've analyzed Salish Sea earthquake data against tidal patterns AND air temperature trends.
+
+Write exactly 4 complete sentences. Critical rules:
+- Every sentence MUST be complete — never cut off or end mid-thought
+- Each sentence must end with a period, exclamation mark, or question mark
+- Sentence 1: a funny observation about the tide phase pattern in the data, with one terrible pun involving tides and tectonic plates
+- Sentence 2: correlate the temperature trends with the seismic activity — are cold snaps making the earth shiver, or did a warm spell cause some plate sweating?
+- Sentence 3: reference something quintessentially Pacific Northwest (ferry boats, orcas, salmon, rain, coffee) and connect it to the data
+- Sentence 4: a mock "scientific conclusion" — sounds official, is completely absurd, and ties quakes, tides, AND temps together
+- Output only the 4 sentences, no labels, no titles, no extra commentary`;
+
+  const message = `Here is Salish Sea data for the past 14 days:
+
+Total earthquakes (M1.5+): ${stats.total}
+Largest: M${stats.maxMag.toFixed(1)} on ${fmtDate(stats.bigQuake.time)}
+Tide phase when earthquakes struck: High=${stats.tally.high}, Rising=${stats.tally.rising}, Falling=${stats.tally.falling}, Low=${stats.tally.low}
+Most active day: ${stats.busiestDay?.[0] || 'N/A'} (${stats.busiestDay?.[1] || 0} quakes)
+
+Temperature: Low ${stats.tempMin !== null ? Math.round(stats.tempMin) : '?'}°F, High ${stats.tempMax !== null ? Math.round(stats.tempMax) : '?'}°F, Avg ${stats.tempAvg !== null ? Math.round(stats.tempAvg) : '?'}°F
+
+Individual events (newest first):
+${quakeSummary}
+
+Analyze the timing patterns across quakes, tides, and temps — make it funny and deliver your verdict.`;
+
+  try {
+    const res = await fetch(`${WORKER}/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'gemini', message, system: systemPrompt })
+    });
+
+    if (res.status === 429) {
+      document.getElementById('demoOverlay').classList.add('show');
+      return;
+    }
+
+    const data = await res.json();
+    callsLeft = data.calls_remaining ?? data.remaining;
+    updateWarning(callsLeft);
+
+    aiText.textContent = data.response || data.text || 'No response received.';
+    aiCard.classList.add('visible');
+
+  } catch (e) {
+    aiText.textContent = 'Could not reach the AI. The tectonic plates are unavailable for comment — probably chilling.';
+    aiCard.classList.add('visible');
+  } finally {
+    analyzing = false;
+    btn.disabled    = false;
+    btn.textContent = '✦ Ask Gemini What\'s Going On';
+  }
+}
+
+function updateWarning(remaining) {
+  const bar = document.getElementById('warningBar');
+  if (!bar) return;
+  if (remaining !== null && remaining !== undefined && remaining <= 2) {
+    bar.style.display = 'block';
+    bar.textContent   = `⚠ ${remaining} demo analysis${remaining === 1 ? '' : 'es'} remaining.`;
+  }
+}
+
+function copyResult() {
+  const text = document.getElementById('aiText')?.textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── Status chips ────────────────────────────────────────────
+
+function setChip(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className   = `status-chip ${type}`;
+}
+
+// ── Main ────────────────────────────────────────────────────
+
+async function init() {
+  try {
+    const { quakes, tides, temps } = await loadData();
+
+    setChip('chipQuakes',
+      quakes ? `🌎 ${quakes} quakes found` : '🌎 No quakes — lucky!',
+      quakes ? 'ok' : 'warn');
+    setChip('chipTides',
+      tides ? `🌊 ${tides}h tide data` : '🌊 Tide data unavailable',
+      tides ? 'ok' : 'err');
+    setChip('chipTemps',
+      temps ? `🌡 ${temps}h temp data` : '🌡 Temp data unavailable',
+      temps ? 'ok' : 'warn');
+
+    if (!tides) {
+      document.getElementById('loadingState').outerHTML = `
+        <div class="error-state">
+          <div style="font-size:40px">🌊</div>
+          <p>NOAA tide data is temporarily unavailable.<br>Earthquakes loaded — tidal correlation unavailable.</p>
+        </div>`;
+      return;
+    }
+
+    const stats = calcStats();
+    if (!stats) {
+      document.getElementById('mainContent').innerHTML = `
+        <div class="error-state">
+          <div style="font-size:40px">🤫</div>
+          <p>No earthquakes detected in the Salish Sea this fortnight.<br>The plates are being suspiciously well-behaved.</p>
+        </div>`;
+      return;
+    }
+
+    buildUI(stats);
+
+  } catch (e) {
+    document.getElementById('loadingState').outerHTML = `
+      <div class="error-state">
+        <div style="font-size:40px">📡</div>
+        <p>Couldn't load data.<br><small style="color:var(--dim)">${e.message}</small></p>
+      </div>`;
+    setChip('chipQuakes', '⚠ Load failed', 'err');
+    setChip('chipTides',  '⚠ Load failed', 'err');
+    setChip('chipTemps',  '⚠ Load failed', 'err');
+  }
+}
+
+init();
 </script>
+
 </body>
 </html>
