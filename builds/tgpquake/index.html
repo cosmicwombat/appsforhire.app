@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Salish Shaker</title>
+  <meta name="theme-color" content="#d97706"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <!-- Leaflet.js — open source interactive maps, no API key needed -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --surface2: #222536;
+      --border:   #2e3147;
+      --text:     #e2e8f0;
+      --muted:    #94a3b8;
+      --dim:      #64748b;
+      --accent:   #d97706;
+      --accent2:  #22d3ee;
+      --amber:    #d97706;
+      --amber-lo: rgba(217,119,6,0.15);
+      --tide:     #22d3ee;
+      --tide-lo:  rgba(34,211,238,0.12);
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .back-link { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .back-link:hover { color: var(--text); }
+    .header-badge {
+      font-size: 11px; color: var(--muted);
+      background: var(--surface2); padding: 3px 8px;
+      border-radius: 20px; border: 1px solid var(--border);
+    }
+
+    /* ── Main ── */
+    .container { max-width: 480px; margin: 0 auto; padding: 20px 16px 60px; }
+
+    /* ── Hero ── */
+    .hero { text-align: center; padding: 24px 0 16px; }
+    .hero-icon {
+      font-size: 52px; display: block; margin-bottom: 8px;
+      animation: wobble 3s ease-in-out infinite;
+    }
+    @keyframes wobble {
+      0%, 100% { transform: rotate(-3deg); }
+      50%       { transform: rotate(3deg); }
+    }
+    .hero h1 { font-size: 24px; font-weight: 700; color: var(--text); }
+    .hero p  { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+      margin: 12px 0 16px;
+    }
+    .status-chip {
+      font-size: 11px; padding: 4px 10px; border-radius: 20px;
+      border: 1px solid var(--border); color: var(--muted);
+      background: var(--surface2);
+    }
+    .status-chip.ok    { border-color: rgba(34,211,238,.4); color: var(--tide); }
+    .status-chip.warn  { border-color: rgba(217,119,6,.4);  color: var(--amber); }
+    .status-chip.err   { border-color: rgba(248,113,113,.4);color: #f87171; }
+
+    /* ── Chart card ── */
+    .chart-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; margin-bottom: 16px;
+    }
+    .chart-title {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    }
+    .legend { display: flex; gap: 16px; margin-top: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+    .legend-dot  { width: 10px; height: 10px; border-radius: 50%; }
+    .legend-line { width: 20px; height: 2px; border-radius: 1px; }
+    canvas { display: block; width: 100%; border-radius: 6px; cursor: crosshair; }
+
+    /* ── Tooltip ── */
+    #tooltip {
+      position: fixed; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--text);
+      pointer-events: none; opacity: 0; transition: opacity .15s;
+      max-width: 200px; z-index: 20; line-height: 1.5;
+    }
+
+    /* ── Stats grid ── */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px;
+    }
+    .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .stat-value { font-size: 22px; font-weight: 700; color: var(--accent); }
+    .stat-sub   { font-size: 11px; color: var(--dim); margin-top: 2px; }
+
+    /* ── Tide breakdown ── */
+    .tide-breakdown {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px; margin-bottom: 16px;
+    }
+    .tide-breakdown h3 { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .tide-bars { display: flex; flex-direction: column; gap: 6px; }
+    .tide-bar-row { display: flex; align-items: center; gap: 8px; }
+    .tide-bar-label { font-size: 12px; color: var(--muted); width: 60px; flex-shrink: 0; }
+    .tide-bar-track {
+      flex: 1; height: 8px; background: var(--surface2);
+      border-radius: 4px; overflow: hidden;
+    }
+    .tide-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width .6s; }
+    .tide-bar-count { font-size: 12px; color: var(--dim); width: 28px; text-align: right; flex-shrink: 0; }
+
+    /* ── Analyze button ── */
+    .analyze-btn {
+      width: 100%; padding: 14px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      margin-bottom: 16px; transition: opacity .2s;
+    }
+    .analyze-btn:hover:not(:disabled) { opacity: .85; }
+    .analyze-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── AI output ── */
+    .ai-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; display: none; margin-bottom: 16px;
+    }
+    .ai-card.visible { display: block; }
+    .ai-label {
+      font-size: 11px; color: var(--accent); font-weight: 600;
+      text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .ai-text { font-size: 14px; line-height: 1.65; color: var(--text); white-space: pre-wrap; }
+    .ai-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .btn-sm {
+      flex: 1; padding: 8px; border-radius: 8px; font-size: 13px;
+      font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--muted); transition: color .2s, border-color .2s;
+    }
+    .btn-sm:hover { color: var(--text); border-color: var(--muted); }
+    .btn-sm.copied { color: var(--tide); border-color: var(--tide); }
+
+    /* ── Warning ── */
+    .warning-bar {
+      background: var(--amber-lo); border: 1px solid rgba(217,119,6,.3);
+      border-radius: 8px; padding: 10px 14px; font-size: 13px;
+      color: var(--amber); margin-bottom: 12px; display: none;
+    }
+
+    /* ── Loading ── */
+    .loading-state { text-align: center; padding: 40px 20px; }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin .8s linear infinite; margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-state p { font-size: 13px; color: var(--muted); }
+
+    /* ── Error ── */
+    .error-state {
+      text-align: center; padding: 32px 20px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    }
+    .error-state p { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+    /* ── Map ── */
+    .map-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; margin-bottom: 16px;
+    }
+    .map-card-title {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      padding: 12px 16px 0; display: flex; align-items: center; gap: 6px;
+    }
+    #quakeMap { height: 260px; width: 100%; }
+    /* Dark tile filter */
+    .leaflet-tile { filter: brightness(0.75) saturate(0.6) hue-rotate(190deg); }
+    .leaflet-container { background: #0f1117; }
+
+    /* ── Demo overlay ── */
+    #demoOverlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,17,23,0.95); z-index: 100;
+      flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 24px;
+    }
+    #demoOverlay .ov-icon { font-size: 56px; margin-bottom: 12px; }
+    #demoOverlay h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    #demoOverlay p  { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+    #demoOverlay a  {
+      display: inline-block; padding: 12px 28px;
+      background: var(--accent); color: #fff; text-decoration: none;
+      border-radius: 10px; font-weight: 600; font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="/portal/" class="back-link">← My Apps</a>
+  <div class="header-right">
+    <span class="header-badge">🔒 Secure App</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="hero">
+    <span class="hero-icon">🌊</span>
+    <h1>Salish Shaker</h1>
+    <p>14 days of earthquakes vs. tides · Friday Harbor, WA</p>
+  </div>
+
+  <div id="statusBar" class="status-bar">
+    <span class="status-chip" id="chipQuakes">⏳ Loading quakes…</span>
+    <span class="status-chip" id="chipTides">⏳ Loading tides…</span>
+  </div>
+
+  <div id="mainContent">
+    <div class="loading-state" id="loadingState">
+      <div class="spinner"></div>
+      <p>Fetching Salish Sea data…<br>asking the tectonics nicely</p>
+    </div>
+  </div>
+
+</div>
+
+<div id="tooltip"></div>
+
+<!-- Demo overlay -->
+<div id="demoOverlay">
+  <div class="ov-icon">🚀</div>
+  <h2>Want your own app?</h2>
+  <p>You've hit the free demo limit. Get a custom app for your community.</p>
+  <a href="https://appsforhire.app/#contact">Get Your Build →</a>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// Salish Shaker — Earthquake × Tide Correlation
+// USGS + NOAA APIs, Gemini analysis
+// ═══════════════════════════════════════════════════════
+
+const WORKER = 'https://worker.appsforhire.app';
+const SALISH_LAT  = 48.5;   // center of Salish Sea
+const SALISH_LON  = -122.5;
+const NOAA_STATION = '9449880'; // Friday Harbor, San Juan Island
+
+let quakeData  = [];
+let tideData   = [];
+let callsLeft  = null;
+let analyzing  = false;
+
+// ── Date helpers ────────────────────────────────────────
+
+const now         = new Date();
+const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+function toNoaaDate(d) {
+  // NOAA wants YYYYMMDD
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
+}
+
+function parseNoaaTime(t) {
+  // "2026-03-01 14:00" — LST/LDT = America/Los_Angeles
+  // DST 2026: starts March 8 at 2am → UTC-7, before = UTC-8
+  const [datePart, timePart] = t.split(' ');
+  const [year, month, day]   = datePart.split('-').map(Number);
+  const [hour, min]          = timePart.split(':').map(Number);
+  const isDST = (month === 3 && day >= 8 && hour >= 2) || month > 3;
+  const offsetH = isDST ? 7 : 8;
+  return new Date(Date.UTC(year, month - 1, day, hour + offsetH, min));
+}
+
+function fmtDate(ms) {
+  return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function fmtTime(ms) {
+  return new Date(ms).toLocaleTimeString('en-US',
+    { hour: 'numeric', minute: '2-digit', hour12: true,
+      timeZone: 'America/Los_Angeles' });
+}
+
+// ── Data loading ─────────────────────────────────────────
+
+const USGS_URL = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson` +
+  `&latitude=${SALISH_LAT}&longitude=${SALISH_LON}&maxradiuskm=300` +
+  `&minmagnitude=1.5&orderby=time&limit=200` +
+  `&starttime=${twoWeeksAgo.toISOString().slice(0,10)}` +
+  `&endtime=${now.toISOString().slice(0,10)}`;
+
+const NOAA_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter` +
+  `?station=${NOAA_STATION}&product=predictions&datum=MLLW` +
+  `&time_zone=lst_ldt&interval=h&units=english&application=web_services&format=json` +
+  `&begin_date=${toNoaaDate(twoWeeksAgo)}&end_date=${toNoaaDate(now)}`;
+
+async function loadData() {
+  const [usgsRes, noaaRes] = await Promise.all([
+    fetch(USGS_URL),
+    fetch(NOAA_URL)
+  ]);
+  const [usgsJson, noaaJson] = await Promise.all([
+    usgsRes.json(),
+    noaaRes.json()
+  ]);
+
+  // Process earthquakes
+  quakeData = (usgsJson.features || []).map(f => ({
+    time:  f.properties.time,              // UTC ms
+    mag:   f.properties.mag,
+    place: f.properties.place,
+    lon:   f.geometry?.coordinates?.[0] ?? null,
+    lat:   f.geometry?.coordinates?.[1] ?? null,
+    depth: f.geometry?.coordinates?.[2] ?? 0
+  }));
+
+  // Process tides
+  tideData = (noaaJson.predictions || []).map(p => ({
+    time:   parseNoaaTime(p.t).getTime(), // UTC ms
+    height: parseFloat(p.v),
+    label:  p.t
+  }));
+
+  return { quakes: quakeData.length, tides: tideData.length };
+}
+
+// ── Tide state at a given time ─────────────────────────────
+
+function getTideStateAt(utcMs) {
+  if (!tideData.length) return { height: 0, state: 'unknown' };
+  // Find nearest tide reading
+  let best = 0, bestDiff = Infinity;
+  for (let i = 0; i < tideData.length; i++) {
+    const diff = Math.abs(tideData[i].time - utcMs);
+    if (diff < bestDiff) { bestDiff = diff; best = i; }
+  }
+  const h  = tideData[best].height;
+  const hP = best > 0   ? tideData[best - 1].height : h;
+  const hN = best < tideData.length - 1 ? tideData[best + 1].height : h;
+
+  // Find overall min/max for relative "high" / "low"
+  const vals  = tideData.map(t => t.height);
+  const mn    = Math.min(...vals);
+  const mx    = Math.max(...vals);
+  const range = mx - mn;
+  const pct   = (h - mn) / range;
+
+  let state;
+  if (pct > 0.8)      state = 'high';
+  else if (pct < 0.2) state = 'low';
+  else if (hN > hP)   state = 'rising';
+  else                state = 'falling';
+
+  return { height: h, state };
+}
+
+// ── Stats ──────────────────────────────────────────────────
+
+function calcStats() {
+  if (!quakeData.length) return null;
+
+  const maxMag  = Math.max(...quakeData.map(q => q.mag));
+  const bigQuake = quakeData.find(q => q.mag === maxMag);
+
+  // Tide state breakdown
+  const tally = { high: 0, rising: 0, falling: 0, low: 0 };
+  quakeData.forEach(q => {
+    const { state } = getTideStateAt(q.time);
+    if (tally[state] !== undefined) tally[state]++;
+  });
+
+  // Most active day
+  const byDay = {};
+  quakeData.forEach(q => {
+    const d = fmtDate(q.time);
+    byDay[d] = (byDay[d] || 0) + 1;
+  });
+  const busiestDay = Object.entries(byDay).sort((a,b) => b[1]-a[1])[0];
+
+  return { maxMag, bigQuake, tally, busiestDay, total: quakeData.length };
+}
+
+// ── Canvas chart ───────────────────────────────────────────
+
+let chartQuakeDots = []; // [{x, y, quake}] for hover hit-testing
+
+function drawChart(canvas) {
+  const dpr    = window.devicePixelRatio || 1;
+  const W      = canvas.clientWidth;
+  const H      = 260;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  const ctx    = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const PAD = { top: 14, right: 16, bottom: 36, left: 44 };
+  const cW   = W - PAD.left - PAD.right;
+  const cH   = H - PAD.top  - PAD.bottom;
+
+  const startMs = twoWeeksAgo.getTime();
+  const endMs   = now.getTime();
+  const span    = endMs - startMs;
+
+  const tVals   = tideData.map(t => t.height);
+  const tMin    = Math.min(...tVals);
+  const tMax    = Math.max(...tVals);
+  const tRange  = tMax - tMin || 1;
+
+  function xOf(ms)     { return PAD.left + ((ms - startMs) / span) * cW; }
+  function yOf(height) { return PAD.top  + cH - ((height - tMin) / tRange) * cH; }
+
+  // ── Grid ─
+  ctx.strokeStyle = 'rgba(46,49,71,0.7)';
+  ctx.lineWidth   = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = PAD.top + (cH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + cW, y); ctx.stroke();
+  }
+
+  // ── Y-axis labels ─
+  ctx.fillStyle = 'rgba(148,163,184,0.7)';
+  ctx.font      = '10px system-ui';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const v = tMin + (tRange / 4) * (4 - i);
+    const y = PAD.top + (cH / 4) * i;
+    ctx.fillText(v.toFixed(1) + 'ft', PAD.left - 5, y + 3);
+  }
+
+  // ── X-axis day labels ─
+  ctx.textAlign  = 'center';
+  ctx.fillStyle  = 'rgba(148,163,184,0.7)';
+  ctx.font       = '10px system-ui';
+  for (let d = 0; d <= 14; d += 2) {
+    const ms = startMs + d * 24 * 60 * 60 * 1000;
+    const x  = xOf(ms);
+    const lbl = new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    ctx.fillText(lbl, x, H - 6);
+    ctx.strokeStyle = 'rgba(46,49,71,0.4)';
+    ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + cH); ctx.stroke();
+  }
+
+  // ── Tide area ─
+  if (tideData.length) {
+    const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + cH);
+    grad.addColorStop(0,   'rgba(34,211,238,0.25)');
+    grad.addColorStop(1,   'rgba(34,211,238,0.02)');
+
+    ctx.beginPath();
+    ctx.moveTo(xOf(tideData[0].time), yOf(tideData[0].height));
+    for (let i = 1; i < tideData.length; i++) {
+      ctx.lineTo(xOf(tideData[i].time), yOf(tideData[i].height));
+    }
+    // Close path down to baseline
+    ctx.lineTo(xOf(tideData[tideData.length-1].time), PAD.top + cH);
+    ctx.lineTo(xOf(tideData[0].time), PAD.top + cH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Tide line
+    ctx.beginPath();
+    ctx.moveTo(xOf(tideData[0].time), yOf(tideData[0].height));
+    for (let i = 1; i < tideData.length; i++) {
+      ctx.lineTo(xOf(tideData[i].time), yOf(tideData[i].height));
+    }
+    ctx.strokeStyle = 'rgba(34,211,238,0.8)';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  }
+
+  // ── Earthquake dots ─
+  chartQuakeDots = [];
+  quakeData.forEach(q => {
+    const x   = xOf(q.time);
+    const ts  = getTideStateAt(q.time);
+    const y   = yOf(ts.height);
+    const r   = Math.max(3.5, Math.min(10, (q.mag - 1.5) * 3 + 3));
+
+    // Glow effect for larger quakes
+    if (q.mag >= 3.0) {
+      ctx.beginPath();
+      ctx.arc(x, y, r + 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(217,119,6,0.2)';
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle   = q.mag >= 3.0 ? '#f97316' : 'rgba(217,119,6,0.85)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth   = 1;
+    ctx.fill();
+    ctx.stroke();
+
+    chartQuakeDots.push({ x, y, r, q });
+  });
+}
+
+// ── Hover tooltip ──────────────────────────────────────────
+
+const tooltip = document.getElementById('tooltip');
+
+function setupHover(canvas) {
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx   = e.clientX - rect.left;
+    const my   = e.clientY - rect.top;
+    const scale = canvas.clientWidth / rect.width;
+
+    let hit = null;
+    for (const dot of chartQuakeDots) {
+      const dist = Math.hypot((dot.x - mx) * scale, (dot.y - my) * scale);
+      if (dist <= dot.r * scale + 8) { hit = dot; break; }
+    }
+
+    if (hit) {
+      const ts = getTideStateAt(hit.q.time);
+      tooltip.innerHTML =
+        `<strong>M${hit.q.mag.toFixed(1)}</strong><br>` +
+        `${hit.q.place}<br>` +
+        `🌊 ${ts.height.toFixed(1)}ft — tide ${ts.state}<br>` +
+        `🕐 ${fmtDate(hit.q.time)} ${fmtTime(hit.q.time)}`;
+      tooltip.style.opacity = '1';
+      tooltip.style.left    = (e.clientX + 12) + 'px';
+      tooltip.style.top     = (e.clientY - 10) + 'px';
+    } else {
+      tooltip.style.opacity = '0';
+    }
+  });
+  canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
+}
+
+// ── Leaflet map ─────────────────────────────────────────────
+
+function buildMap() {
+  const mapEl = document.getElementById('quakeMap');
+  if (!mapEl || !window.L) return;
+
+  // Center on Salish Sea / San Juan Islands
+  const map = L.map('quakeMap', {
+    center:          [48.5, -122.5],
+    zoom:            8,
+    zoomControl:     true,
+    attributionControl: false,
+    scrollWheelZoom: false,   // better for mobile embedded maps
+  });
+
+  // OpenStreetMap tiles — free, no key
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 14,
+  }).addTo(map);
+
+  // Add attribution compactly
+  L.control.attribution({ prefix: false })
+    .addAttribution('© <a href="https://openstreetmap.org">OSM</a>')
+    .addTo(map);
+
+  // Plot each earthquake as a circle
+  quakeData.forEach(q => {
+    const lat = q.lat;
+    const lon = q.lon;
+    if (!lat || !lon) return;
+
+    const radius   = Math.max(4000, q.mag * 6000);   // meters, proportional to mag
+    const color    = q.mag >= 3.0 ? '#f97316' : '#d97706';
+    const opacity  = q.mag >= 3.0 ? 0.85 : 0.65;
+
+    const circle = L.circle([lat, lon], {
+      radius,
+      color,
+      weight:      1.5,
+      fillColor:   color,
+      fillOpacity: opacity * 0.4,
+    }).addTo(map);
+
+    circle.bindPopup(
+      `<strong>M${q.mag.toFixed(1)}</strong><br>` +
+      `${q.place}<br>` +
+      `${fmtDate(q.time)} ${fmtTime(q.time)}<br>` +
+      `Depth: ${q.depth.toFixed(1)} km`
+    );
+  });
+
+  // Add Friday Harbor tide station marker
+  const tideIcon = L.divIcon({
+    html: '<div style="font-size:18px;filter:drop-shadow(0 1px 2px #000)">🌊</div>',
+    className: '', iconAnchor: [9, 18]
+  });
+  L.marker([48.5353, -123.0167], { icon: tideIcon })
+    .addTo(map)
+    .bindPopup('<strong>Friday Harbor</strong><br>NOAA tide station 9449880');
+}
+
+// ── Build UI ────────────────────────────────────────────────
+
+function buildUI(stats) {
+  const mc = document.getElementById('mainContent');
+
+  // Tide bars
+  const maxTally = Math.max(...Object.values(stats.tally), 1);
+  const tideBarHTML = ['high','rising','falling','low'].map(state => {
+    const count = stats.tally[state] || 0;
+    const pct   = (count / maxTally * 100).toFixed(0);
+    const label = { high:'⬆ High', rising:'↗ Rising', falling:'↘ Falling', low:'⬇ Low' }[state];
+    return `
+      <div class="tide-bar-row">
+        <span class="tide-bar-label">${label}</span>
+        <div class="tide-bar-track">
+          <div class="tide-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <span class="tide-bar-count">${count}</span>
+      </div>`;
+  }).join('');
+
+  mc.innerHTML = `
+    <div class="map-card">
+      <div class="map-card-title">📍 Earthquake Locations — Salish Sea region</div>
+      <div id="quakeMap"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">
+        🌊 Tides &amp; 🌎 Earthquakes — ${fmtDate(twoWeeksAgo.getTime())} to ${fmtDate(now.getTime())}
+      </div>
+      <canvas id="chart"></canvas>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-line" style="background:var(--tide)"></div>
+          Tide height (ft)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--amber)"></div>
+          Earthquake (size = mag)
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Earthquakes</div>
+        <div class="stat-value">${stats.total}</div>
+        <div class="stat-sub">past 14 days · M1.5+</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Largest</div>
+        <div class="stat-value">M${stats.maxMag.toFixed(1)}</div>
+        <div class="stat-sub">${fmtDate(stats.bigQuake.time)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Busiest Day</div>
+        <div class="stat-value">${stats.busiestDay ? stats.busiestDay[1] : 0}</div>
+        <div class="stat-sub">${stats.busiestDay ? stats.busiestDay[0] : '—'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">At Low Tide</div>
+        <div class="stat-value">${stats.tally.low || 0}</div>
+        <div class="stat-sub">${stats.total ? ((stats.tally.low||0)/stats.total*100).toFixed(0) : 0}% of events</div>
+      </div>
+    </div>
+
+    <div class="tide-breakdown">
+      <h3>🌊 Tide phase when earthquakes struck</h3>
+      <div class="tide-bars">${tideBarHTML}</div>
+    </div>
+
+    <div id="warningBar" class="warning-bar"></div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">
+      ✦ Ask Gemini What's Going On
+    </button>
+
+    <div class="ai-card" id="aiCard">
+      <div class="ai-label">✦ Gemini's Seismic Stand-Up</div>
+      <div class="ai-text" id="aiText"></div>
+      <div class="ai-actions">
+        <button class="btn-sm" id="copyBtn" onclick="copyResult()">📋 Copy</button>
+        <button class="btn-sm" onclick="runAnalysis()">↺ Again</button>
+      </div>
+    </div>
+  `;
+
+  // Build Leaflet map
+  buildMap();
+
+  // Draw chart
+  const canvas = document.getElementById('chart');
+  requestAnimationFrame(() => {
+    drawChart(canvas);
+    setupHover(canvas);
+  });
+
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    requestAnimationFrame(() => drawChart(canvas));
+  });
+}
+
+// ── Gemini analysis ─────────────────────────────────────────
+
+async function runAnalysis() {
+  if (analyzing) return;
+  analyzing = true;
+
+  const btn    = document.getElementById('analyzeBtn');
+  const aiCard = document.getElementById('aiCard');
+  const aiText = document.getElementById('aiText');
+  btn.disabled    = true;
+  btn.textContent = '✦ Reading the fault lines…';
+
+  const stats = calcStats();
+
+  // Build earthquake summary for Gemini
+  const quakeSummary = quakeData.slice(0, 30).map(q => {
+    const ts = getTideStateAt(q.time);
+    return `M${q.mag.toFixed(1)} at ${fmtDate(q.time)} ${fmtTime(q.time)} — tide ${ts.state} (${ts.height.toFixed(1)}ft) — ${q.place}`;
+  }).join('\n');
+
+  const systemPrompt = `You are a seismologist who moonlights as a stand-up comedian with a deep love for the Pacific Northwest. You've analyzed Salish Sea earthquake data against tidal patterns. Your job is to:
+1. Find any real or hilariously tenuous pattern between earthquake timing and tide phase
+2. Make exactly one terrible pun involving tides and tectonic plates
+3. Reference something quintessentially Pacific Northwest (ferry boats, orcas, salmon, rain, coffee, hiking)
+4. End with a mock "scientific conclusion" that sounds official but is absurd
+Write 4-5 sentences total. Be funny but briefly mention any genuine geologic insight too.`;
+
+  const message = `Here is Salish Sea earthquake data for the past 14 days:
+
+Total earthquakes (M1.5+): ${stats.total}
+Largest: M${stats.maxMag.toFixed(1)} on ${fmtDate(stats.bigQuake.time)}
+Tide phase when earthquakes struck: High=${stats.tally.high}, Rising=${stats.tally.rising}, Falling=${stats.tally.falling}, Low=${stats.tally.low}
+Most active day: ${stats.busiestDay?.[0] || 'N/A'} (${stats.busiestDay?.[1] || 0} quakes)
+
+Individual events (newest first):
+${quakeSummary}
+
+Analyze the timing patterns, make it funny, and deliver your verdict.`;
+
+  try {
+    const res = await fetch(`${WORKER}/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'gemini', message, system: systemPrompt })
+    });
+
+    if (res.status === 429) {
+      const d = await res.json();
+      callsLeft = d.calls_remaining ?? 0;
+      document.getElementById('demoOverlay').style.display = 'flex';
+      return;
+    }
+
+    const data = await res.json();
+    callsLeft = data.calls_remaining;
+    updateWarning(callsLeft);
+
+    aiText.textContent = data.response || data.text || 'No response received.';
+    aiCard.classList.add('visible');
+
+  } catch (e) {
+    aiText.textContent = 'Could not reach the AI. The tectonic plates are unavailable for comment.';
+    aiCard.classList.add('visible');
+  } finally {
+    analyzing = false;
+    btn.disabled    = false;
+    btn.textContent = '✦ Ask Gemini What\'s Going On';
+  }
+}
+
+function updateWarning(remaining) {
+  const bar = document.getElementById('warningBar');
+  if (!bar) return;
+  if (remaining !== null && remaining <= 2) {
+    bar.style.display = 'block';
+    bar.textContent   = `⚠ ${remaining} demo analysis${remaining === 1 ? '' : 'es'} remaining.`;
+  }
+}
+
+function copyResult() {
+  const text = document.getElementById('aiText')?.textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── Status chips ────────────────────────────────────────────
+
+function setChip(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className   = `status-chip ${type}`;
+}
+
+// ── Main ────────────────────────────────────────────────────
+
+async function init() {
+  try {
+    const { quakes, tides } = await loadData();
+
+    setChip('chipQuakes',
+      quakes ? `🌎 ${quakes} quakes found` : '🌎 No quakes — lucky!',
+      quakes ? 'ok' : 'warn');
+    setChip('chipTides',
+      tides ? `🌊 ${tides}h tide data` : '🌊 Tide data unavailable',
+      tides ? 'ok' : 'err');
+
+    if (!tides) {
+      document.getElementById('loadingState').outerHTML = `
+        <div class="error-state">
+          <div style="font-size:40px">🌊</div>
+          <p>NOAA tide data is temporarily unavailable.<br>Earthquakes loaded — tidal correlation unavailable.</p>
+        </div>`;
+      return;
+    }
+
+    const stats = calcStats();
+    if (!stats) {
+      document.getElementById('mainContent').innerHTML = `
+        <div class="error-state">
+          <div style="font-size:40px">🤫</div>
+          <p>No earthquakes detected in the Salish Sea this fortnight.<br>The plates are being suspiciously well-behaved.</p>
+        </div>`;
+      return;
+    }
+
+    buildUI(stats);
+
+  } catch (e) {
+    document.getElementById('loadingState').outerHTML = `
+      <div class="error-state">
+        <div style="font-size:40px">📡</div>
+        <p>Couldn't load seismic data.<br><small style="color:var(--dim)">${e.message}</small></p>
+      </div>`;
+    setChip('chipQuakes', '⚠ Load failed', 'err');
+    setChip('chipTides',  '⚠ Load failed', 'err');
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

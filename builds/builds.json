@@ -36,6 +36,18 @@
     "status": "published"
   },
   {
+    "slug": "tgpquake",
+    "client_name": "The Gathering Place",
+    "app_title": "Salish Shaker",
+    "app_desc": "14 days of Salish Sea earthquakes charted against the tides. Gemini explains everything.",
+    "tier": "starter",
+    "api_type": "starter-gemini",
+    "theme_color": "#d97706",
+    "theme_dark": "#92400e",
+    "created": "2026-03-14",
+    "status": "in_progress"
+  },
+  {
     "slug": "tgpscripture",
     "client_name": "The Gathering Place",
     "app_title": "Daily Word",
