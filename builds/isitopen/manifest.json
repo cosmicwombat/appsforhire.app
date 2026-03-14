@@ -1,11 +1,11 @@
 {
-  "name": "{{CLIENT_NAME}} — {{APP_TITLE}}",
-  "short_name": "{{CLIENT_SHORT}}",
-  "description": "{{APP_DESCRIPTION}}",
+  "name": "The Gathering Place — Is it open",
+  "short_name": "Is it open",
+  "description": "Enter a business and find out if it's open and if not when does it open next.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "{{THEME_COLOR}}",
-  "theme_color": "{{THEME_COLOR}}",
+  "background_color": "#16a34a",
+  "theme_color": "#16a34a",
   "orientation": "any",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },

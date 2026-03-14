@@ -1,5 +1,5 @@
-// {{CLIENT_NAME}} Service Worker
-const CACHE = '{{CLIENT_SLUG}}-v1';
+// The Gathering Place — Is it open Service Worker
+const CACHE = 'isitopen-v1';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {

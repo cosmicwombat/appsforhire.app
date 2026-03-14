@@ -3,314 +3,641 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- CUSTOMIZE: Update title and description for each client -->
-  <title>{{CLIENT_NAME}} — {{APP_TITLE}}</title>
-  <meta name="description" content="{{APP_DESCRIPTION}}" />
+  <title>Is it open — The Gathering Place</title>
+  <meta name="description" content="Enter a business and find out if it's open and if not when does it open next." />
+  <meta name="theme-color" content="#16a34a" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="{{THEME_COLOR}}" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" href="icons/icon-192.png" type="image/png" />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* CUSTOMIZE: Brand colors for this client */
-      --primary:   {{THEME_COLOR}};
-      --primary-dark: {{THEME_COLOR_DARK}};
-      --bg:        #f8fafc;
-      --white:     #ffffff;
-      --gray100:   #f1f5f9;
-      --gray200:   #e2e8f0;
-      --gray500:   #64748b;
-      --gray700:   #334155;
-      --gray900:   #0f172a;
-      --radius:    12px;
-      --shadow:    0 4px 16px rgba(0,0,0,.08);
+      --bg:         #0f1117;
+      --surface:    #1a1d27;
+      --surface2:   #222536;
+      --border:     #2e3147;
+      --accent:     #16a34a;
+      --accent-dark:#15803d;
+      --accent2:    #22d3ee;
+      --green:      #34d399;
+      --amber:      #fbbf24;
+      --red:        #f87171;
+      --text:       #e2e8f0;
+      --muted:      #94a3b8;
+      --dim:        #64748b;
+      --radius:     12px;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
-      color: var(--gray700);
+      color: var(--text);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
     /* ── Header ── */
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 1rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
-      position: sticky; top: 0; z-index: 10;
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: var(--accent);
+      border-bottom: 1px solid var(--border);
     }
-    .header-logo {
-      font-size: 1.15rem; font-weight: 800; letter-spacing: -.02em;
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
-    .header-sub {
-      font-size: .75rem; opacity: .75; margin-top: .1rem;
+    .header-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .header-subtitle {
+      font-size: 12px;
+      color: rgba(255,255,255,.8);
+      font-weight: 500;
     }
     .header-right {
-      display: flex; align-items: center; gap: .6rem;
-    }
-    .header-badge {
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 100px; padding: .3rem .8rem;
-      font-size: .75rem; font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
     }
     .back-link {
-      display: inline-flex; align-items: center; gap: .3rem;
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 12px;
       background: rgba(0,0,0,.2);
       border: 1px solid rgba(255,255,255,.2);
-      border-radius: 100px; padding: .3rem .8rem;
-      font-size: .75rem; font-weight: 600; color: white;
-      text-decoration: none; transition: background .15s;
+      border-radius: 100px;
+      transition: background .15s;
     }
-    .back-link:hover { background: rgba(0,0,0,.35); }
+    .back-link:hover {
+      background: rgba(0,0,0,.35);
+    }
+    .secure-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      padding: 5px 10px;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 100px;
+    }
 
-    /* ── Main Layout ── */
+    /* ── Layout ── */
     main {
-      max-width: 860px; margin: 0 auto;
-      padding: 2rem 1.25rem;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
     }
 
     /* ── Cards ── */
     .card {
-      background: var(--white);
-      border: 1px solid var(--gray200);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      margin-bottom: 1.25rem;
+      padding: 24px;
+      margin-bottom: 20px;
     }
     .card-title {
-      font-size: 1rem; font-weight: 700; color: var(--gray900);
-      margin-bottom: 1rem; padding-bottom: .75rem;
-      border-bottom: 1px solid var(--gray200);
-      display: flex; align-items: center; gap: .5rem;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .card-title .icon { font-size: 1.1rem; }
-
-    /* ── Grid ── */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    @media (max-width: 580px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .card-title .icon {
+      font-size: 1.1rem;
     }
-
-    /* ── Stat Tiles ── */
-    .stat-tile {
-      background: var(--gray100);
-      border-radius: 10px; padding: 1.1rem;
-      text-align: center;
-    }
-    .stat-tile .val {
-      font-size: 1.8rem; font-weight: 800; color: var(--primary);
-      line-height: 1.1; letter-spacing: -.03em;
-    }
-    .stat-tile .lbl {
-      font-size: .78rem; color: var(--gray500); margin-top: .2rem; font-weight: 600;
-    }
-
-    /* ── Table ── */
-    .data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-    .data-table th {
-      background: var(--gray100); color: var(--gray700);
-      font-size: .75rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .05em; padding: .6rem .85rem; text-align: left;
-      border-bottom: 2px solid var(--gray200);
-    }
-    .data-table td {
-      padding: .7rem .85rem;
-      border-bottom: 1px solid var(--gray200);
-      color: var(--gray700);
-    }
-    .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: var(--gray100); }
-
-    /* ── Badges ── */
-    .badge {
-      display: inline-block; padding: .2rem .6rem; border-radius: 100px;
-      font-size: .72rem; font-weight: 700;
-    }
-    .badge-green  { background: #dcfce7; color: #15803d; }
-    .badge-yellow { background: #fef9c3; color: #a16207; }
-    .badge-red    { background: #fee2e2; color: #b91c1c; }
-    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
-
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex; align-items: center; gap: .4rem;
-      padding: .6rem 1.2rem; border-radius: 8px;
-      font-weight: 700; font-size: .88rem;
-      border: none; cursor: pointer; text-decoration: none;
-      transition: opacity .15s;
-    }
-    .btn:hover { opacity: .88; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
-    .btn-sm { padding: .35rem .8rem; font-size: .8rem; }
 
     /* ── Form ── */
-    .form-group { margin-bottom: .9rem; }
-    label { display: block; font-size: .82rem; font-weight: 600; color: var(--gray700); margin-bottom: .3rem; }
-    input, select, textarea {
-      width: 100%; padding: .6rem .85rem;
-      border: 1.5px solid var(--gray200); border-radius: 8px;
-      font-size: .92rem; color: var(--gray900); background: white;
-      outline: none; font-family: inherit;
-      transition: border-color .2s;
+    .form-group {
+      margin-bottom: 16px;
     }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-    textarea { resize: vertical; min-height: 90px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .form-group input::placeholder {
+      color: var(--dim);
+    }
+    .form-group input:focus {
+      border-color: var(--accent);
+    }
 
-    /* ── Empty State ── */
-    .empty {
-      text-align: center; padding: 3rem 1rem;
-      color: var(--gray500); font-size: .9rem;
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .15s;
     }
-    .empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+    .btn-primary:hover {
+      background: var(--accent-dark);
+    }
+    .btn-primary:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
 
-    /* ── Footer ── */
-    footer {
-      text-align: center; padding: 2rem 1rem;
-      font-size: .78rem; color: var(--gray500);
-      border-top: 1px solid var(--gray200);
-      margin-top: 2rem;
+    /* ── Loading ── */
+    .loading-area {
+      display: none;
+      text-align: center;
+      padding: 32px 0;
     }
-    footer a { color: var(--primary); text-decoration: none; }
+    .loading-area.show {
+      display: block;
+    }
+    .spinner {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loading-text {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* ── Result ── */
+    .result-card {
+      display: none;
+    }
+    .result-card.show {
+      display: block;
+    }
+    .result-content {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .result-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .15s, color .15s;
+      font-family: inherit;
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    /* ── Error ── */
+    .error-msg {
+      display: none;
+      padding: 14px 18px;
+      background: rgba(248,113,113,.08);
+      border: 1px solid rgba(248,113,113,.25);
+      border-radius: 8px;
+      color: var(--red);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .error-msg.show {
+      display: block;
+    }
+
+    /* ── Demo Overlay ── */
+    #demoOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,17,23,.96);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+    #demoOverlay.show {
+      display: flex;
+    }
+    .overlay-emoji {
+      font-size: 56px;
+      margin-bottom: 16px;
+    }
+    .overlay-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .overlay-desc {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 360px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .overlay-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .overlay-cta:hover {
+      background: var(--accent-dark);
+    }
+    .overlay-dismiss {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      font-family: inherit;
+    }
+    .overlay-dismiss:hover {
+      color: var(--muted);
+    }
+
+    /* ── Soft Warning ── */
+    .soft-warning {
+      display: none;
+      padding: 12px 16px;
+      background: rgba(251,191,36,.08);
+      border: 1px solid rgba(251,191,36,.2);
+      border-radius: 8px;
+      color: var(--amber);
+      font-size: 13px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .soft-warning.show {
+      display: block;
+    }
+
+    /* ── Hero Intro ── */
+    .hero-section {
+      text-align: center;
+      padding: 20px 0 8px;
+      margin-bottom: 8px;
+    }
+    .hero-emoji {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    .hero-title {
+      font-size: clamp(1.4rem, 4vw, 1.8rem);
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .hero-desc {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 420px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* ── Copy Toast ── */
+    .copy-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 100px;
+      opacity: 0;
+      transition: transform .25s, opacity .25s;
+      z-index: 80;
+      pointer-events: none;
+    }
+    .copy-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* ── Calls Remaining ── */
+    .calls-remaining {
+      display: none;
+      text-align: center;
+      margin-top: 12px;
+    }
+    .calls-remaining.show {
+      display: block;
+    }
+    .calls-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 100px;
+      background: rgba(251,191,36,.12);
+      border: 1px solid rgba(251,191,36,.3);
+      color: var(--amber);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 500px) {
+      .app-header {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .header-right {
+        gap: .4rem;
+      }
+      .back-link, .secure-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+      }
+    }
   </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <div class="header-logo">{{CLIENT_NAME}}</div>
-    <div class="header-sub">{{APP_TITLE}}</div>
-  </div>
-  <div class="header-right">
-    <a href="/portal/" class="back-link">← My Apps</a>
-    <div class="header-badge">Secure App</div>
-  </div>
-</header>
-
-<main>
-
-  <!-- CUSTOMIZE: Replace the sections below with the actual app content -->
-
-  <!-- Example: Stats row -->
-  <div class="grid-3" style="margin-bottom: 1.25rem;">
-    <div class="stat-tile">
-      <div class="val" id="stat1">—</div>
-      <div class="lbl">{{STAT_1_LABEL}}</div>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="header-title">The Gathering Place</div>
+      <div class="header-subtitle">Is it open</div>
     </div>
-    <div class="stat-tile">
-      <div class="val" id="stat2">—</div>
-      <div class="lbl">{{STAT_2_LABEL}}</div>
+    <div class="header-right" style="display:flex;align-items:center;gap:.6rem">
+      <a href="/portal/" class="back-link">&larr; My Apps</a>
+      <span class="secure-badge">&#x1f512; Secure App</span>
     </div>
-    <div class="stat-tile">
-      <div class="val" id="stat3">—</div>
-      <div class="lbl">{{STAT_3_LABEL}}</div>
-    </div>
+  </header>
+
+  <!-- Demo Overlay -->
+  <div id="demoOverlay">
+    <div class="overlay-emoji">&#x1f680;</div>
+    <div class="overlay-title">Want your own app?</div>
+    <p class="overlay-desc">You've hit the free demo limit. Upgrade to get unlimited access, or contact AppsForHire to build your own custom app.</p>
+    <a href="https://appsforhire.app/#contact" class="overlay-cta">Get Your Build &rarr;</a>
+    <button class="overlay-dismiss" onclick="document.getElementById('demoOverlay').classList.remove('show')">Dismiss</button>
   </div>
 
-  <!-- Example: Data table card -->
-  <div class="card">
-    <div class="card-title">
-      <span class="icon">📋</span> {{TABLE_TITLE}}
-    </div>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>{{COL_1}}</th>
-          <th>{{COL_2}}</th>
-          <th>{{COL_3}}</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr>
-          <td colspan="4">
-            <div class="empty">
-              <div class="empty-icon">📭</div>
-              No data yet — add your first entry below.
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- Copy Toast -->
+  <div id="copyToast" class="copy-toast">Copied to clipboard</div>
 
-  <!-- Example: Input form card -->
-  <div class="card">
-    <div class="card-title">
-      <span class="icon">➕</span> Add {{ITEM_NAME}}
+  <main>
+    <!-- Hero -->
+    <section class="hero-section">
+      <div class="hero-emoji">&#x1f55c;</div>
+      <h1 class="hero-title">Is it open?</h1>
+      <p class="hero-desc">Enter a business name and location to find out if it's open right now, and if not, when it opens next.</p>
+    </section>
+
+    <!-- Soft Warning -->
+    <div id="softWarning" class="soft-warning">
+      &#x26a0;&#xfe0f; You're running low on demo queries. <strong><span id="warningCount"></span> remaining.</strong>
     </div>
-    <form id="mainForm">
-      <div class="form-row">
+
+    <!-- Error Message -->
+    <div id="errorMsg" class="error-msg"></div>
+
+    <!-- Input Form -->
+    <section class="card">
+      <div class="card-title"><span class="icon">&#x1f50d;</span> Look Up a Business</div>
+      <form id="searchForm">
         <div class="form-group">
-          <label>{{FIELD_1_LABEL}}</label>
-          <input type="text" name="field1" placeholder="{{FIELD_1_PLACEHOLDER}}" required />
+          <label for="businessName">Business Name</label>
+          <input type="text" id="businessName" placeholder="e.g. Starbucks, Target, Joe's Pizza" autocomplete="off" />
         </div>
         <div class="form-group">
-          <label>{{FIELD_2_LABEL}}</label>
-          <input type="text" name="field2" placeholder="{{FIELD_2_PLACEHOLDER}}" />
+          <label for="businessLocation">Location (optional)</label>
+          <input type="text" id="businessLocation" placeholder="e.g. Seattle, WA or 123 Main St" autocomplete="off" />
         </div>
+        <button type="submit" class="btn-primary" id="submitBtn">
+          <span id="btnText">Check Hours</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Loading -->
+    <div id="loadingArea" class="loading-area">
+      <div class="spinner"></div>
+      <div class="loading-text">Checking business hours...</div>
+    </div>
+
+    <!-- Result -->
+    <section id="resultCard" class="card result-card">
+      <div class="card-title"><span class="icon">&#x1f4cb;</span> Hours Info</div>
+      <div id="resultContent" class="result-content"></div>
+      <div class="result-actions">
+        <button class="btn-secondary" id="copyBtn" onclick="copyResult()">&#x1f4cb; Copy</button>
+        <button class="btn-secondary" id="againBtn" onclick="resetForm()">&#x1f504; Check Another</button>
       </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <textarea name="notes" placeholder="Any additional notes..."></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Save {{ITEM_NAME}}</button>
-    </form>
-  </div>
+    </section>
 
-</main>
+    <!-- Remaining calls -->
+    <div id="callsRemaining" class="calls-remaining">
+      <span class="calls-badge" id="callsBadge"></span>
+    </div>
+  </main>
 
-<footer>
-  <p>Hosted by <a href="https://appsforhire.app" target="_blank">AppsForHire</a> &nbsp;·&nbsp; Secured by Cloudflare</p>
-</footer>
+  <script>
+    // ── Service Worker Registration ──
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(function() {});
+    }
 
-<script>
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
+    // ── DOM Refs ──
+    var form           = document.getElementById('searchForm');
+    var businessInput  = document.getElementById('businessName');
+    var locationInput  = document.getElementById('businessLocation');
+    var submitBtn      = document.getElementById('submitBtn');
+    var btnText        = document.getElementById('btnText');
+    var loadingArea    = document.getElementById('loadingArea');
+    var resultCard     = document.getElementById('resultCard');
+    var resultContent  = document.getElementById('resultContent');
+    var errorMsg       = document.getElementById('errorMsg');
+    var softWarning    = document.getElementById('softWarning');
+    var warningCount   = document.getElementById('warningCount');
+    var callsRemaining = document.getElementById('callsRemaining');
+    var callsBadge     = document.getElementById('callsBadge');
+    var copyToast      = document.getElementById('copyToast');
 
-  // CUSTOMIZE: Replace with actual app logic
-  const form = document.getElementById('mainForm');
-  let items = JSON.parse(localStorage.getItem('app_data') || '[]');
+    // ── AI Call ──
+    var WORKER_URL = 'https://worker.appsforhire.app/ai';
 
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(form));
-    data.id = Date.now();
-    data.date = new Date().toLocaleDateString();
-    items.unshift(data);
-    localStorage.setItem('app_data', JSON.stringify(items));
-    renderTable();
-    form.reset();
-  });
+    async function callAI(system, userMessage) {
+      var res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'gemini', system: system, message: userMessage }),
+      });
+      var data = await res.json();
 
-  function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    if (!items.length) return;
-    tbody.innerHTML = items.map(item => `
-      <tr>
-        <td>${item.field1 || '—'}</td>
-        <td>${item.field2 || '—'}</td>
-        <td>${item.notes || '—'}</td>
-        <td><span class="badge badge-green">Active</span></td>
-      </tr>
-    `).join('');
-    document.getElementById('stat1').textContent = items.length;
-  }
+      if (res.status === 429) {
+        document.getElementById('demoOverlay').classList.add('show');
+        return null;
+      }
+      if (!res.ok) throw new Error(data.error || 'AI error');
 
-  renderTable();
-</script>
+      // Handle remaining calls
+      var remaining = data.remaining;
+      if (typeof remaining === 'number') {
+        if (remaining <= 2) {
+          softWarning.classList.add('show');
+          warningCount.textContent = remaining;
+        }
+        callsRemaining.classList.add('show');
+        callsBadge.textContent = remaining + ' demo ' + (remaining === 1 ? 'query' : 'queries') + ' remaining';
+      }
+
+      return data.response;
+    }
+
+    // ── Form Submission ──
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      var name = businessInput.value.trim();
+      var location = locationInput.value.trim();
+
+      if (!name) {
+        businessInput.focus();
+        return;
+      }
+
+      // Reset previous state
+      errorMsg.classList.remove('show');
+      resultCard.classList.remove('show');
+
+      // Show loading
+      submitBtn.disabled = true;
+      btnText.textContent = 'Checking...';
+      loadingArea.classList.add('show');
+
+      var now = new Date();
+      var dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+      var timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      var dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      var systemPrompt = 'You are a helpful assistant that knows typical business hours. The current date and time is ' + dayName + ', ' + dateStr + ' at ' + timeStr + ' (user\'s local time).\n\nWhen the user asks about a business, respond with:\n1. Whether it is likely OPEN or CLOSED right now\n2. Today\'s typical hours\n3. If closed, when it next opens\n4. A brief note if hours may vary by location\n\nKeep your response concise and friendly. Use plain text, no markdown. If you aren\'t sure about exact hours, give the most common/typical hours and note that the user should verify with the specific location.';
+
+      var userMsg = location
+        ? 'Is "' + name + '" in ' + location + ' open right now?'
+        : 'Is "' + name + '" open right now?';
+
+      try {
+        var response = await callAI(systemPrompt, userMsg);
+
+        if (response) {
+          resultContent.textContent = response;
+          resultCard.classList.add('show');
+        }
+      } catch (err) {
+        errorMsg.textContent = 'Something went wrong. Please try again. (' + err.message + ')';
+        errorMsg.classList.add('show');
+      } finally {
+        submitBtn.disabled = false;
+        btnText.textContent = 'Check Hours';
+        loadingArea.classList.remove('show');
+      }
+    });
+
+    // ── Copy Result ──
+    function copyResult() {
+      var text = resultContent.textContent;
+      if (!text) return;
+
+      navigator.clipboard.writeText(text).then(function() {
+        copyToast.classList.add('show');
+        setTimeout(function() { copyToast.classList.remove('show'); }, 2000);
+      }).catch(function() {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copyToast.classList.add('show');
+        setTimeout(function() { copyToast.classList.remove('show'); }, 2000);
+      });
+    }
+
+    // ── Reset / Check Another ──
+    function resetForm() {
+      businessInput.value = '';
+      locationInput.value = '';
+      resultCard.classList.remove('show');
+      errorMsg.classList.remove('show');
+      businessInput.focus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Auto-focus ──
+    businessInput.focus();
+  </script>
+
 </body>
 </html>
