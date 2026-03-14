@@ -23,6 +23,8 @@ After running:
 import os
 import sys
 import shutil
+import json
+import datetime
 from pathlib import Path
 
 SCRIPTS_DIR  = Path(__file__).parent
@@ -298,15 +300,42 @@ The scaffold files are already there (template HTML, manifest.json, sw.js, icons
 
 ---
 
-## Brand
+## Brand & Design System
 
 - **Business name:** {info['name']}
 - **App title:** {info['app_title']}
 - **Subtitle / description:** {info['app_desc']}
-- **Primary color:** `{info['theme_color']}` ({info['color_name']})
-- **Darker shade:** `{info['theme_dark']}`
+- **Brand accent color:** `{info['theme_color']}` ({info['color_name']}) — use as `--accent`
+- **Brand accent dark:** `{info['theme_dark']}` — use as `--accent-dark`
 
-Use these as CSS custom properties `--primary` and `--primary-dark`.
+All AppsForHire apps share a **unified dark design system**. Use exactly these CSS variables:
+
+```css
+:root {{
+  --bg:         #0f1117;   /* Page background */
+  --surface:    #1a1d27;   /* Cards, panels, header */
+  --surface2:   #222536;   /* Inputs, secondary surfaces */
+  --border:     #2e3147;   /* All borders */
+  --accent:     {info['theme_color']};  /* Client brand — buttons, active states */
+  --accent-dark:{info['theme_dark']};  /* Hover/pressed state for accent */
+  --accent2:    #22d3ee;   /* Links, highlights, secondary accents (cyan) */
+  --green:      #34d399;   /* Success badges */
+  --amber:      #fbbf24;   /* Warnings */
+  --red:        #f87171;   /* Errors */
+  --text:       #e2e8f0;   /* Primary text */
+  --muted:      #94a3b8;   /* Secondary text */
+  --dim:        #64748b;   /* Tertiary / disabled text */
+  --radius:     12px;      /* Card border radius */
+}}
+```
+
+**Design rules:**
+- Dark background (`--bg`) with cards on `--surface`, inputs on `--surface2`
+- All borders: `1px solid var(--border)` — no box shadows
+- Buttons: `background: var(--accent)`, white text
+- Status badges: transparent bg with matching border + text (e.g. `rgba(52,211,153,.12)` bg + `#34d399` text)
+- Links and hover accents: `var(--accent2)` (cyan)
+- Mobile-first; use `max-width: 860px` centered layout
 
 ---
 
@@ -323,7 +352,10 @@ Use these as CSS custom properties `--primary` and `--primary-dark`.
 {ai_block}
 ## Required UI Elements
 
-1. **Header** — sticky, brand color background, shows `{info['name']}` + `{info['app_title']}`
+1. **Header** — sticky, brand color background, shows `{info['name']}` + `{info['app_title']}`. The right side of the header must include two pill-shaped elements side by side:
+   - A **`← My Apps` back link** (`<a href="/portal/" class="back-link">← My Apps</a>`) — `background: rgba(0,0,0,.2)`, `border: 1px solid rgba(255,255,255,.2)`, `border-radius: 100px`, `padding: .3rem .8rem`, `font-size: .75rem`, `font-weight: 600`, white text, no underline. Hover: `background: rgba(0,0,0,.35)`. This lets customers navigate back to their app portal.
+   - A **"Secure App" badge** (`<div class="header-badge">Secure App</div>`) with `background: rgba(255,255,255,.18)`, `border: 1px solid rgba(255,255,255,.3)`.
+   - Wrap both in a `<div class="header-right">` with `display: flex; align-items: center; gap: .6rem`.
 2. **Input form** — clean card, labeled fields, submit button in brand color
 3. **AI response area** — card that appears after the AI responds, with a copy-to-clipboard button
 4. **Loading state** — spinner or animated dots while waiting for AI
@@ -389,6 +421,32 @@ def main():
     prompt_file = info["build_dir"] / "COWORK_PROMPT.md"
     prompt_file.write_text(cowork_prompt)
     print(f"  ✅  Cowork prompt saved: builds/{info['slug']}/COWORK_PROMPT.md")
+
+    # Register in builds.json so admin portal can see it
+    import datetime
+    builds_file = BUILDS_DIR / "builds.json"
+    builds = []
+    if builds_file.exists():
+        try:
+            builds = json.loads(builds_file.read_text())
+        except Exception:
+            builds = []
+    # Remove any existing entry for this slug
+    builds = [b for b in builds if b.get("slug") != info["slug"]]
+    builds.append({
+        "slug":        info["slug"],
+        "client_name": info["name"],
+        "app_title":   info["app_title"],
+        "app_desc":    info["app_desc"],
+        "tier":        info["tier"],
+        "api_type":    info["api_type"],
+        "theme_color": info["theme_color"],
+        "theme_dark":  info["theme_dark"],
+        "created":     datetime.date.today().isoformat(),
+        "status":      "in_progress",
+    })
+    builds_file.write_text(json.dumps(builds, indent=2))
+    print(f"  ✅  Registered in builds/builds.json (visible in admin portal)")
 
     print("\n" + hr("═"))
     print("  NEXT STEPS")

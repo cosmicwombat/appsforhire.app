@@ -51,12 +51,24 @@
     .header-sub {
       font-size: .75rem; opacity: .75; margin-top: .1rem;
     }
+    .header-right {
+      display: flex; align-items: center; gap: .6rem;
+    }
     .header-badge {
       background: rgba(255,255,255,.18);
       border: 1px solid rgba(255,255,255,.3);
       border-radius: 100px; padding: .3rem .8rem;
       font-size: .75rem; font-weight: 600;
     }
+    .back-link {
+      display: inline-flex; align-items: center; gap: .3rem;
+      background: rgba(0,0,0,.2);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 100px; padding: .3rem .8rem;
+      font-size: .75rem; font-weight: 600; color: white;
+      text-decoration: none; transition: background .15s;
+    }
+    .back-link:hover { background: rgba(0,0,0,.35); }
 
     /* ── Main Layout ── */
     main {
@@ -180,7 +192,10 @@
     <div class="header-logo">{{CLIENT_NAME}}</div>
     <div class="header-sub">{{APP_TITLE}}</div>
   </div>
-  <div class="header-badge">Secure App</div>
+  <div class="header-right">
+    <a href="/portal/" class="back-link">← My Apps</a>
+    <div class="header-badge">Secure App</div>
+  </div>
 </header>
 
 <main>

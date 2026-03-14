@@ -26,15 +26,42 @@ You put in your name and the app posts a random picture of Nick Offerman that is
 
 ---
 
-## Brand
+## Brand & Design System
 
 - **Business name:** The Gathering Place
 - **App title:** Daily Offerations
-- **Subtitle / description:** Things Nick Offerman might say to you on a daily  basis
-- **Primary color:** `#0f172a` (Slate/Dark)
-- **Darker shade:** `#1e293b`
+- **Subtitle / description:** Things Nick Offerman might say to you on a daily basis
+- **Brand accent color:** `#0f172a` (Slate/Dark) — use as `--accent`
+- **Brand accent dark:** `#1e293b` — use as `--accent-dark`
 
-Use these as CSS custom properties `--primary` and `--primary-dark`.
+All AppsForHire apps share a **unified dark design system**. Use exactly these CSS variables:
+
+```css
+:root {
+  --bg:         #0f1117;   /* Page background */
+  --surface:    #1a1d27;   /* Cards, panels, header */
+  --surface2:   #222536;   /* Inputs, secondary surfaces */
+  --border:     #2e3147;   /* All borders */
+  --accent:     #0f172a;   /* Client brand — buttons, active states */
+  --accent-dark:#1e293b;   /* Hover/pressed state for accent */
+  --accent2:    #22d3ee;   /* Links, highlights, secondary accents (cyan) */
+  --green:      #34d399;   /* Success badges */
+  --amber:      #fbbf24;   /* Warnings */
+  --red:        #f87171;   /* Errors */
+  --text:       #e2e8f0;   /* Primary text */
+  --muted:      #94a3b8;   /* Secondary text */
+  --dim:        #64748b;   /* Tertiary / disabled text */
+  --radius:     12px;      /* Card border radius */
+}
+```
+
+**Design rules:**
+- Dark background (`--bg`) with cards on `--surface`, inputs on `--surface2`
+- All borders: `1px solid var(--border)` — no box shadows
+- Buttons: `background: var(--accent)`, white text
+- Status badges: transparent bg with matching border + text
+- Links and hover accents: `var(--accent2)` (cyan)
+- Mobile-first; use `max-width: 860px` centered layout
 
 ---
 

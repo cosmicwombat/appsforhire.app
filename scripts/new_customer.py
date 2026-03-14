@@ -47,6 +47,7 @@ except ImportError:
 GITHUB_USERNAME   = "cosmicwombat"
 BASE_DOMAIN       = "appsforhire.app"
 TEMPLATE_DIR      = Path(__file__).parent.parent / "template"
+BUILDS_DIR        = Path(__file__).parent.parent / "builds"
 SCRIPTS_DIR       = Path(__file__).parent
 
 
@@ -198,12 +199,24 @@ def create_github_repo(g, info):
     generate_icon(192, info["theme_color"], icons_dir / "icon-192.png")
     generate_icon(512, info["theme_color"], icons_dir / "icon-512.png")
 
-    # Render template files
+    # Use Cowork-built files from builds/{slug}/ if they exist,
+    # otherwise fall back to rendered templates.
+    build_dir = BUILDS_DIR / info["client_slug"]
     for tmpl_file in ["index.html", "manifest.json", "sw.js"]:
-        src = TEMPLATE_DIR / tmpl_file
-        content = src.read_text()
-        rendered = render_template(content, info)
-        files[tmpl_file] = rendered
+        built_file = build_dir / tmpl_file
+        if built_file.exists():
+            content = built_file.read_text()
+            # If file still has template placeholders, render them
+            if "{{" in content:
+                content = render_template(content, info)
+            files[tmpl_file] = content
+            print(f"   ✓ Using build: builds/{info['client_slug']}/{tmpl_file}")
+        else:
+            src = TEMPLATE_DIR / tmpl_file
+            content = src.read_text()
+            rendered = render_template(content, info)
+            files[tmpl_file] = rendered
+            print(f"   ⚠ No build found — using template for {tmpl_file}")
 
     # CNAME
     files["CNAME"] = info["subdomain"] + "\n"
@@ -245,9 +258,14 @@ const CUSTOMER = {{
             existing = repo.get_contents(filename)
             repo.update_file(filename, f"Update {filename}", content, existing.sha)
 
-    # Push icons
+    # Push icons — prefer build icons, fall back to generated ones
     for icon_name in ["icon-192.png", "icon-512.png"]:
-        icon_path = icons_dir / icon_name
+        build_icon = build_dir / "icons" / icon_name
+        if build_icon.exists():
+            icon_path = build_icon
+            print(f"   ✓ Using build icon: builds/{info['client_slug']}/icons/{icon_name}")
+        else:
+            icon_path = icons_dir / icon_name
         with open(icon_path, "rb") as f:
             icon_bytes = f.read()
         try:

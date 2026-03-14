@@ -34,7 +34,7 @@ id      = "bf759cd2061a4370b93f0bbbd0a5aea5"
 # REPLACE_WITH_CLIENT_CONFIG_KV_ID is a placeholder — run the command above first.
 [[kv_namespaces]]
 binding = "CLIENT_CONFIG"
-id      = "REPLACE_WITH_CLIENT_CONFIG_KV_ID"
+id      = "cf6d8d35fbec4e7db1846312f5fe5139"
 
 # ── Secrets — set each one with: npx wrangler secret put <NAME> ──────────────
 #

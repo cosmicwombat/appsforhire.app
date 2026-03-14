@@ -11,9 +11,21 @@
       "stripe_hosting": null,
       "status": "active",
       "email": "owner@smithbakery.com"
+    },
+    {
+      "client_name": "The Gathering Place",
+      "client_slug": "thegatheringplace",
+      "email": "rkeller@licc-tgp.org",
+      "subdomain": "thegatheringplace.appsforhire.app",
+      "repo": "https://github.com/cosmicwombat/client-thegatheringplace",
+      "tier": "starter",
+      "theme_color": "#0f172a",
+      "created": "2026-03-13",
+      "stripe_hosting": null,
+      "status": "active"
     }
   ],
-  "mrr": 15,
+  "mrr": 30,
   "capacity": 100,
   "generated": "2026-03-13"
 }
