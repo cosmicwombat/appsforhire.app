@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Launch Offer — Free Starter App | AppsForHire</title>
+  <meta name="description" content="First 10 customers get a free Starter app + 3 months hosting ($240 value). Use code FIRSTAPP2026 at checkout." />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1a1f36" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #1a1f36;
+      --indigo: #3730a3;
+      --violet: #6d28d9;
+      --white:  #ffffff;
+      --gray100: #f1f5f9;
+      --gray200: #e2e8f0;
+      --gray500: #64748b;
+      --gray700: #334155;
+      --gray900: #0f172a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: .6rem;
+      text-decoration: none; color: var(--white); font-weight: 700; font-size: 1.05rem;
+    }
+    .nav-back {
+      color: rgba(255,255,255,.6); text-decoration: none; font-size: .9rem;
+      transition: color .2s;
+    }
+    .nav-back:hover { color: var(--white); }
+
+    /* ── Hero ── */
+    .offer-hero {
+      text-align: center;
+      padding: 3.5rem 1.5rem 2rem;
+      background: linear-gradient(160deg, #1a1f36 0%, #2d1f5e 100%);
+    }
+    .offer-badge {
+      display: inline-block;
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
+      border-radius: 999px;
+      padding: .4rem 1.2rem;
+      font-size: .8rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .offer-hero h1 {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 800; line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .offer-hero h1 span { color: #a78bfa; }
+    .offer-hero p {
+      font-size: 1.1rem; color: rgba(255,255,255,.75);
+      max-width: 540px; margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+
+    /* ── Steps ── */
+    .steps-section {
+      max-width: 680px; margin: 0 auto;
+      padding: 0 1.5rem 2.5rem;
+    }
+    .steps-section h2 {
+      text-align: center; font-size: 1.1rem; font-weight: 700;
+      color: rgba(255,255,255,.5); letter-spacing: .06em; text-transform: uppercase;
+      margin-bottom: 1.75rem;
+    }
+    .steps { display: flex; flex-direction: column; gap: 1.1rem; }
+    .step {
+      display: flex; align-items: flex-start; gap: 1.1rem;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 14px;
+      padding: 1.2rem 1.4rem;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 2.2rem; height: 2.2rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: .95rem;
+    }
+    .step-body { flex: 1; }
+    .step-body strong {
+      display: block; font-size: 1rem; margin-bottom: .35rem;
+    }
+    .step-body p { font-size: .9rem; color: rgba(255,255,255,.65); line-height: 1.6; }
+
+    /* ── Promo Code Box ── */
+    .code-box {
+      display: flex; align-items: center; gap: .75rem;
+      justify-content: center; flex-wrap: wrap;
+      margin-top: .75rem;
+    }
+    .code-pill {
+      background: rgba(255,255,255,.12);
+      border: 1.5px solid rgba(255,255,255,.35);
+      border-radius: 10px;
+      padding: .55rem 1.3rem;
+      font-family: "SFMono-Regular", "Consolas", monospace;
+      font-size: 1.35rem; font-weight: 700; letter-spacing: .1em;
+      color: #c4b5fd;
+    }
+    .copy-btn {
+      background: rgba(167,139,250,.2);
+      border: 1px solid rgba(167,139,250,.4);
+      color: #c4b5fd;
+      border-radius: 8px;
+      padding: .55rem 1rem;
+      font-size: .85rem; font-weight: 600;
+      cursor: pointer; transition: background .2s, transform .15s;
+    }
+    .copy-btn:hover { background: rgba(167,139,250,.35); }
+    .copy-btn:active { transform: scale(.96); }
+    .copy-confirm {
+      font-size: .8rem; color: #86efac; font-weight: 600;
+      opacity: 0; transition: opacity .3s;
+    }
+    .copy-confirm.show { opacity: 1; }
+
+    /* ── Divider ── */
+    .divider {
+      max-width: 680px; margin: .5rem auto 2rem;
+      border: none; border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .checkout-heading {
+      text-align: center;
+      font-size: .85rem; font-weight: 700; color: rgba(255,255,255,.45);
+      letter-spacing: .07em; text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Stripe Embed Area ── */
+    .stripe-wrapper {
+      max-width: 580px; margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    /* Stripe Buy Button renders here — it injects its own iframe */
+    stripe-buy-button {
+      display: block;
+      width: 100%;
+    }
+
+    /* Fallback button shown when Buy Button IDs not yet set */
+    .stripe-fallback {
+      text-align: center;
+    }
+    .btn-stripe {
+      display: inline-block;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white; text-decoration: none;
+      padding: 1rem 2.5rem;
+      border-radius: 12px;
+      font-size: 1.05rem; font-weight: 700;
+      box-shadow: 0 4px 20px rgba(109,40,217,.4);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-stripe:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(109,40,217,.55);
+    }
+    .stripe-note {
+      margin-top: 1rem;
+      font-size: .82rem; color: rgba(255,255,255,.4);
+      line-height: 1.6;
+    }
+
+    /* ── Value Callout ── */
+    .value-strip {
+      max-width: 680px; margin: 0 auto 1.5rem;
+      display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap;
+      padding: 0 1.5rem;
+    }
+    .value-item {
+      display: flex; align-items: center; gap: .4rem;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 999px;
+      padding: .4rem 1rem;
+      font-size: .82rem; font-weight: 600; color: rgba(255,255,255,.8);
+    }
+    .value-item .check { color: #86efac; }
+
+    /* ── Responsive ── */
+    @media (max-width: 500px) {
+      nav { padding: 1rem; }
+      .offer-hero { padding: 2.5rem 1rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-logo" href="/">
+    <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="8" fill="#0ea5e9"/>
+      <path d="M8 20V10l6-3 6 3v10l-6 3-6-3z" fill="white" opacity=".9"/>
+      <path d="M14 7v14M8 10l6 3 6-3M8 20l6-3 6 3" stroke="#0ea5e9" stroke-width="1.2"/>
+    </svg>
+    AppsForHire
+  </a>
+  <a class="nav-back" href="/">← Back to site</a>
+</nav>
+
+<!-- Hero -->
+<section class="offer-hero">
+  <div class="offer-badge">🎉 Launch Offer — Limited Spots</div>
+  <h1>Your first app is on us.<br><span>Almost.</span></h1>
+  <p>The first 10 customers get a free Starter app build + 3 months of hosting included. That's a $240 value, yours free when you sign up for hosting with code <strong>FIRSTAPP2026</strong>.</p>
+</section>
+
+<!-- What's included -->
+<div class="value-strip">
+  <div class="value-item"><span class="check">✓</span> Free Starter app build ($200–$500 value)</div>
+  <div class="value-item"><span class="check">✓</span> 3 months hosting included ($45 value)</div>
+  <div class="value-item"><span class="check">✓</span> 2FA security on your app</div>
+  <div class="value-item"><span class="check">✓</span> Shared AI access (Gemini + Claude)</div>
+</div>
+
+<!-- Steps -->
+<section class="steps-section">
+  <h2>How to redeem</h2>
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Copy the promo code below</strong>
+        <p>You'll paste it into the Stripe checkout in a moment. It removes the hosting fee for your first 3 months automatically.</p>
+        <div class="code-box" style="margin-top:.9rem;">
+          <span class="code-pill" id="promoCode">FIRSTAPP2026</span>
+          <button class="copy-btn" onclick="copyCode()">Copy code</button>
+          <span class="copy-confirm" id="copyConfirm">Copied!</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Start your hosting subscription below</strong>
+        <p>Click "Subscribe" in the Stripe checkout. When you see the <em>Promo code</em> field, paste <strong>FIRSTAPP2026</strong> and hit Apply — your first 3 months will drop to $0.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Fill out the contact form on the main site</strong>
+        <p>After subscribing, <a href="/#contact" style="color:#a78bfa;">head back to the contact form</a> and tell us what you want built. We'll confirm you're one of the first 10 and kick off your free build immediately.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider" />
+<p class="checkout-heading">Step 2 — Start your Starter hosting subscription</p>
+
+<!-- ── Stripe Checkout Embed ── -->
+<div class="stripe-wrapper">
+
+  <!--
+    OPTION A — Stripe Buy Button (preferred, renders embedded checkout)
+    ─────────────────────────────────────────────────────────────────────
+    1. In Stripe Dashboard → Payment Links → find your Starter hosting link
+    2. Click "..." → "Create buy button"
+    3. Copy the buy-button-id and publishable-key and paste below
+    4. Delete the OPTION B fallback block below once these are filled in
+  -->
+  <!--
+  <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+  <stripe-buy-button
+    buy-button-id="buy_btn_REPLACE_ME"
+    publishable-key="pk_live_REPLACE_ME"
+  ></stripe-buy-button>
+  -->
+
+  <!-- OPTION B — Direct link (active until Buy Button IDs are set above) -->
+  <div class="stripe-fallback">
+    <a class="btn-stripe"
+       href="https://buy.stripe.com/aFafZh2Nk24Ye7X7r62880c?prefilled_promo_code=FIRSTAPP2026"
+       target="_blank">
+      🔒 Start Starter Hosting — Apply FIRSTAPP2026 →
+    </a>
+    <p class="stripe-note">
+      Opens Stripe in a new tab with your promo code pre-filled.<br>
+      Hit <strong>Apply</strong> on the promo code field and your first 3 months will be free.
+    </p>
+  </div>
+
+</div>
+
+<script>
+  function copyCode() {
+    const code = document.getElementById('promoCode').textContent.trim();
+    navigator.clipboard.writeText(code).then(() => {
+      const el = document.getElementById('copyConfirm');
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2000);
+    });
+  }
+</script>
+
+</body>
+</html>
