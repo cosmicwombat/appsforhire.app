@@ -135,6 +135,11 @@ After any new app is published via the Admin portal:
   2. Create the app with the policy already selected (save)
   3. Uncheck "Accept all available identity providers" (save again)
 
+**CF Access architecture — one Access app per slug (intentional):**
+Each app slug gets its own CF Access application. This enables granular per-app access control —
+a staff member can be given access to one app without getting access to all apps for that client.
+Never consolidate multiple slugs into one Access app. Never reuse policies across customers.
+
 ---
 
 ## Current Active Customers (as of 2026-03-14)
@@ -143,5 +148,6 @@ After any new app is published via the Admin portal:
 | Smith Bakery | smithbakery | Smith Bakery App | published |
 | The Gathering Place | thegatheringplace | Daily Offerations | published |
 | The Gathering Place | tgpscripture | Daily Word | published |
+| The Gathering Place | tgpquake | Salish Shaker | published |
 | The Ghost Interpreter | theghostinterpreter | Random Sentence Generator | published |
 | The Ghost Interpreter | tgihorror | Ghost Story Generator | published |

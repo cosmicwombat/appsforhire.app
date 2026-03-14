@@ -47,10 +47,13 @@ app_for_hire/
 | Smith Bakery | smithbakery | Smith Bakery App | smithbakery.appsforhire.app | #0d9488 teal | published |
 | The Gathering Place | thegatheringplace | Daily Offerations | thegatheringplace.appsforhire.app | #d97706 amber | published |
 | The Gathering Place | tgpscripture | Daily Word | tgpscripture.appsforhire.app | #d97706 amber | published |
+| The Gathering Place | tgpquake | Salish Shaker | tgpquake.appsforhire.app | #d97706 amber | published |
 | The Ghost Interpreter | theghostinterpreter | Random Sentence Generator | theghostinterpreter.appsforhire.app | #7c3aed violet | published |
 | The Ghost Interpreter | tgihorror | Ghost Story Generator | tgihorror.appsforhire.app | #7c3aed violet | published |
 
 **data.json nesting rule:** apps[] under each customer, not as separate customer rows.
+
+**CF Access architecture:** One Access app per slug (not per customer). This is intentional — it allows granular per-app access control. A staff member can be granted access to one app without getting access to all apps for that client. When adding a user to a specific app, add them to that app's policy only.
 
 ---
 
