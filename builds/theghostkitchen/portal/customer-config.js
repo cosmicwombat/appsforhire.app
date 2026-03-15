@@ -22,5 +22,13 @@ const CUSTOMER = {
       status:      "active",
       launched:    "March 2026",
     },
+    {
+      name:        "WebPhone",
+      description: "Simple WebRTC phone — enter your PBX details and start calling.",
+      url:         "https://webphone.appsforhire.app",
+      icon:        "☎️",
+      status:      "active",
+      launched:    "March 2026",
+    },
   ]
 };

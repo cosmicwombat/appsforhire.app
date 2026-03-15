@@ -1,5 +1,17 @@
 [
   {
+    "slug": "webphone",
+    "client_name": "The Ghost Kitchen",
+    "app_title": "WebPhone",
+    "app_desc": "Simple WebRTC phone — enter your PBX details and start calling.",
+    "tier": "starter",
+    "api_type": "none",
+    "theme_color": "#0ea5e9",
+    "theme_dark": "#0284c7",
+    "created": "2026-03-15",
+    "status": "ready"
+  },
+  {
     "slug": "softphone",
     "client_name": "The Ghost Kitchen",
     "app_title": "SIP Softphone",

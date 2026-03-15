@@ -54,6 +54,7 @@ app_for_hire/
 | Radish Tricks | forgefable | Forge & Fable | forgefable.appsforhire.app | #d97706 amber | published |
 | The Ghost Kitchen | theghostkitchen | The Quake Whisperer | theghostkitchen.appsforhire.app | #0f172a slate | published |
 | The Ghost Kitchen | softphone | SIP Softphone | softphone.appsforhire.app | #0ea5e9 sky blue | published |
+| The Ghost Kitchen | webphone | WebPhone | webphone.appsforhire.app | #0ea5e9 sky blue | ready |
 
 **data.json nesting rule:** apps[] under each customer, not as separate customer rows.
 
