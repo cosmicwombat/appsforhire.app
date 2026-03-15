@@ -589,6 +589,58 @@
   </div>
 </div>
 
+<!-- Copy Build Modal -->
+<div class="modal-backdrop" id="copyModal" onclick="closeModal('copyModal',event)">
+  <div class="modal" style="max-width:480px;">
+    <button class="modal-close" onclick="closeModal('copyModal')">✕</button>
+    <div class="modal-title">📋 Copy Build</div>
+    <div class="modal-sub" id="copySub">Clone this build into a new slug, ready to customise or publish.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">New Slug</label>
+        <input class="modal-input" id="copySlug" type="text" placeholder="e.g. mywebphone" autocomplete="off" style="font-family:monospace;"/>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">New App Title</label>
+        <input class="modal-input" id="copyTitle" type="text" placeholder="e.g. Custom WebPhone" autocomplete="off"/>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Assign to Client</label>
+        <select class="modal-input" id="copyCustomer" style="cursor:pointer;"></select>
+      </div>
+    </div>
+    <div id="copyStatus" style="min-height:20px;margin-top:10px;font-size:12px;color:var(--text-dim);"></div>
+    <div class="modal-actions" id="copyActions">
+      <button class="btn btn-ghost" onclick="closeModal('copyModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="runCopy()">Copy Build →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Email Modal -->
+<div class="modal-backdrop" id="editEmailModal" onclick="closeModal('editEmailModal',event)">
+  <div class="modal" style="max-width:420px;">
+    <button class="modal-close" onclick="closeModal('editEmailModal')">✕</button>
+    <div class="modal-title">✏️ Edit Client Email</div>
+    <div class="modal-sub" id="editEmailSub">Update the Cloudflare Access email for this app.</div>
+    <div style="margin-top:16px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Email Address</label>
+      <input class="modal-input" id="editEmailInput" type="email" placeholder="client@example.com" autocomplete="off"/>
+    </div>
+    <div id="editEmailCfRow" style="margin-top:12px;display:none;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);cursor:pointer;">
+        <input type="checkbox" id="editEmailRetryCF" checked style="cursor:pointer;"/>
+        Re-run Cloudflare Access setup with new email
+      </label>
+    </div>
+    <div id="editEmailStatus" style="min-height:20px;margin-top:10px;font-size:12px;color:var(--text-dim);"></div>
+    <div class="modal-actions" id="editEmailActions">
+      <button class="btn btn-ghost" onclick="closeModal('editEmailModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditEmail()">Save →</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -849,12 +901,14 @@
           <span class="badge ${tierColors[b.tier]||'badge-starter'}">${b.tier}</span>
           <span class="badge badge-custom">${apiLabel(b)}</span>
           <span class="badge badge-${b.status==='published'?'published':b.status==='ready'?'ready':'in-progress'}">${b.status}</span>
+          ${b.template ? '<span class="badge" style="background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.3)">📋 template</span>' : ''}
         </div>
         <div class="build-footer">
           <span class="build-date">${b.created||''}</span>
           <div class="actions">
+            <button class="btn btn-ghost btn-sm" title="Copy / clone this build" onclick='openCopyModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>Copy →</button>
             ${b.status==='published'
-              ? '<span style="font-size:11px;color:var(--green-text)">✓ Live</span>'
+              ? `<button class="btn btn-ghost btn-sm" title="Edit client email" onclick='openEditEmailModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>✏️ Email</button><span style="font-size:11px;color:var(--green-text)">✓ Live</span>`
               : b.status==='ready'
                 ? `<button class="btn btn-green btn-sm" onclick='openPublishModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>Publish →</button>`
                 : `<button class="btn btn-ghost btn-sm" onclick='markReady("${b.slug}")'>Mark Ready</button>`
@@ -1507,9 +1561,15 @@ Then confirm you've written it and show me the first 30 lines so I can verify.`)
       addLog('', ''); addLog('\uD83D\uDEE0\uFE0F Build scaffolded! Copy the prompt below and paste into a new Cowork session.', 'ok');
       document.getElementById('caPromptWrap').style.display = '';
       document.getElementById('caPromptText').value = prompt;
+      const scaffoldBuild = {
+        slug, client_name:info.client_name, app_title:info.app_title,
+        app_desc:info.app_desc, tier:info.tier, api_type:info.api_type,
+        theme_color:info.theme_color, theme_dark:info.theme_dark, status:'ready',
+      };
       document.getElementById('caActions').innerHTML =
         `<button class="btn btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('caPromptText').value).then(()=>toast('Prompt copied \u2713'))">Copy Prompt</button>` +
-        `<button class="btn btn-primary" onclick="closeModal('createAppModal');loadBuilds();">Done \u2713</button>`;
+        `<button class="btn btn-ghost" onclick="closeModal('createAppModal');loadBuilds();">Done</button>` +
+        `<button class="btn btn-green" onclick="closeModal('createAppModal');loadBuilds();setTimeout(()=>openPublishModal(${JSON.stringify(scaffoldBuild).replace(/</g,'\\u003c').replace(/"/g,'&quot;')}),300)">Publish Now \u2192</button>`;
       loadBuilds();
 
     } catch(err) {
@@ -1579,6 +1639,127 @@ Then confirm you've written it and show me the first 30 lines so I can verify.`)
       setTimeout(()=>{ closeModal('addCustModal'); loadCustomers(); toast(`${name} added`); }, 800);
     } catch(e) {
       st.textContent = '✗ Error: '+e.message;
+    }
+  }
+
+  // ── Copy / Clone build ──
+  let _copySourceBuild = null;
+
+  function openCopyModal(b) {
+    if (!ghToken) { toast('Connect GitHub first'); return; }
+    _copySourceBuild = b;
+    document.getElementById('copySub').textContent = `Cloning "${b.app_title}" (${b.slug}) into a new build.`;
+    document.getElementById('copySlug').value  = b.slug + '-copy';
+    document.getElementById('copyTitle').value = b.app_title;
+    document.getElementById('copyStatus').textContent = '';
+    document.getElementById('copyActions').innerHTML =
+      '<button class="btn btn-ghost" onclick="closeModal(\'copyModal\')">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="runCopy()">Copy Build →</button>';
+    const sel = document.getElementById('copyCustomer');
+    sel.innerHTML = customers.map((c,i) =>
+      `<option value="${i}"${c.client_name===b.client_name?' selected':''}>${c.client_name} (${c.tier})</option>`
+    ).join('');
+    document.getElementById('copyModal').classList.add('open');
+    setTimeout(() => document.getElementById('copySlug').focus(), 80);
+  }
+
+  async function runCopy() {
+    const src    = _copySourceBuild;
+    const slug   = document.getElementById('copySlug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
+    const title  = document.getElementById('copyTitle').value.trim();
+    const custIdx = document.getElementById('copyCustomer').value;
+    const cust   = customers[parseInt(custIdx)];
+    const st     = document.getElementById('copyStatus');
+    if (!slug)  { st.textContent = '⚠ Enter a slug'; return; }
+    if (!title) { st.textContent = '⚠ Enter a title'; return; }
+    if (builds.find(b => b.slug === slug)) { st.textContent = `⚠ Slug "${slug}" already exists`; return; }
+    document.getElementById('copyActions').innerHTML = '';
+    st.textContent = '⟳ Copying files…';
+    const files = ['index.html','manifest.json','sw.js','portal/index.html','portal/customer-config.js'];
+    let copied = 0;
+    for (const f of files) {
+      try {
+        const r = await ghGet(MAIN_REPO, `builds/${src.slug}/${f}`);
+        let sha = null;
+        try { sha = (await ghGet(MAIN_REPO, `builds/${slug}/${f}`)).sha; } catch(e){}
+        await ghPut(MAIN_REPO, `builds/${slug}/${f}`,
+          decodeURIComponent(escape(atob(r.content.replace(/\n/g,'')))),
+          `Copy ${src.slug} → ${slug}: ${f}`, sha);
+        copied++;
+      } catch(e) {}
+    }
+    st.textContent = `⟳ Adding to builds.json…`;
+    const newBuild = {
+      slug,
+      client_name: cust?.client_name || src.client_name,
+      app_title: title,
+      app_desc: src.app_desc || '',
+      tier: cust?.tier || src.tier,
+      api_type: src.api_type || 'none',
+      theme_color: src.theme_color || '#4f46e5',
+      theme_dark:  src.theme_dark  || '#3730a3',
+      created: new Date().toISOString().split('T')[0],
+      status: 'ready',
+      ...(src.template ? { template: true } : {}),
+    };
+    builds = [newBuild, ...builds];
+    await saveBuildsJson();
+    st.innerHTML = `✓ Copied ${copied} files → <code>builds/${slug}/</code> — ready to publish`;
+    document.getElementById('copyActions').innerHTML =
+      `<button class="btn btn-ghost" onclick="closeModal('copyModal');loadBuilds();">Done</button>` +
+      `<button class="btn btn-green" onclick="closeModal('copyModal');loadBuilds();setTimeout(()=>openPublishModal(${JSON.stringify(newBuild).replace(/</g,'\\u003c').replace(/"/g,'&quot;')}),300)">Publish Now →</button>`;
+  }
+
+  // ── Edit client email ──
+  let _editEmailBuild = null;
+
+  function openEditEmailModal(b) {
+    _editEmailBuild = b;
+    document.getElementById('editEmailSub').textContent = `${b.client_name} — ${b.app_title} (${b.slug})`;
+    const ex = customers.find(c => c.client_name === b.client_name);
+    document.getElementById('editEmailInput').value = ex?.email || '';
+    document.getElementById('editEmailCfRow').style.display = adminSecret ? '' : 'none';
+    document.getElementById('editEmailStatus').textContent = '';
+    document.getElementById('editEmailActions').innerHTML =
+      '<button class="btn btn-ghost" onclick="closeModal(\'editEmailModal\')">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="saveEditEmail()">Save →</button>';
+    document.getElementById('editEmailModal').classList.add('open');
+    setTimeout(() => document.getElementById('editEmailInput').focus(), 80);
+  }
+
+  async function saveEditEmail() {
+    const b      = _editEmailBuild;
+    const email  = document.getElementById('editEmailInput').value.trim();
+    const retryCF = document.getElementById('editEmailRetryCF')?.checked && adminSecret;
+    const st     = document.getElementById('editEmailStatus');
+    if (!email) { st.textContent = '⚠ Enter an email'; return; }
+    st.textContent = '⟳ Saving…';
+    document.getElementById('editEmailActions').innerHTML = '';
+    try {
+      const df   = await ghGet(ADMIN_REPO, 'data.json');
+      const data = JSON.parse(atob(df.content.replace(/\n/g,'')));
+      const cust = data.customers.find(c => c.client_name === b.client_name);
+      if (!cust) throw new Error('Customer not found in data.json');
+      cust.email = email;
+      await ghPut(ADMIN_REPO, 'data.json', JSON.stringify(data,null,2),
+        `Update email for ${b.client_name}`, df.sha);
+      st.textContent = '✓ Email saved in data.json';
+      if (retryCF) {
+        st.textContent = '⟳ Re-running Cloudflare Access setup…';
+        try {
+          const setup = await cfProxy('access-full-setup', { subdomain: `${b.slug}.${BASE_DOMAIN}`, email });
+          st.textContent = setup.partial
+            ? `⚠ CF partial: ${setup.warning}`
+            : `✓ CF Access updated — policy now allows ${email}`;
+        } catch(e) { st.textContent = '⚠ CF Access: ' + e.message; }
+      }
+      toast('Email updated for ' + b.client_name);
+      document.getElementById('editEmailActions').innerHTML =
+        '<button class="btn btn-primary" onclick="closeModal(\'editEmailModal\');loadAll();">Done ✓</button>';
+    } catch(e) {
+      st.textContent = '✗ ' + e.message;
+      document.getElementById('editEmailActions').innerHTML =
+        '<button class="btn btn-ghost" onclick="closeModal(\'editEmailModal\')">Close</button>';
     }
   }
 
