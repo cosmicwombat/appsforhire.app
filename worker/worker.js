@@ -43,7 +43,7 @@
 // ── AI model constants ────────────────────────────────────────────────────────
 const CLAUDE_MODEL  = "claude-haiku-4-5-20251001"; // fast + cheap
 const GEMINI_MODEL  = "gemini-2.5-flash";
-const IMAGEN_MODEL  = "imagen-3.0-generate-001";   // Google Imagen 3 (via Gemini API key)
+const IMAGEN_MODEL  = "gemini-2.0-flash-preview-image-generation"; // Gemini native image gen
 const DEMO_AI_LIMIT = 50;                          // calls per IP per day
 const DEMO_AI_TTL   = 24 * 60 * 60;               // 24 hours in seconds
 
@@ -178,14 +178,16 @@ async function callGemini(apiKey, systemPrompt, userMessage) {
 }
 
 // ── Imagen API ────────────────────────────────────────────────────────────────
+// Uses Gemini's native image generation (generateContent with IMAGE modality).
+// Works with a standard Gemini API key — no Vertex AI / predict endpoint needed.
 async function callImagen(apiKey, prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_MODEL}:predict?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_MODEL}:generateContent?key=${apiKey}`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      instances:  [{ prompt }],
-      parameters: { sampleCount: 1, aspectRatio: "4:3" },
+      contents:         [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ["IMAGE"] },
     }),
   });
 
@@ -195,9 +197,10 @@ async function callImagen(apiKey, prompt) {
   }
 
   const data = await res.json();
-  const prediction = data.predictions?.[0];
-  if (!prediction?.bytesBase64Encoded) throw new Error("No image returned from Imagen");
-  return { image: prediction.bytesBase64Encoded, mimeType: prediction.mimeType || "image/png" };
+  const parts = data.candidates?.[0]?.content?.parts;
+  const imgPart = parts?.find(p => p.inlineData);
+  if (!imgPart) throw new Error("No image returned from Gemini image generation");
+  return { image: imgPart.inlineData.data, mimeType: imgPart.inlineData.mimeType || "image/png" };
 }
 
 // ── /ai-image handler ─────────────────────────────────────────────────────────
