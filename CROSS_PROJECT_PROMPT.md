@@ -119,7 +119,7 @@ A single-page admin dashboard — analogous to the AppsForHire admin panel — f
 **Dashboard tab:** MRR equivalent → app count, active departments, worker health
 **Apps tab:** List all apps with status badges. Mark beta/live. Link to app + worker.
 **Departments tab:** Manage department portal configs. Add/remove apps per department.
-**Access tab:** View CF Access policies per department. Add a user to a department (add email to CF Access policy). Sanity check — show who has access to what.
+**Access tab:** Two functions — (1) **Sanity check**: call CF API to list policies per department and display every allowed email, so you can verify who has access at a glance. (2) **Add user**: add an email to a department's CF Access policy. See CF Access policy gotcha below — both app-scoped and reusable policy endpoints must be handled.
 **Deploy tab:** Trigger portal cascade — regenerate all department portals from `apps.json` and push to GitHub.
 
 Auth: The admin portal itself is protected by a CF Access policy scoped to Infra team.
@@ -209,7 +209,9 @@ Work through these in order. Each item is a discrete task that can be done in a 
 - [ ] **4.2** Implement **Dashboard tab** — app count, department count, worker health check (call `/api/health` on each worker).
 - [ ] **4.3** Implement **Apps tab** — read `apps.json`, display all apps with status. Allow marking beta/live (writes to `apps.json` via GitHub API).
 - [ ] **4.4** Implement **Departments tab** — show department configs, allow adding/removing apps per department, trigger portal cascade.
-- [ ] **4.5** Implement **Access tab** — for each department, call CF API to list Access policies and show who has access. Add user to department (add email to CF Access policy).
+- [ ] **4.5** Implement **Access tab** — two parts:
+  - *Sanity check view*: `GET /accounts/{id}/access/apps` → for each department app, `GET /access/apps/{uid}/policies` → display allowed emails. Reference `scripts/check_access_emails.py` in app_for_hire for the pattern.
+  - *Add user*: build the email input + slug selection UI. The write operation must try the app-scoped policy endpoint first (`PUT /access/apps/{uid}/policies/{pid}`) and fall back to the account-level reusable policy endpoint (`PUT /access/policies/{pid}`) if CF returns error code 12130 — CF silently uses reusable policies for some apps and the two endpoints are not interchangeable. Reference `scripts/add_access_email.py` in app_for_hire for the working implementation.
 - [ ] **4.6** Add **publish preflight check** — before any write, check GitHub API for commits in last 10 minutes, soft-warn if activity detected.
 - [ ] **4.7** Implement **New App modal** — form that generates a Cowork prompt pre-filled with team-apps context, compliance requirements, and the chosen worker/API types.
 
@@ -233,6 +235,10 @@ Work through these in order. Each item is a discrete task that can be done in a 
 ## Key Differences from AppsForHire to Keep in Mind
 
 **SSO vs OTP:** Team-apps uses company SSO (Google/Azure AD) not email OTP. CF Access policy type will be "Include → Emails ending in @tekmetric.com" or "Include → Group → [azure-group-id]" rather than individual email addresses.
+
+**CF Access reusable policy gotcha:** Cloudflare Access has two policy types — app-scoped policies (attached to a single app, editable via `PUT /access/apps/{uid}/policies/{pid}`) and reusable policies (account-level, shared across apps, editable via `PUT /access/policies/{pid}`). Trying to update a reusable policy through the app endpoint returns error code 12130 "can not update reusable policies through this endpoint" with no other warning. Any script or admin portal feature that modifies Access policies must try the app-scoped endpoint first and fall back to the account-level endpoint on a 12130 error. The read endpoint (`GET /access/apps/{uid}/policies`) returns both types — you cannot tell them apart until you try to write.
+
+**Sharing credentials with new contributors:** Use [onetimesecret.com](https://onetimesecret.com) for one-time burn links when sharing the admin secret or a new contributor's CF API token. Never send secrets over email or Slack in plain text. Each contributor should generate their own GitHub Personal Access Token and CF API token — only the shared `ADMIN_SECRET` is ever passed between people.
 
 **No per-app repos:** All team-apps apps live in one repo (`team-apps`), not separate `client-*` repos. The publish flow doesn't create new repos — it updates `apps.json` and triggers a portal cascade within the same repo.
 
