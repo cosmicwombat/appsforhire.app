@@ -5,7 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WebPhone</title>
 <link rel="manifest" href="manifest.json">
-<script src="https://cdn.jsdelivr.net/npm/jssip@3.10.0/dist/jssip.min.js" defer></script>
+<script>
+// Load JsSIP with CDN fallback chain — kicks off boot once loaded
+(function loadJsSIP(urls, i){
+  if(i >= urls.length){ document.addEventListener('DOMContentLoaded', window._afh_boot); return; }
+  var s = document.createElement('script');
+  s.src = urls[i];
+  s.onerror = function(){ loadJsSIP(urls, i+1); };
+  s.onload  = function(){
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', window._afh_boot);
+    else window._afh_boot();
+  };
+  document.head.appendChild(s);
+})([
+  'https://cdn.jsdelivr.net/npm/jssip@3.10.0/dist/jssip.min.js',
+  'https://cdn.jsdelivr.net/npm/jssip@3.9.2/dist/jssip.min.js',
+  'https://unpkg.com/jssip@3.9.2/dist/jssip.min.js',
+], 0);
+</script>
 <style>
 :root {
   --bg:         #0f1117;
@@ -242,9 +259,8 @@ const KEY = 'afh_webphone_v1';
 let ua = null, sess = null, callStart = null, timer = null, muted = false, buf = '', dtmf = '';
 
 // ── Boot ──────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function(){
+window._afh_boot = function(){
   if(typeof JsSIP === 'undefined'){
-    // JsSIP CDN failed to load — show a clear message instead of a cryptic error
     show('setupScreen');
     const el = document.getElementById('setupMsg');
     if(el) el.textContent = '⚠ JsSIP library failed to load. Check your internet connection and refresh.';
@@ -254,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if(c){ showMain(c); connect(c); }
   else  { show('setupScreen'); }
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-});
+};
 
 // ── Storage ───────────────────────────────────────────────────────────
 function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch{ return null; } }

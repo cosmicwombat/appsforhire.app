@@ -5,7 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SIP Softphone — AppsForHire</title>
 <link rel="manifest" href="manifest.json">
-<script src="https://cdn.jsdelivr.net/npm/jssip@3.10.0/dist/jssip.min.js" defer></script>
+<script>
+(function loadJsSIP(urls, i){
+  if(i >= urls.length){ document.addEventListener('DOMContentLoaded', window._afh_boot); return; }
+  var s = document.createElement('script');
+  s.src = urls[i];
+  s.onerror = function(){ loadJsSIP(urls, i+1); };
+  s.onload  = function(){
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', window._afh_boot);
+    else window._afh_boot();
+  };
+  document.head.appendChild(s);
+})([
+  'https://cdn.jsdelivr.net/npm/jssip@3.10.0/dist/jssip.min.js',
+  'https://cdn.jsdelivr.net/npm/jssip@3.9.2/dist/jssip.min.js',
+  'https://unpkg.com/jssip@3.9.2/dist/jssip.min.js',
+], 0);
+</script>
 <style>
   :root {
     --bg:         #0f1117;
@@ -330,12 +346,12 @@ let dialBuffer    = '';
 let dtmfBuffer    = '';
 
 // ── Boot ─────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function boot() {
+window._afh_boot = function boot() {
   const creds = loadCreds();
   if (creds) { showMain(creds); startSip(creds); }
   else        { show('setupScreen'); }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-});
+};
 
 // ── Credential helpers ────────────────────────────────────────────────
 function loadCreds()        { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; } }
