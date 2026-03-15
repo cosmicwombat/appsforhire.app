@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- CUSTOMIZE: Update title and description for each client -->
+  <title>{{CLIENT_NAME}} — {{APP_TITLE}}</title>
+  <meta name="description" content="{{APP_DESCRIPTION}}" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="{{THEME_COLOR}}" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* CUSTOMIZE: Brand colors for this client */
+      --primary:   {{THEME_COLOR}};
+      --primary-dark: {{THEME_COLOR_DARK}};
+      --bg:        #f8fafc;
+      --white:     #ffffff;
+      --gray100:   #f1f5f9;
+      --gray200:   #e2e8f0;
+      --gray500:   #64748b;
+      --gray700:   #334155;
+      --gray900:   #0f172a;
+      --radius:    12px;
+      --shadow:    0 4px 16px rgba(0,0,0,.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--gray700);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .header-logo {
+      font-size: 1.15rem; font-weight: 800; letter-spacing: -.02em;
+    }
+    .header-sub {
+      font-size: .75rem; opacity: .75; margin-top: .1rem;
+    }
+    .header-right {
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .header-badge {
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 100px; padding: .3rem .8rem;
+      font-size: .75rem; font-weight: 600;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: .3rem;
+      background: rgba(0,0,0,.2);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 100px; padding: .3rem .8rem;
+      font-size: .75rem; font-weight: 600; color: white;
+      text-decoration: none; transition: background .15s;
+    }
+    .back-link:hover { background: rgba(0,0,0,.35); }
+
+    /* ── Main Layout ── */
+    main {
+      max-width: 860px; margin: 0 auto;
+      padding: 2rem 1.25rem;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--gray200);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: 1rem; font-weight: 700; color: var(--gray900);
+      margin-bottom: 1rem; padding-bottom: .75rem;
+      border-bottom: 1px solid var(--gray200);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .card-title .icon { font-size: 1.1rem; }
+
+    /* ── Grid ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 580px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ── Stat Tiles ── */
+    .stat-tile {
+      background: var(--gray100);
+      border-radius: 10px; padding: 1.1rem;
+      text-align: center;
+    }
+    .stat-tile .val {
+      font-size: 1.8rem; font-weight: 800; color: var(--primary);
+      line-height: 1.1; letter-spacing: -.03em;
+    }
+    .stat-tile .lbl {
+      font-size: .78rem; color: var(--gray500); margin-top: .2rem; font-weight: 600;
+    }
+
+    /* ── Table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .data-table th {
+      background: var(--gray100); color: var(--gray700);
+      font-size: .75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; padding: .6rem .85rem; text-align: left;
+      border-bottom: 2px solid var(--gray200);
+    }
+    .data-table td {
+      padding: .7rem .85rem;
+      border-bottom: 1px solid var(--gray200);
+      color: var(--gray700);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--gray100); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block; padding: .2rem .6rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 700;
+    }
+    .badge-green  { background: #dcfce7; color: #15803d; }
+    .badge-yellow { background: #fef9c3; color: #a16207; }
+    .badge-red    { background: #fee2e2; color: #b91c1c; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .6rem 1.2rem; border-radius: 8px;
+      font-weight: 700; font-size: .88rem;
+      border: none; cursor: pointer; text-decoration: none;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+    .btn-sm { padding: .35rem .8rem; font-size: .8rem; }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: .9rem; }
+    label { display: block; font-size: .82rem; font-weight: 600; color: var(--gray700); margin-bottom: .3rem; }
+    input, select, textarea {
+      width: 100%; padding: .6rem .85rem;
+      border: 1.5px solid var(--gray200); border-radius: 8px;
+      font-size: .92rem; color: var(--gray900); background: white;
+      outline: none; font-family: inherit;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    textarea { resize: vertical; min-height: 90px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* ── Empty State ── */
+    .empty {
+      text-align: center; padding: 3rem 1rem;
+      color: var(--gray500); font-size: .9rem;
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 2rem 1rem;
+      font-size: .78rem; color: var(--gray500);
+      border-top: 1px solid var(--gray200);
+      margin-top: 2rem;
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-logo">{{CLIENT_NAME}}</div>
+    <div class="header-sub">{{APP_TITLE}}</div>
+  </div>
+  <div class="header-right">
+    <a href="/portal/" class="back-link">← My Apps</a>
+    <div class="header-badge">Secure App</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- CUSTOMIZE: Replace the sections below with the actual app content -->
+
+  <!-- Example: Stats row -->
+  <div class="grid-3" style="margin-bottom: 1.25rem;">
+    <div class="stat-tile">
+      <div class="val" id="stat1">—</div>
+      <div class="lbl">{{STAT_1_LABEL}}</div>
+    </div>
+    <div class="stat-tile">
+      <div class="val" id="stat2">—</div>
+      <div class="lbl">{{STAT_2_LABEL}}</div>
+    </div>
+    <div class="stat-tile">
+      <div class="val" id="stat3">—</div>
+      <div class="lbl">{{STAT_3_LABEL}}</div>
+    </div>
+  </div>
+
+  <!-- Example: Data table card -->
+  <div class="card">
+    <div class="card-title">
+      <span class="icon">📋</span> {{TABLE_TITLE}}
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{COL_1}}</th>
+          <th>{{COL_2}}</th>
+          <th>{{COL_3}}</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr>
+          <td colspan="4">
+            <div class="empty">
+              <div class="empty-icon">📭</div>
+              No data yet — add your first entry below.
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example: Input form card -->
+  <div class="card">
+    <div class="card-title">
+      <span class="icon">➕</span> Add {{ITEM_NAME}}
+    </div>
+    <form id="mainForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label>{{FIELD_1_LABEL}}</label>
+          <input type="text" name="field1" placeholder="{{FIELD_1_PLACEHOLDER}}" required />
+        </div>
+        <div class="form-group">
+          <label>{{FIELD_2_LABEL}}</label>
+          <input type="text" name="field2" placeholder="{{FIELD_2_PLACEHOLDER}}" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea name="notes" placeholder="Any additional notes..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Save {{ITEM_NAME}}</button>
+    </form>
+  </div>
+
+</main>
+
+<footer>
+  <p>Hosted by <a href="https://appsforhire.app" target="_blank">AppsForHire</a> &nbsp;·&nbsp; Secured by Cloudflare</p>
+</footer>
+
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // CUSTOMIZE: Replace with actual app logic
+  const form = document.getElementById('mainForm');
+  let items = JSON.parse(localStorage.getItem('app_data') || '[]');
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form));
+    data.id = Date.now();
+    data.date = new Date().toLocaleDateString();
+    items.unshift(data);
+    localStorage.setItem('app_data', JSON.stringify(items));
+    renderTable();
+    form.reset();
+  });
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    if (!items.length) return;
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td>${item.field1 || '—'}</td>
+        <td>${item.field2 || '—'}</td>
+        <td>${item.notes || '—'}</td>
+        <td><span class="badge badge-green">Active</span></td>
+      </tr>
+    `).join('');
+    document.getElementById('stat1').textContent = items.length;
+  }
+
+  renderTable();
+</script>
+</body>
+</html>
