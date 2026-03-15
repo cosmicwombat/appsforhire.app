@@ -344,9 +344,9 @@ REFLECTION: [3 short paragraphs separated by line breaks. Write in a warm, encou
         const data = await res.json();
 
         // Soft warning
-        if (!data.error && data.calls_remaining <= 2) {
+        if (!data.error && typeof data.remaining === 'number' && data.remaining <= 2) {
           const w = document.getElementById('softWarning');
-          w.textContent = `${data.calls_remaining} reflection${data.calls_remaining === 1 ? '' : 's'} remaining in demo.`;
+          w.textContent = `${data.remaining} reflection${data.remaining === 1 ? '' : 's'} remaining in demo.`;
           w.classList.add('visible');
         }
 

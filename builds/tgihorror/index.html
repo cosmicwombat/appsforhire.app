@@ -390,9 +390,9 @@ When given a setting and mood, write a ghost story of exactly 3 complete paragra
 
         const data = await res.json();
 
-        if (!data.error && data.calls_remaining <= 2) {
+        if (!data.error && typeof data.remaining === 'number' && data.remaining <= 2) {
           const w = document.getElementById('softWarning');
-          w.textContent = `${data.calls_remaining} stor${data.calls_remaining === 1 ? 'y' : 'ies'} remaining in demo.`;
+          w.textContent = `${data.remaining} stor${data.remaining === 1 ? 'y' : 'ies'} remaining in demo.`;
           w.classList.add('visible');
         }
 

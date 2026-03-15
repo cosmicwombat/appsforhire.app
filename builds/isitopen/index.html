@@ -490,13 +490,6 @@
           <label for="businessLocation">Location (optional)</label>
           <input type="text" id="businessLocation" placeholder="e.g. Seattle, WA or 123 Main St" autocomplete="off" />
         </div>
-        <div class="form-group">
-          <label for="modelSelect">AI Model</label>
-          <select id="modelSelect">
-            <option value="gemini">Gemini</option>
-            <option value="claude">Claude</option>
-          </select>
-        </div>
         <button type="submit" class="btn-primary" id="submitBtn">
           <span id="btnText">Check Hours</span>
         </button>
@@ -549,14 +542,12 @@
 
     // ── Worker URLs ──
     var WORKER_BASE = 'https://worker.appsforhire.app';
-    var modelSelect = document.getElementById('modelSelect');
 
     async function callAI(system, userMessage) {
-      var selectedModel = modelSelect.value;
       var res = await fetch(WORKER_BASE + '/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: selectedModel, system: system, message: userMessage }),
+        body: JSON.stringify({ model: 'gemini', system: system, message: userMessage }),
       });
       var data = await res.json();
 

@@ -541,6 +541,29 @@
       text-decoration: underline;
     }
 
+    /* ── Name History ── */
+    #nameHistoryList {
+      display: none;
+      margin-top: 16px;
+    }
+    .name-history-chip {
+      display: inline-block;
+      margin: 4px 4px 4px 0;
+      padding: 5px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+    .name-history-chip:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
     /* ── Responsive ── */
     @media (max-width: 480px) {
       .region-grid {
@@ -585,12 +608,6 @@
       <label style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Select Regions</label>
       <div class="region-grid" id="regionGrid"></div>
 
-      <label for="modelPickerName" style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">AI Model</label>
-      <div class="model-picker" id="modelPickerName">
-        <button type="button" class="model-option active" data-model="claude">Claude</button>
-        <button type="button" class="model-option" data-model="gemini">Gemini</button>
-      </div>
-
       <button type="button" id="generateNameBtn" class="btn btn-primary" disabled>🎲 Generate Name</button>
     </div>
 
@@ -607,6 +624,7 @@
         <button type="button" id="regenNameBtn" class="btn btn-secondary">🔄 Regenerate</button>
       </div>
     </div>
+    <div id="nameHistoryList"></div>
   </section>
 
   <!-- ═══ FEATURE 2: Building Sketch Generator ═══ -->
@@ -615,11 +633,8 @@
     <p class="section-subtitle">Generate fantasy building illustrations with names and lore for your campaign.</p>
 
     <div class="card">
-      <label for="modelPickerBuild" style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">AI Model (for name &amp; description)</label>
-      <div class="model-picker" id="modelPickerBuild">
-        <button type="button" class="model-option active" data-model="claude">Claude</button>
-        <button type="button" class="model-option" data-model="gemini">Gemini</button>
-      </div>
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Building Type</label>
+      <div class="region-grid" id="buildingTypeGrid"></div>
 
       <button type="button" id="generateBuildingBtn" class="btn btn-primary">🏗️ Generate Building</button>
     </div>
@@ -720,20 +735,50 @@
     });
   });
 
-  // ── Model Picker ──
-  document.querySelectorAll('.model-picker').forEach(picker => {
-    picker.querySelectorAll('.model-option').forEach(opt => {
-      opt.addEventListener('click', () => {
-        picker.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
-        opt.classList.add('active');
-      });
-    });
+  // ── Building Type Selector ──
+  const BUILDING_TYPE_OPTIONS = [
+    { id: 'tavern',               emoji: '🍺', name: 'Tavern' },
+    { id: 'blacksmith forge',     emoji: '⚒️',  name: 'Forge' },
+    { id: 'wizard tower',         emoji: '🔮', name: 'Wizard Tower' },
+    { id: 'cathedral',            emoji: '⛪', name: 'Cathedral' },
+    { id: 'castle gatehouse',     emoji: '🏰', name: 'Castle' },
+    { id: 'merchant guild hall',  emoji: '💰', name: 'Guild Hall' },
+    { id: 'thieves den',          emoji: '🗡️',  name: 'Thieves Den' },
+    { id: 'druid grove temple',   emoji: '🌿', name: 'Druid Temple' },
+    { id: 'dwarven mine entrance',emoji: '⛏️',  name: 'Mine' },
+    { id: 'elven treehouse palace',emoji:'🌳', name: 'Treehouse' },
+    { id: 'harbor lighthouse',    emoji: '🔆', name: 'Lighthouse' },
+    { id: 'underground crypt',    emoji: '💀', name: 'Crypt' },
+    { id: 'dragon roost',         emoji: '🐉', name: 'Dragon Roost' },
+    { id: 'alchemist workshop',   emoji: '⚗️',  name: 'Alchemist' },
+    { id: 'gladiator arena',      emoji: '🛡️',  name: 'Arena' },
+    { id: 'floating sky citadel', emoji: '☁️',  name: 'Sky Citadel' },
+    { id: '__random__',           emoji: '🎲', name: 'Surprise Me' },
+  ];
+
+  let selectedBuildingType = '__random__';
+
+  const buildingTypeGrid = document.getElementById('buildingTypeGrid');
+  BUILDING_TYPE_OPTIONS.forEach(bt => {
+    const el = document.createElement('div');
+    el.className = 'region-card' + (bt.id === '__random__' ? ' selected' : '');
+    el.setAttribute('role', 'radio');
+    el.setAttribute('aria-checked', bt.id === '__random__' ? 'true' : 'false');
+    el.setAttribute('tabindex', '0');
+    el.innerHTML = `<span class="region-emoji">${bt.emoji}</span><span class="region-name">${bt.name}</span>`;
+    el.addEventListener('click', () => selectBuildingType(el, bt.id));
+    el.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); selectBuildingType(el, bt.id); }});
+    buildingTypeGrid.appendChild(el);
   });
 
-  function getModel(pickerId) {
-    const picker = document.getElementById(pickerId);
-    const active = picker.querySelector('.model-option.active');
-    return active ? active.dataset.model : 'claude';
+  function selectBuildingType(el, id) {
+    buildingTypeGrid.querySelectorAll('.region-card').forEach(c => {
+      c.classList.remove('selected');
+      c.setAttribute('aria-checked', 'false');
+    });
+    el.classList.add('selected');
+    el.setAttribute('aria-checked', 'true');
+    selectedBuildingType = id;
   }
 
   // ── AI Call Helper ──
@@ -791,7 +836,7 @@
     setLoading('nameLoading', 'generateNameBtn', true);
 
     const regions = REGIONS.filter(r => selectedRegions.has(r.id)).map(r => r.name).join(', ');
-    const model = getModel('modelPickerName');
+    const model = 'gemini';
 
     const system = 'You are a fantasy name generator for tabletop RPGs. Return ONLY a JSON object with two fields: "name" (the character name) and "lore" (a single sentence of lore). No markdown, no code fences, just raw JSON.';
     const userMsg = `Generate a fantasy character name appropriate for a ${regions} inspired setting. Make the name unique and evocative.`;
@@ -812,6 +857,11 @@
       document.getElementById('generatedName').textContent = parsed.name || 'Unknown Hero';
       document.getElementById('loreBlurb').textContent = parsed.lore || '';
       showEl('nameOutput');
+      // Save to history
+      nameHistory.unshift({ name: parsed.name || 'Unknown Hero', lore: parsed.lore || '' });
+      if (nameHistory.length > 20) nameHistory.length = 20;
+      saveNameHistory();
+      renderNameHistory();
     } catch (err) {
       showError('nameError', err.message);
     } finally {
@@ -839,6 +889,56 @@
 
   const buildings = [];
   let focusedIndex = -1;
+
+  // ── localStorage persistence ──
+  const STORAGE_KEY = 'ff_vault_v1';
+  const NAMES_KEY   = 'ff_names_v1';
+
+  function saveVault() {
+    // Strip imageUrl before saving — base64 images are too large for localStorage.
+    // SVG sketches still persist so the vault looks good on reload.
+    const toSave = buildings.map(b => ({ ...b, imageUrl: null }));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave)); } catch {}
+  }
+
+  function loadVault() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (!Array.isArray(saved) || saved.length === 0) return;
+      buildings.push(...saved);
+      focusedIndex = buildings.length - 1;
+      renderBuildingFocus();
+      renderVault();
+    } catch {}
+  }
+
+  // Name history
+  let nameHistory = [];
+  function saveNameHistory() {
+    try { localStorage.setItem(NAMES_KEY, JSON.stringify(nameHistory.slice(0, 20))); } catch {}
+  }
+  function loadNameHistory() {
+    try {
+      const raw = localStorage.getItem(NAMES_KEY);
+      if (raw) nameHistory = JSON.parse(raw);
+    } catch {}
+    renderNameHistory();
+  }
+  function renderNameHistory() {
+    const list = document.getElementById('nameHistoryList');
+    if (!list) return;
+    if (nameHistory.length === 0) { list.style.display = 'none'; return; }
+    list.style.display = 'block';
+    list.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Recent Names</div>' +
+      nameHistory.map(n => `<div class="name-history-chip" onclick="reuseHistoryName(this)" data-name="${escapeHtml(n.name)}" data-lore="${escapeHtml(n.lore)}">${escapeHtml(n.name)}</div>`).join('');
+  }
+  function reuseHistoryName(el) {
+    document.getElementById('generatedName').textContent = el.dataset.name;
+    document.getElementById('loreBlurb').textContent = el.dataset.lore;
+    showEl('nameOutput');
+  }
 
   const BUILDING_TYPES = [
     'tavern', 'blacksmith forge', 'wizard tower', 'cathedral', 'castle gatehouse',
@@ -1231,8 +1331,8 @@
     hideEl('buildingError');
     setLoading('buildingLoading', 'generateBuildingBtn', true);
 
-    const buildingType = randomBuildingType();
-    const model = getModel('modelPickerBuild');
+    const buildingType = (selectedBuildingType === '__random__') ? randomBuildingType() : selectedBuildingType;
+    const model = 'gemini';
 
     // Step 1: Generate SVG sketch procedurally (instant, no API call)
     const svgHtml = generateBuildingSVG(buildingType);
@@ -1263,6 +1363,7 @@
 
       buildings.push(building);
       focusedIndex = buildings.length - 1;
+      saveVault();
       renderBuildingFocus();
       renderVault();
 
@@ -1310,6 +1411,7 @@
     const textarea = container.querySelector('textarea');
     textarea.addEventListener('input', () => {
       buildings[focusedIndex].notes = textarea.value;
+      saveVault();
     });
 
     container.querySelector('.building-copy-btn').addEventListener('click', function() {
@@ -1371,8 +1473,13 @@
     buildings.length = 0;
     focusedIndex = -1;
     document.getElementById('buildingFocus').innerHTML = '';
+    saveVault();
     renderVault();
   });
+
+  // ── Init: restore persisted state ──
+  loadVault();
+  loadNameHistory();
 </script>
 
 </body>
