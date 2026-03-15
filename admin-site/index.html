@@ -589,6 +589,40 @@
   </div>
 </div>
 
+<!-- Transfer to Client Modal -->
+<div class="modal-backdrop" id="transferModal" onclick="closeModal('transferModal',event)">
+  <div class="modal" style="max-width:500px;">
+    <button class="modal-close" onclick="closeModal('transferModal')">✕</button>
+    <div class="modal-title">🔀 Transfer to Client</div>
+    <div class="modal-sub" id="transferSub">Move this app from staging to a live client portal. Updates Cloudflare Access, portal config, and data records.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+      <div style="padding:10px 12px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:8px;font-size:12px;color:#fbbf24;">
+        <strong id="transferFromLabel">Currently under:</strong> <span id="transferFromVal"></span>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Transfer to Client</label>
+        <select class="modal-input" id="transferCustomer" style="cursor:pointer;"></select>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Client Email <span style="font-weight:400">(for CF Access)</span></label>
+        <input class="modal-input" id="transferEmail" type="email" placeholder="client@example.com" autocomplete="off"/>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Pre-filled from customer record — edit if different.</div>
+      </div>
+      <div id="transferCfRow" style="display:none;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);cursor:pointer;">
+          <input type="checkbox" id="transferUpdateCF" checked style="cursor:pointer;"/>
+          Update Cloudflare Access policy to new client email
+        </label>
+      </div>
+    </div>
+    <div id="transferStatus" style="min-height:20px;margin-top:10px;font-size:12px;color:var(--text-dim);"></div>
+    <div class="modal-actions" id="transferActions">
+      <button class="btn btn-ghost" onclick="closeModal('transferModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="runTransfer()">Transfer →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Copy Build Modal -->
 <div class="modal-backdrop" id="copyModal" onclick="closeModal('copyModal',event)">
   <div class="modal" style="max-width:480px;">
@@ -908,7 +942,7 @@
           <div class="actions">
             <button class="btn btn-ghost btn-sm" title="Copy / clone this build" onclick='openCopyModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>Copy →</button>
             ${b.status==='published'
-              ? `<button class="btn btn-ghost btn-sm" title="Edit client email" onclick='openEditEmailModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>✏️ Email</button><span style="font-size:11px;color:var(--green-text)">✓ Live</span>`
+              ? `<button class="btn btn-ghost btn-sm" title="Transfer to a different client" onclick='openTransferModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>🔀 Transfer</button><button class="btn btn-ghost btn-sm" title="Edit client email" onclick='openEditEmailModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>✏️ Email</button><span style="font-size:11px;color:var(--green-text)">✓ Live</span>`
               : b.status==='ready'
                 ? `<button class="btn btn-green btn-sm" onclick='openPublishModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>Publish →</button>`
                 : `<button class="btn btn-ghost btn-sm" onclick='markReady("${b.slug}")'>Mark Ready</button>`
@@ -1639,6 +1673,125 @@ Then confirm you've written it and show me the first 30 lines so I can verify.`)
       setTimeout(()=>{ closeModal('addCustModal'); loadCustomers(); toast(`${name} added`); }, 800);
     } catch(e) {
       st.textContent = '✗ Error: '+e.message;
+    }
+  }
+
+  // ── Transfer app to a different client ──
+  let _transferBuild = null;
+
+  function openTransferModal(b) {
+    _transferBuild = b;
+    const currentCust = customers.find(c => c.client_name === b.client_name);
+    document.getElementById('transferSub').textContent =
+      `Move "${b.app_title}" (${b.slug}) to a different client portal.`;
+    document.getElementById('transferFromVal').textContent =
+      `${b.client_name}${currentCust?.email ? ' — ' + currentCust.email : ''}`;
+    document.getElementById('transferStatus').textContent = '';
+    document.getElementById('transferCfRow').style.display = adminSecret ? '' : 'none';
+    document.getElementById('transferActions').innerHTML =
+      '<button class="btn btn-ghost" onclick="closeModal(\'transferModal\')">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="runTransfer()">Transfer →</button>';
+
+    // Populate customer dropdown (exclude current)
+    const sel = document.getElementById('transferCustomer');
+    sel.innerHTML = customers
+      .filter(c => c.client_name !== b.client_name)
+      .map((c,_,arr) => {
+        const idx = customers.indexOf(c);
+        return `<option value="${idx}">${c.client_name}${c.email ? ' — ' + c.email : ''} (${c.tier})</option>`;
+      }).join('');
+    // Pre-fill email from first option
+    const firstCust = customers.find(c => c.client_name !== b.client_name);
+    document.getElementById('transferEmail').value = firstCust?.email || '';
+    sel.addEventListener('change', function() {
+      const c = customers[parseInt(this.value)];
+      document.getElementById('transferEmail').value = c?.email || '';
+    }, { once: false });
+
+    document.getElementById('transferModal').classList.add('open');
+  }
+
+  async function runTransfer() {
+    const b       = _transferBuild;
+    const custIdx = document.getElementById('transferCustomer').value;
+    const toCust  = customers[parseInt(custIdx)];
+    const email   = document.getElementById('transferEmail').value.trim();
+    const updateCF = document.getElementById('transferUpdateCF')?.checked && adminSecret;
+    const st      = document.getElementById('transferStatus');
+    if (!toCust)  { st.textContent = '⚠ Select a client'; return; }
+    if (!email)   { st.textContent = '⚠ Enter client email'; return; }
+    document.getElementById('transferActions').innerHTML = '';
+    st.textContent = '⟳ Updating data.json…';
+
+    try {
+      // 1. Update data.json — move app from old customer to new
+      const df   = await ghGet(ADMIN_REPO, 'data.json');
+      const data = JSON.parse(atob(df.content.replace(/\n/g,'')));
+      const fromCust = data.customers.find(c => c.client_name === b.client_name);
+      const destCust = data.customers.find(c => c.client_name === toCust.client_name);
+      if (!destCust) throw new Error('Target customer not found in data.json');
+
+      // Remove app from old customer
+      if (fromCust) fromCust.apps = (fromCust.apps||[]).filter(a => a.slug !== b.slug);
+
+      // Add app to new customer
+      const today = new Date().toISOString().split('T')[0];
+      const appEntry = {
+        title: b.app_title, slug: b.slug,
+        description: b.app_desc || '',
+        icon: '📱', published: today, status: 'live',
+        url: `https://${b.slug}.${BASE_DOMAIN}`,
+      };
+      destCust.email = email;
+      destCust.apps  = [...(destCust.apps||[]).filter(a=>a.slug!==b.slug), appEntry];
+      await ghPut(ADMIN_REPO, 'data.json', JSON.stringify(data,null,2),
+        `Transfer ${b.slug} → ${toCust.client_name}`, df.sha);
+      st.textContent = '✓ data.json updated';
+
+      // 2. Update builds.json client_name
+      st.textContent = '⟳ Updating builds.json…';
+      const bf   = await ghGet(MAIN_REPO, 'builds/builds.json');
+      const blds = JSON.parse(atob(bf.content.replace(/\n/g,'')));
+      const bidx = blds.findIndex(x => x.slug === b.slug);
+      if (bidx !== -1) blds[bidx].client_name = toCust.client_name;
+      await ghPut(MAIN_REPO, 'builds/builds.json', JSON.stringify(blds,null,2),
+        `Transfer ${b.slug} to ${toCust.client_name}`, bf.sha);
+      builds = blds;
+      st.textContent = '✓ builds.json updated';
+
+      // 3. Push updated portal config to the live repo
+      st.textContent = '⟳ Updating portal config…';
+      try {
+        const config = makePortalConfig(destCust);
+        const repo   = 'client-' + b.slug;
+        let pSha = null;
+        try { pSha = (await ghGet(repo,'portal/customer-config.js')).sha; } catch(e){}
+        await ghPut(repo, 'portal/customer-config.js', config,
+          `Transfer to ${toCust.client_name}`, pSha);
+        st.textContent = '✓ Portal config updated';
+      } catch(e) { st.textContent = '⚠ Portal config: ' + e.message; }
+
+      // 4. Update CF Access email
+      if (updateCF) {
+        st.textContent = '⟳ Updating Cloudflare Access…';
+        try {
+          const setup = await cfProxy('access-full-setup',
+            { subdomain: `${b.slug}.${BASE_DOMAIN}`, email });
+          st.textContent = setup.partial
+            ? `⚠ CF partial: ${setup.warning}`
+            : `✓ CF Access updated — ${email} now has access`;
+        } catch(e) { st.textContent = '⚠ CF: ' + e.message; }
+      }
+
+      toast(`${b.app_title} transferred to ${toCust.client_name}`);
+      document.getElementById('transferActions').innerHTML =
+        '<button class="btn btn-primary" onclick="closeModal(\'transferModal\');loadAll();">Done ✓</button>';
+      loadAll();
+
+    } catch(e) {
+      st.textContent = '✗ ' + e.message;
+      document.getElementById('transferActions').innerHTML =
+        '<button class="btn btn-ghost" onclick="closeModal(\'transferModal\')">Close</button>';
     }
   }
 
