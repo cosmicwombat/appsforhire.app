@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WebPhone</title>
 <link rel="manifest" href="manifest.json">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jssip/3.10.0/jssip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jssip@3.10.0/dist/jssip.min.js" defer></script>
 <style>
 :root {
   --bg:         #0f1117;
@@ -242,12 +242,19 @@ const KEY = 'afh_webphone_v1';
 let ua = null, sess = null, callStart = null, timer = null, muted = false, buf = '', dtmf = '';
 
 // ── Boot ──────────────────────────────────────────────────────────────
-(function(){
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof JsSIP === 'undefined'){
+    // JsSIP CDN failed to load — show a clear message instead of a cryptic error
+    show('setupScreen');
+    const el = document.getElementById('setupMsg');
+    if(el) el.textContent = '⚠ JsSIP library failed to load. Check your internet connection and refresh.';
+    return;
+  }
   const c = load();
   if(c){ showMain(c); connect(c); }
   else  { show('setupScreen'); }
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-})();
+});
 
 // ── Storage ───────────────────────────────────────────────────────────
 function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch{ return null; } }
