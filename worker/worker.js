@@ -43,7 +43,7 @@
 // ── AI model constants ────────────────────────────────────────────────────────
 const CLAUDE_MODEL  = "claude-haiku-4-5-20251001"; // fast + cheap
 const GEMINI_MODEL  = "gemini-2.5-flash";
-const IMAGEN_MODEL  = "gemini-2.5-flash-image"; // Gemini image gen via generateContent
+const IMAGEN_MODEL  = "gemini-3.1-flash-image-preview"; // Gemini 3.1 image gen via generateContent
 const DEMO_AI_LIMIT = 50;                          // calls per IP per day
 const DEMO_AI_TTL   = 24 * 60 * 60;               // 24 hours in seconds
 
