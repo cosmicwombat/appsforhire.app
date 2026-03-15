@@ -1,5 +1,17 @@
 [
   {
+    "slug": "softphone",
+    "client_name": "The Ghost Kitchen",
+    "app_title": "SIP Softphone",
+    "app_desc": "WebRTC SIP client — provision an extension, register, and check voicemail.",
+    "tier": "starter",
+    "api_type": "none",
+    "theme_color": "#0ea5e9",
+    "theme_dark": "#0284c7",
+    "created": "2026-03-15",
+    "status": "in_progress"
+  },
+  {
     "slug": "thegatheringplace",
     "client_name": "The Gathering Place",
     "app_title": "Daily Offerations",
