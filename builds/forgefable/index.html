@@ -615,7 +615,7 @@
     <p class="section-subtitle">Generate fantasy building illustrations with names and lore for your campaign.</p>
 
     <div class="card">
-      <label for="modelPickerBuild" style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">AI Model (name &amp; description — sketch always uses Claude)</label>
+      <label for="modelPickerBuild" style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">AI Model (for name &amp; description)</label>
       <div class="model-picker" id="modelPickerBuild">
         <button type="button" class="model-option active" data-model="claude">Claude</button>
         <button type="button" class="model-option" data-model="gemini">Gemini</button>
@@ -851,6 +851,325 @@
     return BUILDING_TYPES[Math.floor(Math.random() * BUILDING_TYPES.length)];
   }
 
+  // ── Procedural Building SVG Generator ──────────────────────────────────────
+  function generateBuildingSVG(buildingType) {
+    const W = 400, H = 300;
+    const BG   = '#f5e6c8';
+    const INK  = '#2d1a0e';
+    const WALL = '#e8d4a8';
+    const SHAD = '#c8a87a';
+    const type = buildingType.toLowerCase();
+
+    function wrap(inner) {
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${BG}"/>${inner}</svg>`;
+    }
+    const ground = `<line x1="30" y1="245" x2="370" y2="245" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`;
+    function grass() {
+      let g = '';
+      for (const x of [45,70,95,310,335,360]) {
+        g += `<path d="M${x},245 C${x-3},237 ${x+3},235 ${x+6},245" stroke="${INK}" stroke-width="1" fill="none"/>`;
+        g += `<path d="M${x+4},245 C${x+1},237 ${x+7},234 ${x+10},245" stroke="${INK}" stroke-width="1" fill="none"/>`;
+      }
+      return g;
+    }
+
+    function drawTavern() {
+      let s = '';
+      // Body
+      s += `<rect x="110" y="155" width="180" height="90" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Pitched roof
+      s += `<path d="M90,155 L200,82 L310,155 Z" fill="${SHAD}" stroke="${INK}" stroke-width="2"/>`;
+      // Chimney
+      s += `<rect x="238" y="90" width="24" height="52" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<rect x="233" y="86" width="34" height="7" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Smoke
+      s += `<path d="M250,86 Q238,74 248,62 Q258,50 244,40" fill="none" stroke="${INK}" stroke-width="1.2" stroke-dasharray="3,2"/>`;
+      // Door arch
+      s += `<path d="M182,245 L182,212 Q200,198 218,212 L218,245" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Windows
+      s += `<rect x="122" y="168" width="36" height="28" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<line x1="140" y1="168" x2="140" y2="196" stroke="${INK}" stroke-width="1"/>`;
+      s += `<line x1="122" y1="182" x2="158" y2="182" stroke="${INK}" stroke-width="1"/>`;
+      s += `<rect x="242" y="168" width="36" height="28" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<line x1="260" y1="168" x2="260" y2="196" stroke="${INK}" stroke-width="1"/>`;
+      s += `<line x1="242" y1="182" x2="278" y2="182" stroke="${INK}" stroke-width="1"/>`;
+      // Timber framing
+      s += `<line x1="200" y1="155" x2="200" y2="245" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<line x1="110" y1="200" x2="290" y2="200" stroke="${INK}" stroke-width="1"/>`;
+      // Hanging sign
+      s += `<line x1="152" y1="122" x2="152" y2="148" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<line x1="152" y1="122" x2="175" y2="122" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<rect x="165" y="122" width="52" height="22" rx="2" fill="${BG}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Roof ridge
+      s += `<line x1="200" y1="82" x2="200" y2="155" stroke="${INK}" stroke-width="1" stroke-dasharray="5,3"/>`;
+      return s;
+    }
+
+    function drawTower() {
+      let s = '';
+      // Buttresses
+      s += `<path d="M140,245 L140,202 L158,202 L158,245" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<path d="M260,245 L260,202 L242,202 L242,245" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Main tower body
+      s += `<rect x="158" y="88" width="84" height="157" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Conical roof
+      s += `<path d="M142,88 L200,18 L258,88 Z" fill="${SHAD}" stroke="${INK}" stroke-width="2"/>`;
+      // Crenellations at mid level
+      for (let x = 158; x < 242; x += 14) {
+        s += `<rect x="${x}" y="135" width="9" height="14" fill="${WALL}" stroke="${INK}" stroke-width="1.2"/>`;
+      }
+      s += `<line x1="158" y1="149" x2="242" y2="149" stroke="${INK}" stroke-width="1.5"/>`;
+      // Arrow-slit windows
+      s += `<rect x="191" y="108" width="18" height="34" rx="9" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<rect x="191" y="162" width="18" height="34" rx="9" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Arched door
+      s += `<path d="M183,245 L183,216 Q200,202 217,216 L217,245" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Magic star on spire
+      s += `<circle cx="200" cy="52" r="5" fill="none" stroke="${INK}" stroke-width="1.2"/>`;
+      for (let i = 0; i < 6; i++) {
+        const a = i * Math.PI / 3 - Math.PI / 2;
+        s += `<line x1="${200+5*Math.cos(a)}" y1="${52+5*Math.sin(a)}" x2="${200+10*Math.cos(a)}" y2="${52+10*Math.sin(a)}" stroke="${INK}" stroke-width="1"/>`;
+      }
+      return s;
+    }
+
+    function drawCathedral() {
+      let s = '';
+      // Side aisles
+      s += `<rect x="68" y="195" width="32" height="50" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<path d="M63,195 L84,162 L105,195" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<rect x="300" y="195" width="32" height="50" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<path d="M295,195 L316,162 L337,195" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Nave body
+      s += `<rect x="100" y="172" width="200" height="73" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Nave roof (pointed)
+      s += `<path d="M90,172 L200,95 L310,172 Z" fill="${SHAD}" stroke="${INK}" stroke-width="2"/>`;
+      // Central spire
+      s += `<path d="M183,95 L200,28 L217,95 Z" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<circle cx="200" cy="26" r="4" fill="${INK}"/>`;
+      s += `<line x1="200" y1="22" x2="200" y2="10" stroke="${INK}" stroke-width="2"/>`;
+      // Rose window
+      s += `<circle cx="200" cy="140" r="22" fill="${BG}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<circle cx="200" cy="140" r="10" fill="${BG}" stroke="${INK}" stroke-width="1"/>`;
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4;
+        s += `<line x1="${(200+10*Math.cos(a)).toFixed(1)}" y1="${(140+10*Math.sin(a)).toFixed(1)}" x2="${(200+22*Math.cos(a)).toFixed(1)}" y2="${(140+22*Math.sin(a)).toFixed(1)}" stroke="${INK}" stroke-width="1"/>`;
+      }
+      // Lancet windows
+      s += `<path d="M120,180 L120,215 Q132,205 144,215 L144,180" fill="${SHAD}" stroke="${INK}" stroke-width="1"/>`;
+      s += `<path d="M256,180 L256,215 Q268,205 280,215 L280,180" fill="${SHAD}" stroke="${INK}" stroke-width="1"/>`;
+      // Main door (pointed arch)
+      s += `<path d="M178,245 L178,215 Q200,195 222,215 L222,245" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      return s;
+    }
+
+    function drawCastle() {
+      let s = '';
+      // Left tower
+      s += `<rect x="88" y="155" width="62" height="90" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<path d="M80,155 L119,118 L158,155" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      for (let x = 88; x < 150; x += 15) { s += `<rect x="${x}" y="138" width="9" height="17" fill="${WALL}" stroke="${INK}" stroke-width="1.2"/>`; }
+      // Right tower
+      s += `<rect x="250" y="155" width="62" height="90" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<path d="M242,155 L281,118 L320,155" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      for (let x = 250; x < 312; x += 15) { s += `<rect x="${x}" y="138" width="9" height="17" fill="${WALL}" stroke="${INK}" stroke-width="1.2"/>`; }
+      // Central keep
+      s += `<rect x="142" y="130" width="116" height="115" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      for (let x = 142; x < 258; x += 19) { s += `<rect x="${x}" y="112" width="12" height="20" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`; }
+      s += `<line x1="142" y1="132" x2="258" y2="132" stroke="${INK}" stroke-width="1"/>`;
+      // Portcullis
+      s += `<path d="M172,245 L172,190 Q200,172 228,190 L228,245" fill="${SHAD}" stroke="${INK}" stroke-width="2"/>`;
+      for (let x = 180; x < 225; x += 9) { s += `<line x1="${x}" y1="190" x2="${x}" y2="245" stroke="${INK}" stroke-width="1"/>`; }
+      s += `<line x1="172" y1="205" x2="228" y2="205" stroke="${INK}" stroke-width="1"/>`;
+      s += `<line x1="172" y1="220" x2="228" y2="220" stroke="${INK}" stroke-width="1"/>`;
+      s += `<line x1="172" y1="235" x2="228" y2="235" stroke="${INK}" stroke-width="1"/>`;
+      // Arrow slits
+      s += `<rect x="156" y="158" width="7" height="22" fill="${SHAD}" stroke="${INK}" stroke-width="1"/>`;
+      s += `<rect x="237" y="158" width="7" height="22" fill="${SHAD}" stroke="${INK}" stroke-width="1"/>`;
+      s += `<rect x="104" y="168" width="7" height="22" fill="${SHAD}" stroke="${INK}" stroke-width="1"/>`;
+      s += `<rect x="289" y="168" width="7" height="22" fill="${SHAD}" stroke="${INK}" stroke-width="1"/>`;
+      // Flag
+      s += `<line x1="200" y1="112" x2="200" y2="72" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<path d="M200,72 L226,80 L200,88 Z" fill="${SHAD}" stroke="${INK}" stroke-width="1"/>`;
+      return s;
+    }
+
+    function drawMine() {
+      let s = '';
+      // Hill/mound
+      s += `<path d="M30,245 Q100,195 200,175 Q300,155 370,245 Z" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Mine entrance (timber frame + arch)
+      s += `<line x1="148" y1="245" x2="148" y2="208" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/>`;
+      s += `<line x1="252" y1="245" x2="252" y2="208" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/>`;
+      s += `<path d="M148,208 Q200,183 252,208" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/>`;
+      s += `<path d="M148,245 L148,208 Q200,183 252,208 L252,245 Z" fill="#1a0f07" stroke="none"/>`;
+      // Support diagonals
+      s += `<line x1="148" y1="235" x2="178" y2="215" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`;
+      s += `<line x1="252" y1="235" x2="222" y2="215" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`;
+      // Cart rails
+      s += `<line x1="80" y1="239" x2="155" y2="238" stroke="${INK}" stroke-width="2"/>`;
+      s += `<line x1="80" y1="244" x2="155" y2="244" stroke="${INK}" stroke-width="2"/>`;
+      for (let x = 85; x < 155; x += 14) { s += `<line x1="${x}" y1="239" x2="${x}" y2="244" stroke="${INK}" stroke-width="1.5"/>`; }
+      // Minecart
+      s += `<rect x="88" y="225" width="36" height="18" rx="2" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<circle cx="97" cy="244" r="5" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<circle cx="116" cy="244" r="5" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Torches
+      s += `<line x1="163" y1="222" x2="163" y2="238" stroke="${INK}" stroke-width="2"/>`;
+      s += `<path d="M160,221 Q163,212 166,221" fill="#d97706" stroke="#b45309" stroke-width="1"/>`;
+      s += `<line x1="237" y1="222" x2="237" y2="238" stroke="${INK}" stroke-width="2"/>`;
+      s += `<path d="M234,221 Q237,212 240,221" fill="#d97706" stroke="#b45309" stroke-width="1"/>`;
+      // Sign post
+      s += `<line x1="302" y1="175" x2="302" y2="200" stroke="${INK}" stroke-width="2"/>`;
+      s += `<rect x="286" y="154" width="32" height="24" rx="2" fill="${BG}" stroke="${INK}" stroke-width="1.5"/>`;
+      return s;
+    }
+
+    function drawTreehouse() {
+      let s = '';
+      s += `<line x1="30" y1="265" x2="370" y2="265" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`;
+      // Roots
+      s += `<path d="M188,265 Q170,275 148,268" fill="none" stroke="${INK}" stroke-width="2"/>`;
+      s += `<path d="M212,265 Q230,275 252,268" fill="none" stroke="${INK}" stroke-width="2"/>`;
+      // Trunk
+      s += `<path d="M183,265 L176,148" stroke="${INK}" stroke-width="9" stroke-linecap="round"/>`;
+      s += `<path d="M217,265 L224,148" stroke="${INK}" stroke-width="9" stroke-linecap="round"/>`;
+      s += `<path d="M176,148 L224,148" stroke="${INK}" stroke-width="9" stroke-linecap="round"/>`;
+      // Bark texture
+      s += `<path d="M181,235 Q188,233 190,248" fill="none" stroke="${BG}" stroke-width="1.5"/>`;
+      s += `<path d="M210,220 Q217,218 219,232" fill="none" stroke="${BG}" stroke-width="1.5"/>`;
+      // Platform
+      s += `<rect x="128" y="147" width="144" height="10" rx="2" fill="${SHAD}" stroke="${INK}" stroke-width="2"/>`;
+      // Treehouse walls
+      s += `<rect x="143" y="105" width="114" height="48" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Roof
+      s += `<path d="M122,108 L200,62 L278,108 Z" fill="${SHAD}" stroke="${INK}" stroke-width="2"/>`;
+      // Door
+      s += `<rect x="188" y="122" width="24" height="31" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<circle cx="208" cy="138" r="2.5" fill="${INK}"/>`;
+      // Windows
+      s += `<rect x="151" y="112" width="24" height="18" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<rect x="225" y="112" width="24" height="18" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Rope ladder
+      s += `<line x1="160" y1="157" x2="158" y2="265" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<line x1="172" y1="157" x2="170" y2="265" stroke="${INK}" stroke-width="1.5"/>`;
+      for (let y = 162; y < 265; y += 15) { s += `<line x1="158" y1="${y}" x2="170" y2="${y+1}" stroke="${INK}" stroke-width="1.5"/>`; }
+      // Foliage blobs
+      s += `<circle cx="160" cy="102" r="36" fill="${SHAD}" opacity="0.5" stroke="${INK}" stroke-width="1"/>`;
+      s += `<circle cx="200" cy="88" r="42" fill="${SHAD}" opacity="0.55" stroke="${INK}" stroke-width="1"/>`;
+      s += `<circle cx="242" cy="98" r="38" fill="${SHAD}" opacity="0.5" stroke="${INK}" stroke-width="1"/>`;
+      s += `<circle cx="178" cy="78" r="28" fill="${SHAD}" opacity="0.45" stroke="${INK}" stroke-width="1"/>`;
+      s += `<circle cx="222" cy="78" r="30" fill="${SHAD}" opacity="0.45" stroke="${INK}" stroke-width="1"/>`;
+      return s;
+    }
+
+    function drawArena() {
+      let s = '';
+      // Outer wall
+      s += `<ellipse cx="200" cy="182" rx="165" ry="85" fill="${WALL}" stroke="${INK}" stroke-width="2"/>`;
+      // Inner bowl tiers
+      s += `<ellipse cx="200" cy="192" rx="140" ry="68" fill="${SHAD}" stroke="${INK}" stroke-width="1.2"/>`;
+      s += `<ellipse cx="200" cy="200" rx="112" ry="52" fill="${BG}" stroke="${INK}" stroke-width="1.2"/>`;
+      // Arena floor
+      s += `<ellipse cx="200" cy="208" rx="82" ry="35" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Gates (4 archways)
+      s += `<path d="M190,97 L190,116 Q200,109 210,116 L210,97" fill="${BG}" stroke="${INK}" stroke-width="2"/>`;
+      s += `<path d="M190,252 L190,268 L210,268 L210,252 Q200,243 190,252" fill="${BG}" stroke="${INK}" stroke-width="2"/>`;
+      s += `<path d="M36,174 L36,196 L56,196 L56,174 Q46,165 36,174" fill="${BG}" stroke="${INK}" stroke-width="2"/>`;
+      s += `<path d="M344,174 L344,196 L364,196 L364,174 Q354,165 344,174" fill="${BG}" stroke="${INK}" stroke-width="2"/>`;
+      // Flags
+      for (const [x, y] of [[62,147],[135,112],[200,98],[265,112],[338,147]]) {
+        s += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y-20}" stroke="${INK}" stroke-width="1.5"/>`;
+        s += `<path d="M${x},${y-20} L${x+14},${y-15} L${x},${y-10} Z" fill="${SHAD}" stroke="${INK}" stroke-width="1"/>`;
+      }
+      // Crossed swords in center
+      s += `<line x1="187" y1="198" x2="213" y2="222" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`;
+      s += `<line x1="213" y1="198" x2="187" y2="222" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`;
+      return s;
+    }
+
+    function drawLighthouse() {
+      let s = '';
+      // Base rocks
+      s += `<path d="M30,245 Q80,235 130,240 Q170,245 200,242 Q240,240 280,243 Q330,245 370,240 L370,265 L30,265 Z" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Tower
+      s += `<path d="M170,242 L158,100 L242,100 L230,242 Z" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Light room
+      s += `<rect x="155" y="80" width="90" height="24" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Roof/dome
+      s += `<path d="M150,80 L200,55 L250,80 Z" fill="${SHAD}" stroke="${INK}" stroke-width="2"/>`;
+      s += `<line x1="200" y1="55" x2="200" y2="42" stroke="${INK}" stroke-width="2"/>`;
+      s += `<circle cx="200" cy="40" r="4" fill="${INK}"/>`;
+      // Railing on light room
+      s += `<line x1="150" y1="80" x2="250" y2="80" stroke="${INK}" stroke-width="2"/>`;
+      for (let x = 158; x <= 242; x += 12) { s += `<line x1="${x}" y1="80" x2="${x}" y2="70" stroke="${INK}" stroke-width="1.2"/>`; }
+      // Light beam rays
+      s += `<path d="M200,88 L155,55 M200,88 L145,75 M200,88 L245,55 M200,88 L255,75" stroke="${INK}" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>`;
+      // Tower stripe pattern
+      for (let y = 110; y < 240; y += 28) {
+        s += `<rect x="${163 + (y-100)*0.15}" y="${y}" width="${74 - (y-100)*0.3}" height="12" fill="${SHAD}" stroke="none" opacity="0.4"/>`;
+      }
+      // Windows
+      s += `<rect x="${181}" y="140" width="18" height="26" rx="9" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<rect x="${179}" y="182" width="18" height="26" rx="9" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Door
+      s += `<path d="M188,242 L188,218 Q200,208 212,218 L212,242" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      return s;
+    }
+
+    function drawGenericBuilding() {
+      let s = '';
+      // Main building
+      s += `<rect x="115" y="155" width="170" height="90" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Hipped roof
+      s += `<path d="M95,155 L200,85 L305,155 Z" fill="${SHAD}" stroke="${INK}" stroke-width="2"/>`;
+      // Side wing
+      s += `<rect x="285" y="190" width="48" height="55" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<path d="M280,190 L309,164 L338,190" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      // Chimney
+      s += `<rect x="142" y="91" width="26" height="53" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<rect x="137" y="87" width="36" height="7" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<path d="M155,87 Q143,75 153,62 Q163,50 150,38" fill="none" stroke="${INK}" stroke-width="1.2" stroke-dasharray="3,2"/>`;
+      // Door
+      s += `<rect x="177" y="210" width="40" height="35" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<circle cx="212" cy="228" r="3" fill="${INK}"/>`;
+      // Window
+      s += `<rect x="124" y="170" width="36" height="28" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<line x1="142" y1="170" x2="142" y2="198" stroke="${INK}" stroke-width="1"/>`;
+      s += `<line x1="124" y1="184" x2="160" y2="184" stroke="${INK}" stroke-width="1"/>`;
+      // Barrel
+      s += `<rect x="255" y="213" width="24" height="26" fill="${WALL}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<ellipse cx="267" cy="213" rx="12" ry="5" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<ellipse cx="267" cy="239" rx="12" ry="5" fill="${SHAD}" stroke="${INK}" stroke-width="1.5"/>`;
+      s += `<line x1="255" y1="224" x2="279" y2="224" stroke="${INK}" stroke-width="1"/>`;
+      s += `<line x1="255" y1="231" x2="279" y2="231" stroke="${INK}" stroke-width="1"/>`;
+      // Roof ridge
+      s += `<line x1="200" y1="85" x2="200" y2="155" stroke="${INK}" stroke-width="1" stroke-dasharray="5,3"/>`;
+      return s;
+    }
+
+    // Route by building type
+    if (type.includes('tavern') || type.includes('inn') || type.includes('guild') || type.includes('merchant')) {
+      return wrap(drawTavern() + ground + grass());
+    } else if (type.includes('lighthouse')) {
+      return wrap(drawLighthouse());
+    } else if (type.includes('tower') || type.includes('wizard') || type.includes('citadel') || type.includes('sky')) {
+      return wrap(drawTower() + ground + grass());
+    } else if (type.includes('cathedral') || type.includes('temple') || type.includes('shrine') || type.includes('druid')) {
+      return wrap(drawCathedral() + ground + grass());
+    } else if (type.includes('castle') || type.includes('gatehouse') || type.includes('roost') || type.includes('stronghold')) {
+      return wrap(drawCastle() + ground + grass());
+    } else if (type.includes('mine') || type.includes('crypt') || type.includes('underground') || type.includes('cave')) {
+      return wrap(drawMine() + ground + grass());
+    } else if (type.includes('treehouse') || type.includes('elven') || type.includes('grove')) {
+      return wrap(drawTreehouse());
+    } else if (type.includes('arena') || type.includes('gladiator')) {
+      return wrap(drawArena() + ground + grass());
+    } else {
+      return wrap(drawGenericBuilding() + ground + grass());
+    }
+  }
+
   async function generateBuilding() {
     if (buildings.length >= 10) {
       showError('buildingError', 'Vault is full (10/10). Clear some buildings to make room.');
@@ -863,25 +1182,8 @@
     const buildingType = randomBuildingType();
     const model = getModel('modelPickerBuild');
 
-    // Step 1: Generate SVG sketch via Claude
-    let svgHtml = null;
-    try {
-      const svgSystem = 'You are an SVG illustrator for fantasy tabletop games. Return ONLY valid SVG code — starting with <svg and ending with </svg>. No explanation, no markdown, no code fences. Just raw SVG.';
-      const svgMsg = `Create an SVG illustration of a fantasy ${buildingType}. Requirements: viewBox="0 0 400 300". Start with <rect width="400" height="300" fill="#f5e6c8"/> for parchment background. Use stroke="#2d1a0e" fill="none" stroke-width="1.5" for all structural lines. Draw the building with walls, roof, windows, doors, and characteristic architectural details. Add a few small ground details. Style: hand-drawn D&D campaign map sketch. Keep it clear and recognizable.`;
-
-      const svgRaw = await callAI('claude', svgSystem, svgMsg);
-      if (!svgRaw) {
-        // Rate limit hit
-        setLoading('buildingLoading', 'generateBuildingBtn', false);
-        return;
-      }
-      const match = svgRaw.match(/<svg[\s\S]*?<\/svg>/i);
-      if (match) {
-        svgHtml = match[0];
-      }
-    } catch {
-      // SVG generation failed — continue without sketch
-    }
+    // Step 1: Generate SVG sketch procedurally (instant, no API call)
+    const svgHtml = generateBuildingSVG(buildingType);
 
     // Step 2: Generate building name and description via chosen model
     try {
