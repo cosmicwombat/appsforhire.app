@@ -22,6 +22,7 @@ SLUGS = [
     "tgpquake",
     "isitopen",
     "theghostinterpreter",
+    "forgefable",
     "tgihorror",
     "theghostkitchen",
 ]
