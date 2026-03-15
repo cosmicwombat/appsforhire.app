@@ -17,6 +17,8 @@ import os, sys, base64, json, urllib.request, urllib.error
 OWNER = "cosmicwombat"
 # All published client slugs — add new ones here after publishing
 SLUGS = [
+    "softphone",
+    "webphone",
     "thegatheringplace",
     "tgpscripture",
     "tgpquake",
@@ -29,7 +31,7 @@ SLUGS = [
 
 # Files to push from builds/{slug}/ → client-{slug}/
 # Paths are relative to builds/{slug}/
-APP_FILES    = ["index.html", "manifest.json", "sw.js"]
+APP_FILES    = ["index.html", "manifest.json", "sw.js", "jssip.min.js"]
 PORTAL_FILES = ["portal/index.html", "portal/customer-config.js"]
 ALL_FILES    = APP_FILES + PORTAL_FILES
 
