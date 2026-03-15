@@ -276,9 +276,14 @@
         <div class="page-title">Admin Dashboard</div>
         <div class="page-date" id="pageDate">—</div>
       </div>
-      <a href="https://appsforhire.app/#contact" target="_blank" class="btn btn-primary">
-        + New Lead
-      </a>
+      <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+        <button id="resetRateLimitsBtn" class="btn btn-ghost" onclick="resetRateLimits()">
+          🔄 Reset Rate Limits
+        </button>
+        <a href="https://appsforhire.app/#contact" target="_blank" class="btn btn-primary">
+          + New Lead
+        </a>
+      </div>
     </div>
 
     <!-- Stats -->
@@ -382,6 +387,44 @@
 </div>
 
 <script>
+  // ── Admin API helpers ──
+  const WORKER = 'https://worker.appsforhire.app';
+  let _adminSecret = null;
+
+  function getAdminSecret() {
+    if (_adminSecret) return _adminSecret;
+    const val = prompt('Enter ADMIN_SECRET:');
+    if (val) _adminSecret = val.trim();
+    return _adminSecret;
+  }
+
+  async function resetRateLimits() {
+    const secret = getAdminSecret();
+    if (!secret) return;
+
+    const btn = document.getElementById('resetRateLimitsBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Resetting...';
+
+    try {
+      const res = await fetch(`${WORKER}/admin/reset-rate-limits`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${secret}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      btn.textContent = `✅ Reset ${data.deleted} key${data.deleted !== 1 ? 's' : ''}`;
+      setTimeout(() => { btn.textContent = '🔄 Reset Rate Limits'; btn.disabled = false; }, 3000);
+    } catch (e) {
+      btn.textContent = '❌ ' + e.message;
+      _adminSecret = null; // clear bad secret
+      setTimeout(() => { btn.textContent = '🔄 Reset Rate Limits'; btn.disabled = false; }, 3000);
+    }
+  }
+
   // Set date
   document.getElementById('pageDate').textContent = new Date().toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'

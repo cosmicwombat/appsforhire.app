@@ -365,11 +365,16 @@
       overflow: hidden;
       margin-bottom: 16px;
     }
-    .building-card img {
+    .building-svg-container {
       width: 100%;
       aspect-ratio: 4/3;
-      object-fit: cover;
-      background: var(--surface2);
+      background: #f5e6c8;
+      display: block;
+      overflow: hidden;
+    }
+    .building-svg-container svg {
+      width: 100%;
+      height: 100%;
       display: block;
     }
     .building-card-body {
@@ -461,10 +466,16 @@
     .vault-thumb.active {
       border-color: var(--accent);
     }
-    .vault-thumb img {
+    .vault-svg {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .vault-svg svg {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
     .vault-thumb .vault-placeholder {
       width: 100%;
@@ -604,7 +615,7 @@
     <p class="section-subtitle">Generate fantasy building illustrations with names and lore for your campaign.</p>
 
     <div class="card">
-      <label for="modelPickerBuild" style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">AI Model (for name &amp; description)</label>
+      <label for="modelPickerBuild" style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">AI Model (name &amp; description — sketch always uses Claude)</label>
       <div class="model-picker" id="modelPickerBuild">
         <button type="button" class="model-option active" data-model="claude">Claude</button>
         <button type="button" class="model-option" data-model="gemini">Gemini</button>
@@ -852,34 +863,24 @@
     const buildingType = randomBuildingType();
     const model = getModel('modelPickerBuild');
 
-    // Step 1: Generate building image via Gemini
-    let imageUrl = null;
+    // Step 1: Generate SVG sketch via Claude
+    let svgHtml = null;
     try {
-      const imgPrompt = `Generate an image of a fantasy ${buildingType}. Style: simple architectural sketch, black ink on aged parchment paper, detailed line art suitable for a Dungeons & Dragons campaign map. No color, just black ink linework on parchment.`;
-      const imgRes = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'gemini', system: 'You are an image description assistant.', message: imgPrompt }),
-      });
-      const imgData = await imgRes.json();
+      const svgSystem = 'You are an SVG illustrator for fantasy tabletop games. Return ONLY valid SVG code — starting with <svg and ending with </svg>. No explanation, no markdown, no code fences. Just raw SVG.';
+      const svgMsg = `Create an SVG illustration of a fantasy ${buildingType}. Requirements: viewBox="0 0 400 300". Start with <rect width="400" height="300" fill="#f5e6c8"/> for parchment background. Use stroke="#2d1a0e" fill="none" stroke-width="1.5" for all structural lines. Draw the building with walls, roof, windows, doors, and characteristic architectural details. Add a few small ground details. Style: hand-drawn D&D campaign map sketch. Keep it clear and recognizable.`;
 
-      if (imgRes.status === 429) {
-        document.getElementById('demoOverlay').classList.add('show');
+      const svgRaw = await callAI('claude', svgSystem, svgMsg);
+      if (!svgRaw) {
+        // Rate limit hit
         setLoading('buildingLoading', 'generateBuildingBtn', false);
         return;
       }
-
-      if (typeof imgData.remaining === 'number' && imgData.remaining <= 2) {
-        document.getElementById('callsLeft').textContent = imgData.remaining;
-        document.getElementById('softWarning').classList.add('visible');
-      }
-
-      // Check if image was returned
-      if (imgData.image) {
-        imageUrl = imgData.image.startsWith('data:') ? imgData.image : `data:image/png;base64,${imgData.image}`;
+      const match = svgRaw.match(/<svg[\s\S]*?<\/svg>/i);
+      if (match) {
+        svgHtml = match[0];
       }
     } catch {
-      // Image generation failed — continue without image
+      // SVG generation failed — continue without sketch
     }
 
     // Step 2: Generate building name and description via chosen model
@@ -901,7 +902,7 @@
       const building = {
         name: parsed.name || `Mysterious ${buildingType}`,
         description: parsed.description || 'A mysterious structure shrouded in legend.',
-        imageUrl: imageUrl,
+        svgHtml: svgHtml,
         notes: '',
         type: buildingType,
       };
@@ -926,8 +927,8 @@
     }
 
     const b = buildings[focusedIndex];
-    const imgHtml = b.imageUrl
-      ? `<img src="${b.imageUrl}" alt="Sketch of ${b.name}" />`
+    const imgHtml = b.svgHtml
+      ? `<div class="building-svg-container">${b.svgHtml}</div>`
       : `<div class="building-img-placeholder">🏰</div>`;
 
     container.innerHTML = `
@@ -981,8 +982,8 @@
 
     scroll.innerHTML = buildings.map((b, i) => {
       const active = i === focusedIndex ? 'active' : '';
-      const inner = b.imageUrl
-        ? `<img src="${b.imageUrl}" alt="${escapeHtml(b.name)}" />`
+      const inner = b.svgHtml
+        ? `<div class="vault-svg">${b.svgHtml}</div>`
         : `<div class="vault-placeholder">🏰</div>`;
       return `<div class="vault-thumb ${active}" data-idx="${i}">${inner}</div>`;
     }).join('');
