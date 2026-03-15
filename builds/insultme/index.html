@@ -3,314 +3,579 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- CUSTOMIZE: Update title and description for each client -->
-  <title>{{CLIENT_NAME}} — {{APP_TITLE}}</title>
-  <meta name="description" content="{{APP_DESCRIPTION}}" />
+  <title>insult me — AI Powered insults in seconds</title>
+  <meta name="description" content="insult me — AI Powered insults in seconds. Monty Python style insults personalized to your name." />
+  <meta name="theme-color" content="#0d9488" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="{{THEME_COLOR}}" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤺</text></svg>" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* CUSTOMIZE: Brand colors for this client */
-      --primary:   {{THEME_COLOR}};
-      --primary-dark: {{THEME_COLOR_DARK}};
-      --bg:        #f8fafc;
-      --white:     #ffffff;
-      --gray100:   #f1f5f9;
-      --gray200:   #e2e8f0;
-      --gray500:   #64748b;
-      --gray700:   #334155;
-      --gray900:   #0f172a;
-      --radius:    12px;
-      --shadow:    0 4px 16px rgba(0,0,0,.08);
+      --bg:         #0f1117;
+      --surface:    #1a1d27;
+      --surface2:   #222536;
+      --border:     #2e3147;
+      --accent:     #0d9488;
+      --accent-dark:#0f766e;
+      --accent2:    #22d3ee;
+      --green:      #34d399;
+      --amber:      #fbbf24;
+      --red:        #f87171;
+      --text:       #e2e8f0;
+      --muted:      #94a3b8;
+      --dim:        #64748b;
+      --radius:     12px;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
-      color: var(--gray700);
+      color: var(--text);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
     /* ── Header ── */
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 1rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
-      position: sticky; top: 0; z-index: 10;
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: var(--accent);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    .header-logo {
-      font-size: 1.15rem; font-weight: 800; letter-spacing: -.02em;
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
     }
-    .header-sub {
-      font-size: .75rem; opacity: .75; margin-top: .1rem;
+    .header-business {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,.7);
+      letter-spacing: .04em;
+    }
+    .header-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.02em;
     }
     .header-right {
-      display: flex; align-items: center; gap: .6rem;
-    }
-    .header-badge {
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 100px; padding: .3rem .8rem;
-      font-size: .75rem; font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
     }
     .back-link {
-      display: inline-flex; align-items: center; gap: .3rem;
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
       background: rgba(0,0,0,.2);
       border: 1px solid rgba(255,255,255,.2);
-      border-radius: 100px; padding: .3rem .8rem;
-      font-size: .75rem; font-weight: 600; color: white;
-      text-decoration: none; transition: background .15s;
+      border-radius: 100px;
+      padding: 5px 12px;
+      transition: background .15s;
     }
-    .back-link:hover { background: rgba(0,0,0,.35); }
+    .back-link:hover {
+      background: rgba(0,0,0,.35);
+    }
+    .header-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 100px;
+      padding: 4px 10px;
+    }
 
-    /* ── Main Layout ── */
-    main {
-      max-width: 860px; margin: 0 auto;
-      padding: 2rem 1.25rem;
+    /* ── Layout ── */
+    .app-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 32px 0 8px;
+    }
+    .hero-emoji {
+      font-size: 56px;
+      margin-bottom: 12px;
+      display: block;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .hero h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      margin-bottom: 6px;
+    }
+    .hero p {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 400px;
+      margin: 0 auto;
     }
 
     /* ── Cards ── */
     .card {
-      background: var(--white);
-      border: 1px solid var(--gray200);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      margin-bottom: 1.25rem;
+      padding: 24px;
+      margin-bottom: 16px;
     }
     .card-title {
-      font-size: 1rem; font-weight: 700; color: var(--gray900);
-      margin-bottom: 1rem; padding-bottom: .75rem;
-      border-bottom: 1px solid var(--gray200);
-      display: flex; align-items: center; gap: .5rem;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text);
     }
-    .card-title .icon { font-size: 1.1rem; }
-
-    /* ── Grid ── */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    @media (max-width: 580px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    }
-
-    /* ── Stat Tiles ── */
-    .stat-tile {
-      background: var(--gray100);
-      border-radius: 10px; padding: 1.1rem;
-      text-align: center;
-    }
-    .stat-tile .val {
-      font-size: 1.8rem; font-weight: 800; color: var(--primary);
-      line-height: 1.1; letter-spacing: -.03em;
-    }
-    .stat-tile .lbl {
-      font-size: .78rem; color: var(--gray500); margin-top: .2rem; font-weight: 600;
-    }
-
-    /* ── Table ── */
-    .data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-    .data-table th {
-      background: var(--gray100); color: var(--gray700);
-      font-size: .75rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .05em; padding: .6rem .85rem; text-align: left;
-      border-bottom: 2px solid var(--gray200);
-    }
-    .data-table td {
-      padding: .7rem .85rem;
-      border-bottom: 1px solid var(--gray200);
-      color: var(--gray700);
-    }
-    .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: var(--gray100); }
-
-    /* ── Badges ── */
-    .badge {
-      display: inline-block; padding: .2rem .6rem; border-radius: 100px;
-      font-size: .72rem; font-weight: 700;
-    }
-    .badge-green  { background: #dcfce7; color: #15803d; }
-    .badge-yellow { background: #fef9c3; color: #a16207; }
-    .badge-red    { background: #fee2e2; color: #b91c1c; }
-    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
-
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex; align-items: center; gap: .4rem;
-      padding: .6rem 1.2rem; border-radius: 8px;
-      font-weight: 700; font-size: .88rem;
-      border: none; cursor: pointer; text-decoration: none;
-      transition: opacity .15s;
-    }
-    .btn:hover { opacity: .88; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
-    .btn-sm { padding: .35rem .8rem; font-size: .8rem; }
 
     /* ── Form ── */
-    .form-group { margin-bottom: .9rem; }
-    label { display: block; font-size: .82rem; font-weight: 600; color: var(--gray700); margin-bottom: .3rem; }
-    input, select, textarea {
-      width: 100%; padding: .6rem .85rem;
-      border: 1.5px solid var(--gray200); border-radius: 8px;
-      font-size: .92rem; color: var(--gray900); background: white;
-      outline: none; font-family: inherit;
-      transition: border-color .2s;
+    .form-group {
+      margin-bottom: 16px;
     }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-    textarea { resize: vertical; min-height: 90px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .form-group input::placeholder {
+      color: var(--dim);
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--accent);
+    }
+    .form-group select option {
+      background: var(--surface2);
+      color: var(--text);
+    }
 
-    /* ── Empty State ── */
-    .empty {
-      text-align: center; padding: 3rem 1rem;
-      color: var(--gray500); font-size: .9rem;
+    /* ── Button ── */
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
     }
-    .empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-dark);
+    }
+    .btn-primary:active:not(:disabled) {
+      transform: scale(.98);
+    }
+    .btn-primary:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    /* ── Loading ── */
+    .loading-area {
+      display: none;
+      text-align: center;
+      padding: 32px 0;
+    }
+    .loading-area.show {
+      display: block;
+    }
+    .loading-dots {
+      display: inline-flex;
+      gap: 6px;
+    }
+    .loading-dots span {
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: dotPulse 1.4s ease-in-out infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: .2s; }
+    .loading-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes dotPulse {
+      0%, 80%, 100% { transform: scale(.6); opacity: .4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    .loading-text {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    /* ── Result ── */
+    .result-card {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+      animation: fadeIn .3s ease;
+    }
+    .result-card.show {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .result-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 12px;
+    }
+    .result-text {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+    .result-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-secondary {
+      flex: 1;
+      padding: 12px;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .btn-secondary:hover {
+      background: var(--border);
+      border-color: var(--accent);
+    }
+
+    /* ── Soft Warning ── */
+    .soft-warning {
+      display: none;
+      text-align: center;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: rgba(251,191,36,.1);
+      border: 1px solid rgba(251,191,36,.3);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--amber);
+    }
+    .soft-warning.show {
+      display: block;
+    }
+
+    /* ── Error ── */
+    .error-msg {
+      display: none;
+      text-align: center;
+      padding: 16px;
+      margin-bottom: 12px;
+      background: rgba(248,113,113,.08);
+      border: 1px solid rgba(248,113,113,.25);
+      border-radius: var(--radius);
+      font-size: 14px;
+      color: var(--red);
+    }
+    .error-msg.show {
+      display: block;
+    }
+
+    /* ── Demo Overlay ── */
+    .demo-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,17,23,.96);
+      z-index: 200;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+    .demo-overlay.show {
+      display: flex;
+    }
+    .demo-overlay .demo-emoji {
+      font-size: 56px;
+      margin-bottom: 16px;
+    }
+    .demo-overlay h2 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .demo-overlay p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      max-width: 340px;
+    }
+    .demo-overlay .btn-cta {
+      display: inline-block;
+      padding: 14px 32px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .demo-overlay .btn-cta:hover {
+      background: var(--accent-dark);
+    }
+    .demo-overlay .btn-dismiss {
+      margin-top: 16px;
+      background: none;
+      border: none;
+      color: var(--dim);
+      font-size: 13px;
+      cursor: pointer;
+    }
 
     /* ── Footer ── */
-    footer {
-      text-align: center; padding: 2rem 1rem;
-      font-size: .78rem; color: var(--gray500);
-      border-top: 1px solid var(--gray200);
-      margin-top: 2rem;
+    .footer-note {
+      text-align: center;
+      padding: 24px 0;
+      font-size: 12px;
+      color: var(--dim);
     }
-    footer a { color: var(--primary); text-decoration: none; }
   </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <div class="header-logo">{{CLIENT_NAME}}</div>
-    <div class="header-sub">{{APP_TITLE}}</div>
-  </div>
-  <div class="header-right">
-    <a href="/portal/" class="back-link">← My Apps</a>
-    <div class="header-badge">Secure App</div>
-  </div>
-</header>
-
-<main>
-
-  <!-- CUSTOMIZE: Replace the sections below with the actual app content -->
-
-  <!-- Example: Stats row -->
-  <div class="grid-3" style="margin-bottom: 1.25rem;">
-    <div class="stat-tile">
-      <div class="val" id="stat1">—</div>
-      <div class="lbl">{{STAT_1_LABEL}}</div>
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="header-business">The Build company</span>
+      <span class="header-title">insult me</span>
     </div>
-    <div class="stat-tile">
-      <div class="val" id="stat2">—</div>
-      <div class="lbl">{{STAT_2_LABEL}}</div>
+    <div class="header-right" style="display:flex;align-items:center;gap:.6rem">
+      <a href="/portal/" class="back-link">← My Apps</a>
+      <span class="header-badge">🔒 Secure App</span>
     </div>
-    <div class="stat-tile">
-      <div class="val" id="stat3">—</div>
-      <div class="lbl">{{STAT_3_LABEL}}</div>
-    </div>
-  </div>
+  </header>
 
-  <!-- Example: Data table card -->
-  <div class="card">
-    <div class="card-title">
-      <span class="icon">📋</span> {{TABLE_TITLE}}
-    </div>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>{{COL_1}}</th>
-          <th>{{COL_2}}</th>
-          <th>{{COL_3}}</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr>
-          <td colspan="4">
-            <div class="empty">
-              <div class="empty-icon">📭</div>
-              No data yet — add your first entry below.
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- ── Main ── -->
+  <main class="app-container">
 
-  <!-- Example: Input form card -->
-  <div class="card">
-    <div class="card-title">
-      <span class="icon">➕</span> Add {{ITEM_NAME}}
-    </div>
-    <form id="mainForm">
-      <div class="form-row">
+    <!-- Hero -->
+    <section class="hero">
+      <span class="hero-emoji">🤺</span>
+      <h1>insult me</h1>
+      <p>AI Powered insults in seconds. Monty Python approved.</p>
+    </section>
+
+    <!-- Input Card -->
+    <section class="card" id="inputCard">
+      <div class="card-title">🎭 Who shall we insult?</div>
+      <form id="insultForm" autocomplete="off">
         <div class="form-group">
-          <label>{{FIELD_1_LABEL}}</label>
-          <input type="text" name="field1" placeholder="{{FIELD_1_PLACEHOLDER}}" required />
+          <label for="nameInput">Victim's Name</label>
+          <input type="text" id="nameInput" placeholder="e.g. Sir Lancelot, Dave from accounting…" maxlength="80" />
         </div>
         <div class="form-group">
-          <label>{{FIELD_2_LABEL}}</label>
-          <input type="text" name="field2" placeholder="{{FIELD_2_PLACEHOLDER}}" />
+          <label for="styleSelect">Insult Flavor</label>
+          <select id="styleSelect">
+            <option value="classic">Classic Monty Python</option>
+            <option value="holy-grail">Holy Grail French Taunter</option>
+            <option value="black-knight">Black Knight Bravado</option>
+            <option value="spanish-inquisition">Spanish Inquisition</option>
+            <option value="dead-parrot">Dead Parrot Absurdity</option>
+            <option value="silly-walks">Ministry of Silly Walks</option>
+          </select>
         </div>
+        <button type="submit" class="btn-primary" id="submitBtn">⚔️ Insult Me!</button>
+      </form>
+    </section>
+
+    <!-- Soft Warning -->
+    <div class="soft-warning" id="softWarning">
+      ⚠️ You're running low on demo uses. <strong>Contact AppsForHire</strong> for unlimited access!
+    </div>
+
+    <!-- Error -->
+    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- Loading -->
+    <div class="loading-area" id="loadingArea">
+      <div class="loading-dots">
+        <span></span><span></span><span></span>
       </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <textarea name="notes" placeholder="Any additional notes..."></textarea>
+      <div class="loading-text">Consulting the Ministry of Silly Insults…</div>
+    </div>
+
+    <!-- Result -->
+    <section class="result-card" id="resultCard">
+      <div class="result-label">⚔️ Your Insult</div>
+      <div class="result-text" id="resultText"></div>
+      <div class="result-actions">
+        <button class="btn-secondary" id="copyBtn" aria-label="Copy insult to clipboard">📋 Copy</button>
+        <button class="btn-secondary" id="againBtn">🎲 Again →</button>
       </div>
-      <button type="submit" class="btn btn-primary">Save {{ITEM_NAME}}</button>
-    </form>
+    </section>
+
+    <div class="footer-note">Powered by AI &amp; bad taste since 2026</div>
+  </main>
+
+  <!-- ── Demo Overlay ── -->
+  <div class="demo-overlay" id="demoOverlay">
+    <div class="demo-emoji">🚀</div>
+    <h2>Want your own app?</h2>
+    <p>You've hit the free demo limit. Get an unlimited custom app built just for your business!</p>
+    <a href="https://appsforhire.app/#contact" class="btn-cta">Get Your Build →</a>
+    <button class="btn-dismiss" onclick="document.getElementById('demoOverlay').classList.remove('show')">Dismiss</button>
   </div>
 
-</main>
+  <script>
+    // ── Service Worker ──
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
 
-<footer>
-  <p>Hosted by <a href="https://appsforhire.app" target="_blank">AppsForHire</a> &nbsp;·&nbsp; Secured by Cloudflare</p>
-</footer>
+    // ── Elements ──
+    const form        = document.getElementById('insultForm');
+    const nameInput   = document.getElementById('nameInput');
+    const styleSelect = document.getElementById('styleSelect');
+    const submitBtn   = document.getElementById('submitBtn');
+    const loadingArea = document.getElementById('loadingArea');
+    const resultCard  = document.getElementById('resultCard');
+    const resultText  = document.getElementById('resultText');
+    const errorMsg    = document.getElementById('errorMsg');
+    const softWarning = document.getElementById('softWarning');
+    const copyBtn     = document.getElementById('copyBtn');
+    const againBtn    = document.getElementById('againBtn');
 
-<script>
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
+    // ── AI Worker ──
+    const WORKER_URL = 'https://worker.appsforhire.app/ai';
 
-  // CUSTOMIZE: Replace with actual app logic
-  const form = document.getElementById('mainForm');
-  let items = JSON.parse(localStorage.getItem('app_data') || '[]');
+    async function callAI(system, userMessage) {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'gemini', system, message: userMessage }),
+      });
+      const data = await res.json();
+      if (res.status === 429) {
+        document.getElementById('demoOverlay').classList.add('show');
+        return null;
+      }
+      if (!res.ok) throw new Error(data.error || 'AI error');
+      // Soft warning when running low
+      if (data.remaining !== undefined && data.remaining <= 2) {
+        softWarning.classList.add('show');
+      }
+      return data.response;
+    }
 
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(form));
-    data.id = Date.now();
-    data.date = new Date().toLocaleDateString();
-    items.unshift(data);
-    localStorage.setItem('app_data', JSON.stringify(items));
-    renderTable();
-    form.reset();
-  });
+    // ── Style prompts ──
+    const STYLE_PROMPTS = {
+      'classic': 'You are the ultimate Monty Python insult generator. Channel the collective wit of the entire Monty Python troupe. Your insults should be absurd, verbose, gloriously British, and dripping with Pythonesque humor. Mix high-brow vocabulary with silly nonsense.',
+      'holy-grail': 'You are the French Taunter from Monty Python and the Holy Grail, standing atop your castle wall. Speak in a ridiculous French accent (write it phonetically). Taunt the person mercilessly about their mother, their father, and their general unworthiness. Reference hamsters, elderberries, silly English types, and fetching cows to fling.',
+      'black-knight': 'You are the Black Knight from Monty Python and the Holy Grail. You are invincible and nothing can defeat you — especially not this pathetic person. Dismiss all their achievements as mere flesh wounds. Be supremely overconfident and belligerent while clearly being ridiculous.',
+      'spanish-inquisition': 'You are Cardinal Ximénez of the Spanish Inquisition from Monty Python. NOBODY expects the Spanish Inquisition! Your chief weapon is surprise, surprise and fear, your TWO chief weapons. Deliver the insult as an inquisition charge. Keep correcting yourself on the number of chief weapons.',
+      'dead-parrot': 'You are the shopkeeper from the Dead Parrot sketch. The person IS the parrot — and they are clearly deceased, expired, shuffled off this mortal coil. Use every euphemism for death you can think of to describe how lifeless and unimpressive they are. Insist they are merely resting if convenient.',
+      'silly-walks': 'You are the Minister of Silly Walks from Monty Python. Critique the person as if reviewing their application for a government grant for silly walking. Their walk is not nearly silly enough. Be bureaucratic, condescending, and absurdly specific about the inadequacies of their imaginary walk.'
+    };
 
-  function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    if (!items.length) return;
-    tbody.innerHTML = items.map(item => `
-      <tr>
-        <td>${item.field1 || '—'}</td>
-        <td>${item.field2 || '—'}</td>
-        <td>${item.notes || '—'}</td>
-        <td><span class="badge badge-green">Active</span></td>
-      </tr>
-    `).join('');
-    document.getElementById('stat1').textContent = items.length;
-  }
+    // ── Form Submit ──
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await generateInsult();
+    });
 
-  renderTable();
-</script>
+    async function generateInsult() {
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameInput.focus();
+        nameInput.style.borderColor = 'var(--red)';
+        setTimeout(() => nameInput.style.borderColor = '', 1500);
+        return;
+      }
+
+      const style = styleSelect.value;
+      const systemPrompt = STYLE_PROMPTS[style] + ' Keep the insult to 2-4 sentences. Be creative, funny, and absolutely devastating — but in a silly, harmless Monty Python way. Never be genuinely mean or use slurs. End with a dramatic Pythonesque flourish.';
+
+      // UI states
+      submitBtn.disabled = true;
+      loadingArea.classList.add('show');
+      resultCard.classList.remove('show');
+      errorMsg.classList.remove('show');
+
+      try {
+        const response = await callAI(systemPrompt, 'Craft a Monty Python style insult directed at someone named "' + name + '". Make it personal to their name if you can find any amusing wordplay or associations.');
+        if (response) {
+          resultText.textContent = response;
+          resultCard.classList.add('show');
+        }
+      } catch (err) {
+        errorMsg.textContent = '😬 Blast! The Ministry of Silly Insults is temporarily unavailable. Please try again.';
+        errorMsg.classList.add('show');
+      } finally {
+        submitBtn.disabled = false;
+        loadingArea.classList.remove('show');
+      }
+    }
+
+    // ── Copy ──
+    copyBtn.addEventListener('click', () => {
+      const text = resultText.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = '✅ Copied!';
+        setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
+      }).catch(() => {
+        copyBtn.textContent = '❌ Failed';
+        setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
+      });
+    });
+
+    // ── Again ──
+    againBtn.addEventListener('click', () => {
+      generateInsult();
+    });
+  </script>
 </body>
 </html>
