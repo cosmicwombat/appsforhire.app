@@ -589,6 +589,24 @@
   </div>
 </div>
 
+<!-- Repair CF Modal -->
+<div class="modal-backdrop" id="repairCFModal" onclick="closeModal('repairCFModal',event)">
+  <div class="modal" style="max-width:420px;">
+    <button class="modal-close" onclick="closeModal('repairCFModal')">✕</button>
+    <div class="modal-title">☁️ Repair Cloudflare</div>
+    <div class="modal-sub" id="repairCFSub">Re-run DNS CNAME creation and Access app + policy setup for this app.</div>
+    <div style="margin-top:14px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Client Email (for Access policy)</label>
+      <input class="modal-input" id="repairCFEmail" type="email" placeholder="client@example.com" autocomplete="off"/>
+    </div>
+    <div class="pub-log" id="repairCFLog" style="margin-top:12px;min-height:40px;"></div>
+    <div class="modal-actions" id="repairCFActions">
+      <button class="btn btn-ghost" onclick="closeModal('repairCFModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="runRepairCF()">Run →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Transfer to Client Modal -->
 <div class="modal-backdrop" id="transferModal" onclick="closeModal('transferModal',event)">
   <div class="modal" style="max-width:500px;">
@@ -942,7 +960,7 @@
           <div class="actions">
             <button class="btn btn-ghost btn-sm" title="Copy / clone this build" onclick='openCopyModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>Copy →</button>
             ${b.status==='published'
-              ? `<button class="btn btn-ghost btn-sm" title="Transfer to a different client" onclick='openTransferModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>🔀 Transfer</button><button class="btn btn-ghost btn-sm" title="Edit client email" onclick='openEditEmailModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>✏️ Email</button><span style="font-size:11px;color:var(--green-text)">✓ Live</span>`
+              ? `<button class="btn btn-ghost btn-sm" title="Re-run Cloudflare DNS + Access" onclick='openRepairCFModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>☁️ CF</button><button class="btn btn-ghost btn-sm" title="Transfer to a different client" onclick='openTransferModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>🔀 Transfer</button><button class="btn btn-ghost btn-sm" title="Edit client email" onclick='openEditEmailModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>✏️ Email</button><span style="font-size:11px;color:var(--green-text)">✓ Live</span>`
               : b.status==='ready'
                 ? `<button class="btn btn-green btn-sm" onclick='openPublishModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>Publish →</button>`
                 : `<button class="btn btn-ghost btn-sm" onclick='markReady("${b.slug}")'>Mark Ready</button>`
@@ -1674,6 +1692,51 @@ Then confirm you've written it and show me the first 30 lines so I can verify.`)
     } catch(e) {
       st.textContent = '✗ Error: '+e.message;
     }
+  }
+
+  // ── Repair Cloudflare (DNS + Access) for a published app ──
+  let _repairCFBuild = null;
+
+  function openRepairCFModal(b) {
+    if (!adminSecret) { toast('Enter Admin Secret first'); return; }
+    _repairCFBuild = b;
+    document.getElementById('repairCFSub').textContent =
+      `Re-run DNS + Access for ${b.slug}.${BASE_DOMAIN}`;
+    const ex = customers.find(c => c.client_name === b.client_name);
+    document.getElementById('repairCFEmail').value = ex?.email || '';
+    document.getElementById('repairCFLog').innerHTML = '';
+    document.getElementById('repairCFActions').innerHTML =
+      '<button class="btn btn-ghost" onclick="closeModal(\'repairCFModal\')">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="runRepairCF()">Run →</button>';
+    document.getElementById('repairCFModal').classList.add('open');
+    setTimeout(() => document.getElementById('repairCFEmail').focus(), 80);
+  }
+
+  async function runRepairCF() {
+    const b     = _repairCFBuild;
+    const email = document.getElementById('repairCFEmail').value.trim();
+    const log   = document.getElementById('repairCFLog');
+    const add   = (msg, cls='') => { log.innerHTML += `<div class="${cls}">${msg}</div>`; };
+    if (!email) { add('⚠ Enter an email'); return; }
+    document.getElementById('repairCFActions').innerHTML = '';
+
+    add('⟳ Creating DNS CNAME…', 'run');
+    try {
+      await cfProxy('dns-create', { subdomain: `${b.slug}.${BASE_DOMAIN}` });
+      add('✓ DNS CNAME created (proxied)', 'ok');
+    } catch(e) {
+      if (e.message.toLowerCase().includes('already exist')) add('✓ DNS CNAME already exists', 'ok');
+      else add('⚠ DNS: ' + e.message, '');
+    }
+
+    add('⟳ Creating CF Access app + policy…', 'run');
+    try {
+      const setup = await cfProxy('access-full-setup', { subdomain: `${b.slug}.${BASE_DOMAIN}`, email });
+      add(setup.partial ? `⚠ Partial: ${setup.warning}` : `✓ Access app set — ${email} allowed`, setup.partial ? '' : 'ok');
+    } catch(e) { add('⚠ Access: ' + e.message, ''); }
+
+    document.getElementById('repairCFActions').innerHTML =
+      '<button class="btn btn-primary" onclick="closeModal(\'repairCFModal\')">Done ✓</button>';
   }
 
   // ── Transfer app to a different client ──
