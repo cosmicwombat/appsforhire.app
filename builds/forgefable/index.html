@@ -1170,41 +1170,56 @@
     }
   }
 
-  // ── Pollinations.ai real image loader (free, no API key) ──────────────────
-  function loadPollinationsImage(building, idx) {
-    const styleTerms = {
-      'tavern': 'cozy medieval tavern',
-      'blacksmith forge': 'blacksmith forge with glowing furnace',
-      'wizard tower': 'tall dark wizard tower with magical glow',
-      'cathedral': 'gothic fantasy cathedral with spires',
-      'castle gatehouse': 'stone castle gatehouse with drawbridge',
-      'merchant guild hall': 'grand merchant guild hall',
-      'thieves den': 'shadowy thieves hideout',
-      'druid grove temple': 'ancient druid stone circle temple',
-      'dwarven mine entrance': 'dwarven mine entrance carved into cliff',
-      'elven treehouse palace': 'elven treehouse palace in enchanted forest',
-      'harbor lighthouse': 'fantasy harbor lighthouse on rocky shore',
-      'underground crypt': 'dark underground crypt with torchlight',
-      'dragon roost': 'craggy dragon roost on mountain peak',
-      'alchemist workshop': 'cluttered alchemist workshop with potions',
-      'gladiator arena': 'circular gladiator arena with banners',
-      'floating sky citadel': 'magical floating citadel in clouds',
-    };
-    const subject = styleTerms[building.type] || `fantasy ${building.type}`;
-    const prompt = encodeURIComponent(
-      `${subject}, medieval fantasy architecture, detailed ink illustration, dungeons and dragons art style, atmospheric, dramatic lighting, high quality`
-    );
-    const seed = Math.floor(Math.random() * 99999);
-    const url = `https://image.pollinations.ai/prompt/${prompt}?width=400&height=300&nologo=true&model=flux&seed=${seed}`;
+  // ── Imagen 3 image loader (via Worker /ai-image → Google Imagen API) ────────
+  const IMAGE_PROMPTS = {
+    'tavern':               'cozy medieval tavern exterior at dusk, warm glowing windows, fantasy art',
+    'blacksmith forge':     'fantasy blacksmith forge with glowing furnace, smoke and sparks, medieval',
+    'wizard tower':         'tall dark wizard tower with magical runes glowing, fantasy illustration',
+    'cathedral':            'gothic fantasy cathedral with soaring spires, dramatic lighting, detailed',
+    'castle gatehouse':     'imposing stone castle gatehouse with raised portcullis, medieval fantasy',
+    'merchant guild hall':  'grand merchant guild hall with ornate facade, fantasy city architecture',
+    'thieves den':          'shadowy thieves guild hideout, dark alley entrance, fantasy city',
+    'druid grove temple':   'ancient druid stone circle temple in misty forest, mystical atmosphere',
+    'dwarven mine entrance':'dwarven mine entrance carved into mountainside, torchlight, fantasy',
+    'elven treehouse palace':'elven treehouse palace in enchanted ancient forest, delicate fantasy architecture',
+    'harbor lighthouse':    'fantasy harbor lighthouse on rocky shore at night, magical beam of light',
+    'underground crypt':    'dark underground crypt entrance, torchlight, skulls and ancient stone, fantasy',
+    'dragon roost':         'craggy dragon roost on mountain peak, bones and treasure glinting, fantasy',
+    'alchemist workshop':   'cluttered alchemist workshop with glowing potions and strange apparatus, fantasy',
+    'gladiator arena':      'circular gladiator arena with cheering crowds and banners, ancient fantasy',
+    'floating sky citadel': 'magical floating citadel among clouds, fantasy illustration, dramatic sky',
+  };
 
-    const img = new Image();
-    img.onload = () => {
-      buildings[idx].imageUrl = url;
+  async function loadBuildingImage(building, idx) {
+    const subject = IMAGE_PROMPTS[building.type] || `fantasy ${building.type}, medieval architecture, detailed illustration`;
+    const prompt  = `${subject}, high quality digital art, no text, no watermark`;
+
+    try {
+      const res = await fetch('https://worker.appsforhire.app/ai-image', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ prompt }),
+      });
+
+      if (res.status === 429) {
+        document.getElementById('demoOverlay').classList.add('show');
+        return;
+      }
+
+      const data = await res.json();
+      if (!res.ok || !data.image) return; // keep SVG fallback
+
+      buildings[idx].imageUrl = `data:${data.mimeType || 'image/png'};base64,${data.image}`;
       if (focusedIndex === idx) renderBuildingFocus();
       renderVault();
-    };
-    img.onerror = () => {}; // keep SVG fallback on failure
-    img.src = url;
+
+      if (typeof data.remaining === 'number' && data.remaining <= 2) {
+        document.getElementById('callsLeft').textContent = data.remaining;
+        document.getElementById('softWarning').classList.add('visible');
+      }
+    } catch {
+      // Network error — keep SVG fallback silently
+    }
   }
 
   async function generateBuilding() {
@@ -1251,9 +1266,9 @@
       renderBuildingFocus();
       renderVault();
 
-      // Async: fetch a real AI illustration from Pollinations (free, no key needed)
-      // SVG shows immediately; real image swaps in when it arrives (~5–10s)
-      loadPollinationsImage(building, buildings.length - 1);
+      // Async: fetch a real Imagen 3 illustration via Worker
+      // SVG sketch shows immediately; real image swaps in when it arrives
+      loadBuildingImage(building, buildings.length - 1);
 
     } catch (err) {
       showError('buildingError', err.message);

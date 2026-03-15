@@ -43,6 +43,7 @@
 // ── AI model constants ────────────────────────────────────────────────────────
 const CLAUDE_MODEL  = "claude-haiku-4-5-20251001"; // fast + cheap
 const GEMINI_MODEL  = "gemini-2.5-flash";
+const IMAGEN_MODEL  = "imagen-3.0-generate-001";   // Google Imagen 3 (via Gemini API key)
 const DEMO_AI_LIMIT = 50;                          // calls per IP per day
 const DEMO_AI_TTL   = 24 * 60 * 60;               // 24 hours in seconds
 
@@ -174,6 +175,75 @@ async function callGemini(apiKey, systemPrompt, userMessage) {
 
   const data = await res.json();
   return data.candidates[0].content.parts[0].text;
+}
+
+// ── Imagen API ────────────────────────────────────────────────────────────────
+async function callImagen(apiKey, prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_MODEL}:predict?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      instances:  [{ prompt }],
+      parameters: { sampleCount: 1, aspectRatio: "4:3" },
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Imagen API ${res.status}: ${err.slice(0, 200)}`);
+  }
+
+  const data = await res.json();
+  const prediction = data.predictions?.[0];
+  if (!prediction?.bytesBase64Encoded) throw new Error("No image returned from Imagen");
+  return { image: prediction.bytesBase64Encoded, mimeType: prediction.mimeType || "image/png" };
+}
+
+// ── /ai-image handler ─────────────────────────────────────────────────────────
+// Calls Imagen 3 to generate a building illustration.
+// Uses the same shared-key rate limit as /ai.
+async function handleAIImage(request, env, origin) {
+  const slug         = getClientSlug(request);
+  const clientConfig = slug ? await getClientConfig(env.CLIENT_CONFIG, slug) : null;
+  const clientGeminiKey = clientConfig?.gemini_key || null;
+  const isOwnKey     = !!clientGeminiKey;
+
+  let limit = { allowed: true, count: 0, remaining: DEMO_AI_LIMIT };
+  if (!isOwnKey) {
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    limit = await checkRateLimit(env.RATE_LIMIT, ip);
+    if (!limit.allowed) {
+      return jsonResponse({
+        error:     "demo_limit_reached",
+        message:   "You've hit the demo limit. Ready for an app of your own?",
+        cta_url:   "https://appsforhire.app/#contact",
+        cta_label: "Request Your Build →",
+      }, 429, origin);
+    }
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return jsonResponse({ error: "Invalid JSON body" }, 400, origin); }
+
+  const { prompt } = body;
+  if (!prompt) return jsonResponse({ error: "'prompt' is required" }, 400, origin);
+
+  const geminiKey = clientGeminiKey || env.GEMINI_API_KEY;
+  if (!geminiKey) return jsonResponse({ error: "GEMINI_API_KEY not configured" }, 500, origin);
+
+  try {
+    const result = await callImagen(geminiKey, prompt);
+    return jsonResponse({
+      image:      result.image,
+      mimeType:   result.mimeType,
+      calls_used: limit.count,
+      remaining:  limit.remaining,
+    }, 200, origin);
+  } catch (e) {
+    return jsonResponse({ error: "Image generation failed", detail: e.message }, 500, origin);
+  }
 }
 
 // ── Google Places API ─────────────────────────────────────────────────────
@@ -786,8 +856,9 @@ export default {
     try {
       // ── Public routes ──────────────────────────────────────────────────
       if (request.method === "GET"  && path === "/health")  return handleHealth(env, origin);
-      if (request.method === "POST" && path === "/ai")      return handleAI(request, env, origin);
-      if (request.method === "POST" && path === "/places")  return handlePlaces(request, env, origin);
+      if (request.method === "POST" && path === "/ai")       return handleAI(request, env, origin);
+      if (request.method === "POST" && path === "/ai-image") return handleAIImage(request, env, origin);
+      if (request.method === "POST" && path === "/places")   return handlePlaces(request, env, origin);
       if (request.method === "POST" && path === "/webhook") return handleWebhook(request, env, origin);
 
       // ── Admin routes ───────────────────────────────────────────────────
