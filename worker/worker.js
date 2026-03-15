@@ -859,6 +859,17 @@ export default {
     try {
       // ── Public routes ──────────────────────────────────────────────────
       if (request.method === "GET"  && path === "/health")  return handleHealth(env, origin);
+      // Temp debug: list Gemini models to find image-capable one
+      if (request.method === "GET"  && path === "/models") {
+        const key = env.GEMINI_API_KEY;
+        if (!key) return jsonResponse({ error: "no key" }, 500, origin);
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+        const d = await r.json();
+        const imageModels = (d.models || []).filter(m =>
+          m.name.includes("imagen") || m.name.includes("flash") || m.name.includes("image")
+        ).map(m => ({ name: m.name, methods: m.supportedGenerationMethods }));
+        return jsonResponse(imageModels, 200, origin);
+      }
       if (request.method === "POST" && path === "/ai")       return handleAI(request, env, origin);
       if (request.method === "POST" && path === "/ai-image") return handleAIImage(request, env, origin);
       if (request.method === "POST" && path === "/places")   return handlePlaces(request, env, origin);
