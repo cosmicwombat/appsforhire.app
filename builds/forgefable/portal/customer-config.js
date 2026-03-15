@@ -1,16 +1,22 @@
+// ─────────────────────────────────────────────────────────────
 // AppsForHire — Customer Portal Config
+// Customer: Radish Tricks
+// ─────────────────────────────────────────────────────────────
+
 const CUSTOMER = {
-  name:          "Radish Tricks",
-  tier:          "starter",
-  since:         "March 2026",
+  name:        "Radish Tricks",
+  tier:        "starter",
+  since:       "March 2026",
   support_email: "info@ghostkitchen.shop",
-  stripe_portal: "https://billing.stripe.com/p/login/YOUR_PORTAL_LINK",
+
+  stripe_portal: "#",  // Update with real Stripe portal link once subscription is active
+
   apps: [
     {
       name:        "Forge & Fable",
-      description: "A D&D Swiss Army Knife.",
+      description: "A D&D Swiss Army Knife — fantasy name generator and building sketch creator for your campaigns.",
       url:         "https://forgefable.appsforhire.app",
-      icon:        "📱",
+      icon:        "⚔️",
       status:      "active",
       launched:    "March 2026",
     },

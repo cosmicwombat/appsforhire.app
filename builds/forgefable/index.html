@@ -3,314 +3,1014 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- CUSTOMIZE: Update title and description for each client -->
-  <title>{{CLIENT_NAME}} — {{APP_TITLE}}</title>
-  <meta name="description" content="{{APP_DESCRIPTION}}" />
+  <title>Forge &amp; Fable — A D&amp;D Swiss Army Knife</title>
+  <meta name="description" content="Forge & Fable — A D&D Swiss Army Knife. Fantasy name generator and building sketch creator." />
+  <meta name="theme-color" content="#d97706" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="{{THEME_COLOR}}" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* CUSTOMIZE: Brand colors for this client */
-      --primary:   {{THEME_COLOR}};
-      --primary-dark: {{THEME_COLOR_DARK}};
-      --bg:        #f8fafc;
-      --white:     #ffffff;
-      --gray100:   #f1f5f9;
-      --gray200:   #e2e8f0;
-      --gray500:   #64748b;
-      --gray700:   #334155;
-      --gray900:   #0f172a;
-      --radius:    12px;
-      --shadow:    0 4px 16px rgba(0,0,0,.08);
+      --bg:         #0f1117;
+      --surface:    #1a1d27;
+      --surface2:   #222536;
+      --border:     #2e3147;
+      --accent:     #d97706;
+      --accent-dark:#b45309;
+      --accent2:    #22d3ee;
+      --green:      #34d399;
+      --amber:      #fbbf24;
+      --red:        #f87171;
+      --text:       #e2e8f0;
+      --muted:      #94a3b8;
+      --dim:        #64748b;
+      --radius:     12px;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
-      color: var(--gray700);
+      color: var(--text);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
     /* ── Header ── */
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 1rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
-      position: sticky; top: 0; z-index: 10;
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: var(--accent);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    .header-logo {
-      font-size: 1.15rem; font-weight: 800; letter-spacing: -.02em;
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
     }
-    .header-sub {
-      font-size: .75rem; opacity: .75; margin-top: .1rem;
+    .header-business {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,.7);
+      letter-spacing: .04em;
+    }
+    .header-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.02em;
     }
     .header-right {
-      display: flex; align-items: center; gap: .6rem;
-    }
-    .header-badge {
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 100px; padding: .3rem .8rem;
-      font-size: .75rem; font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
     }
     .back-link {
-      display: inline-flex; align-items: center; gap: .3rem;
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
       background: rgba(0,0,0,.2);
       border: 1px solid rgba(255,255,255,.2);
-      border-radius: 100px; padding: .3rem .8rem;
-      font-size: .75rem; font-weight: 600; color: white;
-      text-decoration: none; transition: background .15s;
+      border-radius: 100px;
+      padding: 5px 12px;
+      transition: background .15s;
     }
-    .back-link:hover { background: rgba(0,0,0,.35); }
+    .back-link:hover {
+      background: rgba(0,0,0,.35);
+    }
+    .header-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 100px;
+      padding: 4px 10px;
+    }
 
-    /* ── Main Layout ── */
-    main {
-      max-width: 860px; margin: 0 auto;
-      padding: 2rem 1.25rem;
+    /* ── Layout ── */
+    .app-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 16px 120px;
+    }
+
+    /* ── Tab Bar ── */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      z-index: 50;
+      padding: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 0 12px;
+      background: none;
+      border: none;
+      color: var(--dim);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color .15s;
+    }
+    .tab-btn .tab-icon {
+      font-size: 20px;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+    }
+
+    /* ── Sections ── */
+    .feature-section {
+      display: none;
+      padding-top: 24px;
+    }
+    .feature-section.active {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin-bottom: 4px;
+    }
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
     }
 
     /* ── Cards ── */
     .card {
-      background: var(--white);
-      border: 1px solid var(--gray200);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      margin-bottom: 1.25rem;
-    }
-    .card-title {
-      font-size: 1rem; font-weight: 700; color: var(--gray900);
-      margin-bottom: 1rem; padding-bottom: .75rem;
-      border-bottom: 1px solid var(--gray200);
-      display: flex; align-items: center; gap: .5rem;
-    }
-    .card-title .icon { font-size: 1.1rem; }
-
-    /* ── Grid ── */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    @media (max-width: 580px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      padding: 20px;
+      margin-bottom: 16px;
     }
 
-    /* ── Stat Tiles ── */
-    .stat-tile {
-      background: var(--gray100);
-      border-radius: 10px; padding: 1.1rem;
+    /* ── Region Grid ── */
+    .region-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .region-card {
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 10px;
       text-align: center;
+      cursor: pointer;
+      transition: border-color .15s, background .15s, transform .1s;
+      user-select: none;
     }
-    .stat-tile .val {
-      font-size: 1.8rem; font-weight: 800; color: var(--primary);
-      line-height: 1.1; letter-spacing: -.03em;
+    .region-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
     }
-    .stat-tile .lbl {
-      font-size: .78rem; color: var(--gray500); margin-top: .2rem; font-weight: 600;
+    .region-card.selected {
+      border-color: var(--accent);
+      background: rgba(217,119,6,.1);
     }
-
-    /* ── Table ── */
-    .data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-    .data-table th {
-      background: var(--gray100); color: var(--gray700);
-      font-size: .75rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .05em; padding: .6rem .85rem; text-align: left;
-      border-bottom: 2px solid var(--gray200);
+    .region-card .region-emoji {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 4px;
     }
-    .data-table td {
-      padding: .7rem .85rem;
-      border-bottom: 1px solid var(--gray200);
-      color: var(--gray700);
+    .region-card .region-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
     }
-    .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: var(--gray100); }
-
-    /* ── Badges ── */
-    .badge {
-      display: inline-block; padding: .2rem .6rem; border-radius: 100px;
-      font-size: .72rem; font-weight: 700;
-    }
-    .badge-green  { background: #dcfce7; color: #15803d; }
-    .badge-yellow { background: #fef9c3; color: #a16207; }
-    .badge-red    { background: #fee2e2; color: #b91c1c; }
-    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
 
     /* ── Buttons ── */
     .btn {
-      display: inline-flex; align-items: center; gap: .4rem;
-      padding: .6rem 1.2rem; border-radius: 8px;
-      font-weight: 700; font-size: .88rem;
-      border: none; cursor: pointer; text-decoration: none;
-      transition: opacity .15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s, background .15s;
     }
-    .btn:hover { opacity: .88; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
-    .btn-sm { padding: .35rem .8rem; font-size: .8rem; }
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-dark);
+    }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--accent);
+    }
+    .btn-danger {
+      background: var(--surface2);
+      color: var(--red);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+    .btn-danger:hover:not(:disabled) {
+      border-color: var(--red);
+    }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
 
-    /* ── Form ── */
-    .form-group { margin-bottom: .9rem; }
-    label { display: block; font-size: .82rem; font-weight: 600; color: var(--gray700); margin-bottom: .3rem; }
-    input, select, textarea {
-      width: 100%; padding: .6rem .85rem;
-      border: 1.5px solid var(--gray200); border-radius: 8px;
-      font-size: .92rem; color: var(--gray900); background: white;
-      outline: none; font-family: inherit;
-      transition: border-color .2s;
+    /* ── Model Picker ── */
+    .model-picker {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
     }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-    textarea { resize: vertical; min-height: 90px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .model-option {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--surface2);
+      color: var(--muted);
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background .15s, color .15s;
+    }
+    .model-option.active {
+      background: var(--accent);
+      color: #fff;
+    }
 
-    /* ── Empty State ── */
-    .empty {
-      text-align: center; padding: 3rem 1rem;
-      color: var(--gray500); font-size: .9rem;
+    /* ── Name Output ── */
+    .name-output {
+      display: none;
     }
-    .empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+    .name-output.visible {
+      display: block;
+    }
+    .generated-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -.02em;
+      margin-bottom: 8px;
+    }
+    .lore-blurb {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-style: italic;
+    }
 
-    /* ── Footer ── */
-    footer {
-      text-align: center; padding: 2rem 1rem;
-      font-size: .78rem; color: var(--gray500);
-      border-top: 1px solid var(--gray200);
-      margin-top: 2rem;
+    /* ── Loading ── */
+    .loading-dots {
+      display: none;
+      text-align: center;
+      padding: 20px;
     }
-    footer a { color: var(--primary); text-decoration: none; }
+    .loading-dots.visible {
+      display: block;
+    }
+    .loading-dots span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin: 0 3px;
+      animation: bounce .6s infinite alternate;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: .2s; }
+    .loading-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes bounce {
+      to { opacity: .3; transform: translateY(-6px); }
+    }
+
+    /* ── Error ── */
+    .error-msg {
+      display: none;
+      background: rgba(248,113,113,.1);
+      border: 1px solid rgba(248,113,113,.3);
+      color: var(--red);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    .error-msg.visible {
+      display: block;
+    }
+
+    /* ── Soft Warning ── */
+    .soft-warning {
+      display: none;
+      background: rgba(251,191,36,.1);
+      border: 1px solid rgba(251,191,36,.3);
+      color: var(--amber);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .soft-warning.visible {
+      display: block;
+    }
+
+    /* ── Building Cards ── */
+    .building-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .building-card img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      background: var(--surface2);
+      display: block;
+    }
+    .building-card-body {
+      padding: 16px;
+    }
+    .building-card .building-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .building-card .building-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .building-card label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 4px;
+    }
+    .building-card textarea {
+      width: 100%;
+      min-height: 60px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 10px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .building-card textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .building-img-placeholder {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      color: var(--dim);
+    }
+
+    /* ── Building Vault ── */
+    .vault-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 10px;
+      margin-top: 20px;
+    }
+    .vault-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .vault-scroll::-webkit-scrollbar {
+      height: 4px;
+    }
+    .vault-scroll::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+    .vault-thumb {
+      flex-shrink: 0;
+      width: 80px;
+      height: 60px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .15s;
+      background: var(--surface2);
+    }
+    .vault-thumb.active {
+      border-color: var(--accent);
+    }
+    .vault-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .vault-thumb .vault-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--dim);
+    }
+
+    /* ── Demo Overlay ── */
+    #demoOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,17,23,.95);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+    #demoOverlay.show {
+      display: flex;
+    }
+    #demoOverlay .demo-emoji {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    #demoOverlay h2 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    #demoOverlay p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+      max-width: 320px;
+    }
+    #demoOverlay .demo-cta {
+      background: var(--accent);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    #demoOverlay .demo-cta:hover {
+      background: var(--accent-dark);
+    }
+    #demoOverlay .demo-dismiss {
+      margin-top: 16px;
+      color: var(--dim);
+      font-size: 13px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .region-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .generated-name {
+        font-size: 22px;
+      }
+      .app-header {
+        padding: 10px 14px;
+      }
+      .header-title {
+        font-size: 15px;
+      }
+    }
   </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <div class="header-logo">{{CLIENT_NAME}}</div>
-    <div class="header-sub">{{APP_TITLE}}</div>
+<!-- ═══ Header ═══ -->
+<header class="app-header">
+  <div class="header-brand">
+    <span class="header-business">Radish Tricks</span>
+    <span class="header-title">Forge &amp; Fable</span>
   </div>
-  <div class="header-right">
+  <div class="header-right" style="display:flex;align-items:center;gap:.6rem">
     <a href="/portal/" class="back-link">← My Apps</a>
-    <div class="header-badge">Secure App</div>
+    <span class="header-badge">🔒 Secure App</span>
   </div>
 </header>
 
-<main>
+<!-- ═══ Soft Warning ═══ -->
+<div class="app-container">
+  <div id="softWarning" class="soft-warning">⚠️ You have <span id="callsLeft">2</span> demo calls remaining.</div>
 
-  <!-- CUSTOMIZE: Replace the sections below with the actual app content -->
+  <!-- ═══ FEATURE 1: Fantasy Name Generator ═══ -->
+  <section id="sectionNames" class="feature-section active">
+    <h2 class="section-title">⚔️ Fantasy Name Generator</h2>
+    <p class="section-subtitle">Choose one or more world regions, then generate a name with lore.</p>
 
-  <!-- Example: Stats row -->
-  <div class="grid-3" style="margin-bottom: 1.25rem;">
-    <div class="stat-tile">
-      <div class="val" id="stat1">—</div>
-      <div class="lbl">{{STAT_1_LABEL}}</div>
-    </div>
-    <div class="stat-tile">
-      <div class="val" id="stat2">—</div>
-      <div class="lbl">{{STAT_2_LABEL}}</div>
-    </div>
-    <div class="stat-tile">
-      <div class="val" id="stat3">—</div>
-      <div class="lbl">{{STAT_3_LABEL}}</div>
-    </div>
-  </div>
+    <div class="card">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Select Regions</label>
+      <div class="region-grid" id="regionGrid"></div>
 
-  <!-- Example: Data table card -->
-  <div class="card">
-    <div class="card-title">
-      <span class="icon">📋</span> {{TABLE_TITLE}}
-    </div>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>{{COL_1}}</th>
-          <th>{{COL_2}}</th>
-          <th>{{COL_3}}</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr>
-          <td colspan="4">
-            <div class="empty">
-              <div class="empty-icon">📭</div>
-              No data yet — add your first entry below.
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Example: Input form card -->
-  <div class="card">
-    <div class="card-title">
-      <span class="icon">➕</span> Add {{ITEM_NAME}}
-    </div>
-    <form id="mainForm">
-      <div class="form-row">
-        <div class="form-group">
-          <label>{{FIELD_1_LABEL}}</label>
-          <input type="text" name="field1" placeholder="{{FIELD_1_PLACEHOLDER}}" required />
-        </div>
-        <div class="form-group">
-          <label>{{FIELD_2_LABEL}}</label>
-          <input type="text" name="field2" placeholder="{{FIELD_2_PLACEHOLDER}}" />
-        </div>
+      <label for="modelPickerName" style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">AI Model</label>
+      <div class="model-picker" id="modelPickerName">
+        <button type="button" class="model-option active" data-model="claude">Claude</button>
+        <button type="button" class="model-option" data-model="gemini">Gemini</button>
       </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <textarea name="notes" placeholder="Any additional notes..."></textarea>
+
+      <button type="button" id="generateNameBtn" class="btn btn-primary" disabled>🎲 Generate Name</button>
+    </div>
+
+    <div id="nameLoading" class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <div id="nameError" class="error-msg"></div>
+
+    <div id="nameOutput" class="name-output card">
+      <div id="generatedName" class="generated-name"></div>
+      <div id="loreBlurb" class="lore-blurb"></div>
+      <div class="btn-row">
+        <button type="button" id="copyNameBtn" class="btn btn-secondary">📋 Copy Name</button>
+        <button type="button" id="regenNameBtn" class="btn btn-secondary">🔄 Regenerate</button>
       </div>
-      <button type="submit" class="btn btn-primary">Save {{ITEM_NAME}}</button>
-    </form>
-  </div>
+    </div>
+  </section>
 
-</main>
+  <!-- ═══ FEATURE 2: Building Sketch Generator ═══ -->
+  <section id="sectionBuildings" class="feature-section">
+    <h2 class="section-title">🏰 Building Sketch Generator</h2>
+    <p class="section-subtitle">Generate fantasy building illustrations with names and lore for your campaign.</p>
 
-<footer>
-  <p>Hosted by <a href="https://appsforhire.app" target="_blank">AppsForHire</a> &nbsp;·&nbsp; Secured by Cloudflare</p>
-</footer>
+    <div class="card">
+      <label for="modelPickerBuild" style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">AI Model (for name &amp; description)</label>
+      <div class="model-picker" id="modelPickerBuild">
+        <button type="button" class="model-option active" data-model="claude">Claude</button>
+        <button type="button" class="model-option" data-model="gemini">Gemini</button>
+      </div>
+
+      <button type="button" id="generateBuildingBtn" class="btn btn-primary">🏗️ Generate Building</button>
+    </div>
+
+    <div id="buildingLoading" class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <div id="buildingError" class="error-msg"></div>
+
+    <div id="buildingFocus"></div>
+
+    <div class="vault-label" id="vaultLabel" style="display:none;">Building Vault (<span id="vaultCount">0</span>/10)</div>
+    <div class="vault-scroll" id="vaultScroll"></div>
+
+    <div id="clearRow" style="display:none;margin-top:12px;">
+      <button type="button" id="clearVaultBtn" class="btn btn-danger">🗑️ Clear All</button>
+    </div>
+  </section>
+</div>
+
+<!-- ═══ Tab Bar ═══ -->
+<nav class="tab-bar">
+  <button type="button" class="tab-btn active" data-tab="sectionNames">
+    <span class="tab-icon">⚔️</span>
+    Names
+  </button>
+  <button type="button" class="tab-btn" data-tab="sectionBuildings">
+    <span class="tab-icon">🏰</span>
+    Buildings
+  </button>
+</nav>
+
+<!-- ═══ Demo Overlay ═══ -->
+<div id="demoOverlay">
+  <div class="demo-emoji">🚀</div>
+  <h2>Want your own app?</h2>
+  <p>You've hit the free demo limit. Upgrade or contact AppsForHire to get your own custom-built app.</p>
+  <a href="https://appsforhire.app/#contact" class="demo-cta">Get Your Build →</a>
+  <button type="button" class="demo-dismiss" onclick="document.getElementById('demoOverlay').classList.remove('show')">Dismiss</button>
+</div>
 
 <script>
-  // Register service worker
+  // ── Service Worker Registration ──
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
-  // CUSTOMIZE: Replace with actual app logic
-  const form = document.getElementById('mainForm');
-  let items = JSON.parse(localStorage.getItem('app_data') || '[]');
+  // ── Region Data ──
+  const REGIONS = [
+    { id: 'norse',     emoji: '🪓', name: 'Norse' },
+    { id: 'celtic',    emoji: '☘️', name: 'Celtic' },
+    { id: 'japanese',  emoji: '⛩️', name: 'Japanese' },
+    { id: 'arabic',    emoji: '🕌', name: 'Arabic' },
+    { id: 'african',   emoji: '🌍', name: 'African Savanna' },
+    { id: 'elvish',    emoji: '🧝', name: 'Elvish / High Fantasy' },
+    { id: 'orcish',    emoji: '👹', name: 'Orcish / Dark' },
+    { id: 'slavic',    emoji: '🐻', name: 'Slavic' },
+    { id: 'aztec',     emoji: '🗿', name: 'Aztec / Mesoamerican' },
+    { id: 'eastern',   emoji: '🏔️', name: 'Eastern European' },
+  ];
 
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(form));
-    data.id = Date.now();
-    data.date = new Date().toLocaleDateString();
-    items.unshift(data);
-    localStorage.setItem('app_data', JSON.stringify(items));
-    renderTable();
-    form.reset();
+  const selectedRegions = new Set();
+
+  // ── Build Region Cards ──
+  const regionGrid = document.getElementById('regionGrid');
+  REGIONS.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'region-card';
+    el.setAttribute('role', 'checkbox');
+    el.setAttribute('aria-checked', 'false');
+    el.setAttribute('tabindex', '0');
+    el.innerHTML = `<span class="region-emoji">${r.emoji}</span><span class="region-name">${r.name}</span>`;
+    el.addEventListener('click', () => toggleRegion(el, r));
+    el.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleRegion(el, r); }});
+    regionGrid.appendChild(el);
   });
 
-  function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    if (!items.length) return;
-    tbody.innerHTML = items.map(item => `
-      <tr>
-        <td>${item.field1 || '—'}</td>
-        <td>${item.field2 || '—'}</td>
-        <td>${item.notes || '—'}</td>
-        <td><span class="badge badge-green">Active</span></td>
-      </tr>
-    `).join('');
-    document.getElementById('stat1').textContent = items.length;
+  function toggleRegion(el, r) {
+    if (selectedRegions.has(r.id)) {
+      selectedRegions.delete(r.id);
+      el.classList.remove('selected');
+      el.setAttribute('aria-checked', 'false');
+    } else {
+      selectedRegions.add(r.id);
+      el.classList.add('selected');
+      el.setAttribute('aria-checked', 'true');
+    }
+    document.getElementById('generateNameBtn').disabled = selectedRegions.size === 0;
   }
 
-  renderTable();
+  // ── Tab Navigation ──
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.feature-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ── Model Picker ──
+  document.querySelectorAll('.model-picker').forEach(picker => {
+    picker.querySelectorAll('.model-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        picker.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+      });
+    });
+  });
+
+  function getModel(pickerId) {
+    const picker = document.getElementById(pickerId);
+    const active = picker.querySelector('.model-option.active');
+    return active ? active.dataset.model : 'claude';
+  }
+
+  // ── AI Call Helper ──
+  const WORKER_URL = 'https://worker.appsforhire.app/ai';
+
+  async function callAI(model, system, userMessage) {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, system, message: userMessage }),
+    });
+    const data = await res.json();
+
+    if (res.status === 429) {
+      document.getElementById('demoOverlay').classList.add('show');
+      return null;
+    }
+    if (!res.ok) throw new Error(data.error || 'AI request failed. Please try again.');
+
+    // Soft warning
+    if (typeof data.remaining === 'number' && data.remaining <= 2) {
+      document.getElementById('callsLeft').textContent = data.remaining;
+      document.getElementById('softWarning').classList.add('visible');
+    }
+
+    return data.response;
+  }
+
+  // ── Helpers ──
+  function showEl(id) { document.getElementById(id).classList.add('visible'); }
+  function hideEl(id) { document.getElementById(id).classList.remove('visible'); }
+  function setLoading(loadingId, btnId, on) {
+    if (on) { showEl(loadingId); } else { hideEl(loadingId); }
+    document.getElementById(btnId).disabled = on;
+  }
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    showEl(id);
+  }
+
+  // ══════════════════════════════════════════
+  // FEATURE 1: Fantasy Name Generator
+  // ══════════════════════════════════════════
+
+  const generateNameBtn = document.getElementById('generateNameBtn');
+  const regenNameBtn = document.getElementById('regenNameBtn');
+  const copyNameBtn = document.getElementById('copyNameBtn');
+
+  async function generateName() {
+    if (selectedRegions.size === 0) return;
+
+    hideEl('nameError');
+    hideEl('nameOutput');
+    setLoading('nameLoading', 'generateNameBtn', true);
+
+    const regions = REGIONS.filter(r => selectedRegions.has(r.id)).map(r => r.name).join(', ');
+    const model = getModel('modelPickerName');
+
+    const system = 'You are a fantasy name generator for tabletop RPGs. Return ONLY a JSON object with two fields: "name" (the character name) and "lore" (a single sentence of lore). No markdown, no code fences, just raw JSON.';
+    const userMsg = `Generate a fantasy character name appropriate for a ${regions} inspired setting. Make the name unique and evocative.`;
+
+    try {
+      const raw = await callAI(model, system, userMsg);
+      if (!raw) { setLoading('nameLoading', 'generateNameBtn', false); return; }
+
+      let parsed;
+      try {
+        const cleaned = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+        parsed = JSON.parse(cleaned);
+      } catch {
+        // Fallback: try to extract name and lore from text
+        parsed = { name: raw.split('\n')[0].replace(/[*"]/g, '').trim(), lore: raw };
+      }
+
+      document.getElementById('generatedName').textContent = parsed.name || 'Unknown Hero';
+      document.getElementById('loreBlurb').textContent = parsed.lore || '';
+      showEl('nameOutput');
+    } catch (err) {
+      showError('nameError', err.message);
+    } finally {
+      setLoading('nameLoading', 'generateNameBtn', false);
+      generateNameBtn.disabled = selectedRegions.size === 0;
+    }
+  }
+
+  generateNameBtn.addEventListener('click', generateName);
+  regenNameBtn.addEventListener('click', generateName);
+
+  copyNameBtn.addEventListener('click', () => {
+    const name = document.getElementById('generatedName').textContent;
+    if (name) {
+      navigator.clipboard.writeText(name).then(() => {
+        copyNameBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyNameBtn.textContent = '📋 Copy Name'; }, 1500);
+      }).catch(() => {});
+    }
+  });
+
+  // ══════════════════════════════════════════
+  // FEATURE 2: Building Sketch Generator
+  // ══════════════════════════════════════════
+
+  const buildings = [];
+  let focusedIndex = -1;
+
+  const BUILDING_TYPES = [
+    'tavern', 'blacksmith forge', 'wizard tower', 'cathedral', 'castle gatehouse',
+    'merchant guild hall', 'thieves den', 'druid grove temple', 'dwarven mine entrance',
+    'elven treehouse palace', 'harbor lighthouse', 'underground crypt', 'dragon roost',
+    'alchemist workshop', 'gladiator arena', 'floating sky citadel'
+  ];
+
+  function randomBuildingType() {
+    return BUILDING_TYPES[Math.floor(Math.random() * BUILDING_TYPES.length)];
+  }
+
+  async function generateBuilding() {
+    if (buildings.length >= 10) {
+      showError('buildingError', 'Vault is full (10/10). Clear some buildings to make room.');
+      return;
+    }
+
+    hideEl('buildingError');
+    setLoading('buildingLoading', 'generateBuildingBtn', true);
+
+    const buildingType = randomBuildingType();
+    const model = getModel('modelPickerBuild');
+
+    // Step 1: Generate building image via Gemini
+    let imageUrl = null;
+    try {
+      const imgPrompt = `Generate an image of a fantasy ${buildingType}. Style: simple architectural sketch, black ink on aged parchment paper, detailed line art suitable for a Dungeons & Dragons campaign map. No color, just black ink linework on parchment.`;
+      const imgRes = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'gemini', system: 'You are an image description assistant.', message: imgPrompt }),
+      });
+      const imgData = await imgRes.json();
+
+      if (imgRes.status === 429) {
+        document.getElementById('demoOverlay').classList.add('show');
+        setLoading('buildingLoading', 'generateBuildingBtn', false);
+        return;
+      }
+
+      if (typeof imgData.remaining === 'number' && imgData.remaining <= 2) {
+        document.getElementById('callsLeft').textContent = imgData.remaining;
+        document.getElementById('softWarning').classList.add('visible');
+      }
+
+      // Check if image was returned
+      if (imgData.image) {
+        imageUrl = imgData.image.startsWith('data:') ? imgData.image : `data:image/png;base64,${imgData.image}`;
+      }
+    } catch {
+      // Image generation failed — continue without image
+    }
+
+    // Step 2: Generate building name and description via chosen model
+    try {
+      const system = 'You are a D&D world-builder. Return ONLY a JSON object with "name" (a fantasy building name) and "description" (exactly 2 sentences describing the building for a DM). No markdown, no code fences.';
+      const userMsg = `Create a name and description for a fantasy ${buildingType}. Make it evocative and useful for a tabletop RPG session.`;
+
+      const raw = await callAI(model, system, userMsg);
+      if (!raw) { setLoading('buildingLoading', 'generateBuildingBtn', false); return; }
+
+      let parsed;
+      try {
+        const cleaned = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+        parsed = JSON.parse(cleaned);
+      } catch {
+        parsed = { name: `The ${buildingType.charAt(0).toUpperCase() + buildingType.slice(1)}`, description: raw.substring(0, 200) };
+      }
+
+      const building = {
+        name: parsed.name || `Mysterious ${buildingType}`,
+        description: parsed.description || 'A mysterious structure shrouded in legend.',
+        imageUrl: imageUrl,
+        notes: '',
+        type: buildingType,
+      };
+
+      buildings.push(building);
+      focusedIndex = buildings.length - 1;
+      renderBuildingFocus();
+      renderVault();
+
+    } catch (err) {
+      showError('buildingError', err.message);
+    } finally {
+      setLoading('buildingLoading', 'generateBuildingBtn', false);
+    }
+  }
+
+  function renderBuildingFocus() {
+    const container = document.getElementById('buildingFocus');
+    if (focusedIndex < 0 || focusedIndex >= buildings.length) {
+      container.innerHTML = '';
+      return;
+    }
+
+    const b = buildings[focusedIndex];
+    const imgHtml = b.imageUrl
+      ? `<img src="${b.imageUrl}" alt="Sketch of ${b.name}" />`
+      : `<div class="building-img-placeholder">🏰</div>`;
+
+    container.innerHTML = `
+      <div class="building-card">
+        ${imgHtml}
+        <div class="building-card-body">
+          <div class="building-name">${escapeHtml(b.name)}</div>
+          <div class="building-desc">${escapeHtml(b.description)}</div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-secondary building-copy-btn">📋 Copy Info</button>
+            <button type="button" class="btn btn-secondary building-regen-btn">🔄 Generate Another</button>
+          </div>
+          <label for="dmNotes${focusedIndex}">DM Notes</label>
+          <textarea id="dmNotes${focusedIndex}" placeholder="Add your notes here...">${escapeHtml(b.notes)}</textarea>
+        </div>
+      </div>
+    `;
+
+    const textarea = container.querySelector('textarea');
+    textarea.addEventListener('input', () => {
+      buildings[focusedIndex].notes = textarea.value;
+    });
+
+    container.querySelector('.building-copy-btn').addEventListener('click', function() {
+      const text = `${b.name}\n${b.description}${b.notes ? '\n\nDM Notes: ' + b.notes : ''}`;
+      navigator.clipboard.writeText(text).then(() => {
+        this.textContent = '✅ Copied!';
+        setTimeout(() => { this.textContent = '📋 Copy Info'; }, 1500);
+      }).catch(() => {});
+    });
+
+    container.querySelector('.building-regen-btn').addEventListener('click', generateBuilding);
+  }
+
+  function renderVault() {
+    const scroll = document.getElementById('vaultScroll');
+    const label = document.getElementById('vaultLabel');
+    const clearRow = document.getElementById('clearRow');
+    const countEl = document.getElementById('vaultCount');
+
+    if (buildings.length === 0) {
+      label.style.display = 'none';
+      clearRow.style.display = 'none';
+      scroll.innerHTML = '';
+      return;
+    }
+
+    label.style.display = 'block';
+    clearRow.style.display = 'block';
+    countEl.textContent = buildings.length;
+
+    scroll.innerHTML = buildings.map((b, i) => {
+      const active = i === focusedIndex ? 'active' : '';
+      const inner = b.imageUrl
+        ? `<img src="${b.imageUrl}" alt="${escapeHtml(b.name)}" />`
+        : `<div class="vault-placeholder">🏰</div>`;
+      return `<div class="vault-thumb ${active}" data-idx="${i}">${inner}</div>`;
+    }).join('');
+
+    scroll.querySelectorAll('.vault-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        focusedIndex = parseInt(thumb.dataset.idx);
+        renderBuildingFocus();
+        renderVault();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  document.getElementById('generateBuildingBtn').addEventListener('click', generateBuilding);
+
+  document.getElementById('clearVaultBtn').addEventListener('click', () => {
+    buildings.length = 0;
+    focusedIndex = -1;
+    document.getElementById('buildingFocus').innerHTML = '';
+    renderVault();
+  });
 </script>
+
 </body>
 </html>
