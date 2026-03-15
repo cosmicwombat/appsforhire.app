@@ -51,7 +51,9 @@ app_for_hire/
 | The Gathering Place | isitopen | Is it open | isitopen.appsforhire.app | #16a34a green | published |
 | The Ghost Interpreter | theghostinterpreter | Random Sentence Generator | theghostinterpreter.appsforhire.app | #7c3aed violet | published |
 | The Ghost Interpreter | tgihorror | Ghost Story Generator | tgihorror.appsforhire.app | #7c3aed violet | published |
+| Radish Tricks | forgefable | Forge & Fable | forgefable.appsforhire.app | #d97706 amber | published |
 | The Ghost Kitchen | theghostkitchen | The Quake Whisperer | theghostkitchen.appsforhire.app | #0f172a slate | published |
+| The Ghost Kitchen | softphone | SIP Softphone | softphone.appsforhire.app | #0ea5e9 sky blue | published |
 
 **data.json nesting rule:** apps[] under each customer, not as separate customer rows.
 

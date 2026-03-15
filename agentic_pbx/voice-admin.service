@@ -1,0 +1,15 @@
+[Unit]
+Description=Voice Admin FastAGI Server
+After=network.target asterisk.service pbx-http.service
+
+[Service]
+Type=simple
+User=rkeller
+WorkingDirectory=/home/rkeller/pbx-agent
+EnvironmentFile=/home/rkeller/pbx-agent/.env
+ExecStart=/home/rkeller/pbx-agent/.venv/bin/python interfaces/../voice_admin_server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -87,6 +87,28 @@
       ]
     },
     {
+      "client_name": "Radish Tricks",
+      "client_slug": "forgefable",
+      "email": "justicedemand@gmail.com",
+      "subdomain": "forgefable.appsforhire.app",
+      "repo": "https://github.com/cosmicwombat/client-forgefable",
+      "tier": "starter",
+      "theme_color": "#d97706",
+      "created": "2026-03-15",
+      "stripe_hosting": null,
+      "status": "active",
+      "apps": [
+        {
+          "slug": "forgefable",
+          "title": "Forge & Fable",
+          "description": "A D&D Swiss Army Knife.",
+          "icon": "⚔️",
+          "status": "live",
+          "url": "https://forgefable.appsforhire.app"
+        }
+      ]
+    },
+    {
       "client_name": "The Ghost Kitchen",
       "client_slug": "theghostkitchen",
       "email": "andrewkeller@legoebayuc.com",
@@ -105,11 +127,19 @@
           "icon": "🌋",
           "status": "live",
           "url": "https://theghostkitchen.appsforhire.app"
+        },
+        {
+          "slug": "softphone",
+          "title": "SIP Softphone",
+          "description": "WebRTC SIP client — provision an extension, register, and check voicemail.",
+          "icon": "📞",
+          "status": "live",
+          "url": "https://softphone.appsforhire.app"
         }
       ]
     }
   ],
-  "mrr": 60,
+  "mrr": 75,
   "capacity": 100,
-  "generated": "2026-03-14"
+  "generated": "2026-03-15"
 }
