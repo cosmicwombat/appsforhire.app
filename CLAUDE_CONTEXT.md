@@ -157,6 +157,83 @@ Legacy ops `access-app-create` and `access-policy-create` still work but `access
 
 ---
 
+## AI Image Generation
+
+> ⚠️ **Always do this before writing any image generation code.** Skipping it wastes hours debugging 404s.
+
+### Step 1 — Discover available image models
+Call the Worker's `/models` debug endpoint **before writing any image code**:
+```
+GET https://worker.appsforhire.app/models
+```
+It returns a filtered list of Gemini models with their `supportedGenerationMethods`.
+
+### Step 2 — Pick only `generateContent`-capable models
+Only use a model if `"generateContent"` appears in its `methods` array.
+
+| Model type | `methods` includes | Works with our key? |
+|---|---|---|
+| ✅ Use this | `"generateContent"` | Yes — standard Gemini API key |
+| ❌ Never use | `"predict"` only | No — requires Vertex AI, our key will 404 |
+
+**Example good response from `/models`:**
+```json
+{ "name": "models/gemini-3.1-flash-image-preview", "methods": ["generateContent"] }
+```
+
+**Current working image model:** `gemini-3.1-flash-image-preview`
+
+### Step 3 — Use the Worker's `/ai-image` endpoint in apps
+Apps never call Gemini directly. Use the Worker proxy (same rate-limiting as `/ai`):
+```js
+const res = await fetch('https://worker.appsforhire.app/ai-image', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ prompt: 'your image prompt here' })
+});
+const data = await res.json();
+// data.image  → base64-encoded image data
+// data.mimeType → e.g. "image/png"
+// data.calls_used, data.remaining → rate limit info
+if (res.status === 429) { /* show demo overlay */ }
+
+// Display the image:
+img.src = `data:${data.mimeType};base64,${data.image}`;
+```
+
+### Worker implementation (for reference / updates to worker.js)
+The Worker calls `generateContent` with `responseModalities: ["IMAGE"]`:
+```js
+const IMAGEN_MODEL = "gemini-3.1-flash-image-preview"; // verify via /models before changing
+
+async function callImagen(apiKey, prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_MODEL}:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ["IMAGE"] },
+    }),
+  });
+  if (!res.ok) { const err = await res.text(); throw new Error(`Imagen API ${res.status}: ${err.slice(0, 200)}`); }
+  const data = await res.json();
+  const parts = data.candidates?.[0]?.content?.parts;
+  const imgPart = parts?.find(p => p.inlineData);
+  if (!imgPart) throw new Error("No image returned from Gemini image generation");
+  return { image: imgPart.inlineData.data, mimeType: imgPart.inlineData.mimeType || "image/png" };
+}
+```
+
+### UX pattern — instant placeholder + async swap
+Never block the user waiting for image generation (it takes 5–15s). Use this pattern:
+1. **Immediately** show a procedural SVG placeholder (generated in JS, no API call)
+2. **Async** call `/ai-image` in the background
+3. **Swap** the SVG for the real image when it arrives (update state and re-render)
+4. **On failure**, keep the SVG — it's still useful
+
+---
+
 ## New App Workflow
 1. `python3 scripts/new_build.py` → creates `builds/{slug}/` + prints Cowork prompt
 2. Open new Cowork session → paste prompt → Claude builds app
