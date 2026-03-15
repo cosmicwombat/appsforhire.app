@@ -1232,7 +1232,8 @@ Switch to your app_for_hire Cowork project and run these deploy steps:
     const sel  = document.getElementById('caApiType');
     sel.innerHTML = tier === 'starter'
       ? `<option value="starter-gemini">Gemini only (Robert's shared key, rate-limited)</option>
-         <option value="starter-claude">Claude only (Robert's shared key, rate-limited)</option>`
+         <option value="starter-claude">Claude only (Robert's shared key, rate-limited)</option>
+         <option value="starter-both">Both — Gemini + Claude (shared keys, with model picker)</option>`
       : `<option value="custom-claude">Claude only (client's own key, no rate limit)</option>
          <option value="custom-gemini">Gemini only (client's own key, no rate limit)</option>
          <option value="custom-both">Both Claude + Gemini (client's own keys)</option>`;
@@ -1282,11 +1283,14 @@ Switch to your app_for_hire Cowork project and run these deploy steps:
     const WU    = 'https://worker.appsforhire.app/ai';
     const model = info.api_type.includes('gemini') ? 'gemini' : 'claude';
     const mName = info.api_type.includes('gemini') ? 'Gemini' : 'Claude';
-    if (info.api_type === 'custom-both') {
-      return `\n### AI Calls \u2014 Both Models Available\n\nThe worker will use the client\u2019s own Claude AND Gemini keys (no rate limit).\nUse \`Promise.all()\` for parallel calls:\n\n\`\`\`javascript\nconst WORKER_URL = '${WU}';\n\nasync function callAI(model, system, userMessage) {\n  const res  = await fetch(WORKER_URL, {\n    method: 'POST', headers: {'Content-Type':'application/json'},\n    body: JSON.stringify({ model, system, message: userMessage }),\n  });\n  const data = await res.json();\n  if (!res.ok) throw new Error(data.error || 'AI error');\n  return data.response;\n}\nasync function callBoth(system, userMessage) {\n  const [claude, gemini] = await Promise.all([\n    callAI('claude', system, userMessage),\n    callAI('gemini', system, userMessage),\n  ]);\n  return { claude, gemini };\n}\n\`\`\`\n\nYou can show both responses side-by-side or let the user choose a model.\n\n---\n`;
+    if (info.api_type === 'custom-both' || info.api_type === 'starter-both') {
+      const rateNote = info.api_type === 'starter-both'
+        ? `\n> **Rate limit**: Starter app on Robert\u2019s shared key. Worker enforces 50 AI calls/IP/24h.\n> Include a **demo overlay** that triggers on 429, and a soft warning when \`remaining <= 2\`.\n`
+        : '';
+      return `\n### AI Calls \u2014 Both Models (with model picker)\n\nUse Robert\u2019s shared keys via the Worker. Include a model picker (Gemini / Claude toggle) so the user can choose.${rateNote}\n\n\`\`\`javascript\nconst WORKER_URL = '${WU}';\n\nasync function callAI(model, system, userMessage) {\n  const res  = await fetch(WORKER_URL, {\n    method: 'POST', headers: {'Content-Type':'application/json'},\n    body: JSON.stringify({ model, system, message: userMessage }),\n  });\n  const data = await res.json();\n  if (res.status === 429) { document.getElementById('demoOverlay').classList.add('show'); return null; }\n  if (!res.ok) throw new Error(data.error || 'AI error');\n  return data.response;\n}\n\`\`\`\n\nPass \`model: 'gemini'\` or \`model: 'claude'\` based on the picker selection.\nThe worker returns \`{ "response": "...", "calls_used": N, "remaining": N }\`.\n\n---\n`;
     }
     const limitNote = info.api_type.startsWith('starter')
-      ? `> **Rate limit**: Starter app on Robert\u2019s shared key. Worker enforces 10 AI calls/IP/day.\n> Include a **demo overlay** that triggers on 429, encouraging contact with AppsForHire.\n\n`
+      ? `> **Rate limit**: Starter app on Robert\u2019s shared key. Worker enforces 50 AI calls/IP/24h.\n> Include a **demo overlay** that triggers on 429, encouraging contact with AppsForHire.\n\n`
       : '';
     return `\n### AI Calls \u2014 ${mName} Only\n\nWorker URL: \`${WU}\`  Model param: \`"${model}"\`\n\n${limitNote}Exact fetch pattern:\n\n\`\`\`javascript\nconst WORKER_URL = '${WU}';\n\nasync function callAI(system, userMessage) {\n  const res  = await fetch(WORKER_URL, {\n    method: 'POST', headers: {'Content-Type':'application/json'},\n    body: JSON.stringify({ model: '${model}', system, message: userMessage }),\n  });\n  const data = await res.json();\n  if (res.status === 429) { document.getElementById('demoOverlay').classList.add('show'); return null; }\n  if (!res.ok) throw new Error(data.error || 'AI error');\n  return data.response;\n}\n\`\`\`\n\nThe worker returns \`{ "response": "...", "calls_used": N, "remaining": N }\`.\nShow a soft overlay when \`remaining\` reaches 1\u20132.\n\n---\n`;
   }
@@ -1297,6 +1301,7 @@ Switch to your app_for_hire Cowork project and run these deploy steps:
     const apiLabels = {
       'starter-claude': "Claude only (Robert's shared key, rate-limited)",
       'starter-gemini': "Gemini only (Robert's shared key, rate-limited)",
+      'starter-both':   "Both — Gemini + Claude (shared keys, with model picker)",
       'custom-claude':  "Claude only (client's own key, no rate limit)",
       'custom-gemini':  "Gemini only (client's own key, no rate limit)",
       'custom-both':    "Both Claude + Gemini (client's own keys, can compare)",
