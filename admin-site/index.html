@@ -693,6 +693,90 @@
   </div>
 </div>
 
+<!-- ═══ Custom Domain Modal ═══ -->
+<div class="modal-backdrop" id="customDomainModal" onclick="closeModal('customDomainModal',event)">
+  <div class="modal-box" style="max-width:540px">
+    <button class="modal-close" onclick="closeModal('customDomainModal')">✕</button>
+    <div class="modal-title">🌐 Custom Domain <span class="badge badge-pro" style="font-size:10px;vertical-align:middle">PRO</span></div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px" id="cdModalSub">Attach a custom domain to this app.</p>
+
+    <!-- Current domain status -->
+    <div id="cdCurrentSection" class="hidden" style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Current Custom Domain</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div>
+          <span id="cdCurrentDomain" style="font-size:14px;font-weight:600;font-family:monospace"></span>
+          <span id="cdCurrentStatus" style="font-size:11px;margin-left:8px"></span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="removeCustomDomain()" style="color:var(--red);border-color:rgba(248,113,113,.3)">Remove</button>
+      </div>
+      <div id="cdVerificationHint" style="margin-top:8px;font-size:11px;color:var(--text-dim)"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:2px;margin-bottom:14px;background:var(--bg-deep);border-radius:8px;padding:3px">
+      <button id="cdTabBuy" onclick="switchCDTab('buy')" style="flex:1;padding:6px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--blue);color:#fff">🛒 Search & Buy</button>
+      <button id="cdTabOwn" onclick="switchCDTab('own')" style="flex:1;padding:6px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:none;color:var(--text-secondary)">🔗 I Own a Domain</button>
+    </div>
+
+    <!-- Tab: Search & Buy -->
+    <div id="cdTabBuyPanel">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input id="cdSearchInput" type="text" placeholder="e.g. mybusiness.com" autocomplete="off"
+          style="flex:1;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:14px;outline:none"
+          onkeydown="if(event.key==='Enter')checkDomainAvailability()">
+        <button class="btn btn-primary btn-sm" onclick="checkDomainAvailability()" style="width:auto;padding:8px 16px">Check →</button>
+      </div>
+      <div id="cdSearchResult" style="min-height:24px;font-size:13px"></div>
+      <div id="cdBuySection" class="hidden" style="margin-top:12px">
+        <div style="background:var(--bg-deep);border-radius:8px;padding:12px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div id="cdBuyDomain" style="font-size:15px;font-weight:700;font-family:monospace"></div>
+              <div id="cdBuyAvail" style="font-size:12px;margin-top:2px"></div>
+            </div>
+            <div style="text-align:right">
+              <div id="cdBuyPrice" style="font-size:18px;font-weight:700;color:var(--green)"></div>
+              <div style="font-size:11px;color:var(--text-dim)">per year (incl. setup)</div>
+            </div>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary)">Customer email <span style="color:var(--text-dim);font-weight:400">(for payment link)</span></label>
+          <input id="cdCustomerEmail" type="email" placeholder="client@example.com" autocomplete="off"
+            style="width:100%;margin-top:4px;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:13px;outline:none">
+        </div>
+        <button class="btn btn-primary" onclick="createDomainPaymentLink()" id="cdBuyBtn">💳 Generate Payment Link →</button>
+        <div id="cdPaymentLinkResult" style="margin-top:10px;font-size:13px"></div>
+      </div>
+    </div>
+
+    <!-- Tab: I Own a Domain -->
+    <div id="cdTabOwnPanel" class="hidden">
+      <div style="background:var(--bg-deep);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--text-secondary);line-height:1.7">
+        <strong style="color:var(--text-primary)">Setup instructions:</strong><br>
+        1. Add a CNAME record at your DNS registrar:<br>
+        <code style="background:var(--bg-card);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--blue-light)">
+          www → <span id="cdByodTarget">theghostkitchen.appsforhire.app</span>
+        </code><br>
+        2. Wait for DNS to propagate (up to 24h), then click Add below.<br>
+        3. Cloudflare will issue a free SSL certificate automatically.
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input id="cdByodInput" type="text" placeholder="www.yourdomain.com" autocomplete="off"
+          style="flex:1;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:14px;outline:none">
+        <button class="btn btn-primary btn-sm" onclick="addByodDomain()" style="width:auto;padding:8px 16px">Add →</button>
+      </div>
+      <div id="cdByodStatus" style="font-size:12px;color:var(--text-dim);min-height:20px"></div>
+    </div>
+
+    <div id="cdModalStatus" style="min-height:20px;margin-top:10px;font-size:12px;color:var(--text-dim)"></div>
+    <div class="modal-actions" id="cdModalActions">
+      <button class="btn btn-ghost" onclick="closeModal('customDomainModal')">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -960,7 +1044,7 @@
           <div class="actions">
             <button class="btn btn-ghost btn-sm" title="Copy / clone this build" onclick='openCopyModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>Copy →</button>
             ${b.status==='published'
-              ? `<button class="btn btn-ghost btn-sm" title="Re-run Cloudflare DNS + Access" onclick='openRepairCFModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>☁️ CF</button><button class="btn btn-ghost btn-sm" title="Transfer to a different client" onclick='openTransferModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>🔀 Transfer</button><button class="btn btn-ghost btn-sm" title="Edit client email" onclick='openEditEmailModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>✏️ Email</button><span style="font-size:11px;color:var(--green-text)">✓ Live</span>`
+              ? `<button class="btn btn-ghost btn-sm" title="Re-run Cloudflare DNS + Access" onclick='openRepairCFModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>☁️ CF</button><button class="btn btn-ghost btn-sm" title="Transfer to a different client" onclick='openTransferModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>🔀 Transfer</button><button class="btn btn-ghost btn-sm" title="Edit client email" onclick='openEditEmailModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>✏️ Email</button>${b.tier==='pro'?`<button class="btn btn-ghost btn-sm" style="color:#a78bfa;border-color:rgba(167,139,250,.3)" title="Manage custom domain (Pro)" onclick='openCustomDomainModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>🌐 Domain</button>`:''}<span style="font-size:11px;color:var(--green-text)">✓ Live</span>`
               : b.status==='ready'
                 ? `<button class="btn btn-green btn-sm" onclick='openPublishModal(${JSON.stringify(b).replace(/"/g,"&quot;")})'>Publish →</button>`
                 : `<button class="btn btn-ghost btn-sm" onclick='markReady("${b.slug}")'>Mark Ready</button>`
@@ -1977,6 +2061,169 @@ Then confirm you've written it and show me the first 30 lines so I can verify.`)
       document.getElementById('editEmailActions').innerHTML =
         '<button class="btn btn-ghost" onclick="closeModal(\'editEmailModal\')">Close</button>';
     }
+  }
+
+  // ── Custom Domain Modal ────────────────────────────────────────────────────
+
+  let _cdBuild = null;
+  let _cdCheckResult = null;
+
+  function openCustomDomainModal(b) {
+    _cdBuild = b; _cdCheckResult = null;
+    document.getElementById('cdModalSub').textContent = `App: ${b.app_title} (${b.slug}.${BASE_DOMAIN})`;
+    document.getElementById('cdByodTarget').textContent = `${b.slug}.${BASE_DOMAIN}`;
+    document.getElementById('cdSearchInput').value = '';
+    document.getElementById('cdSearchResult').innerHTML = '';
+    document.getElementById('cdBuySection').classList.add('hidden');
+    document.getElementById('cdByodInput').value = '';
+    document.getElementById('cdByodStatus').textContent = '';
+    document.getElementById('cdPaymentLinkResult').innerHTML = '';
+    document.getElementById('cdModalStatus').textContent = '';
+    const hasCustom = b.custom_domain;
+    document.getElementById('cdCurrentSection').classList.toggle('hidden', !hasCustom);
+    if (hasCustom) {
+      document.getElementById('cdCurrentDomain').textContent = b.custom_domain;
+      const st = b.custom_domain_status;
+      document.getElementById('cdCurrentStatus').textContent = st === 'active' ? '✓ Active' : '⏳ Pending';
+      document.getElementById('cdCurrentStatus').style.color = st === 'active' ? 'var(--green)' : 'var(--amber)';
+      document.getElementById('cdVerificationHint').textContent = st !== 'active'
+        ? 'SSL pending — check CF dashboard for TXT verification record.' : '';
+      checkCustomDomainStatus();
+    }
+    switchCDTab('buy');
+    document.getElementById('customDomainModal').classList.add('open');
+  }
+
+  function switchCDTab(tab) {
+    const isBuy = tab === 'buy';
+    document.getElementById('cdTabBuyPanel').classList.toggle('hidden', !isBuy);
+    document.getElementById('cdTabOwnPanel').classList.toggle('hidden', isBuy);
+    document.getElementById('cdTabBuy').style.background = isBuy ? 'var(--blue)' : 'none';
+    document.getElementById('cdTabBuy').style.color = isBuy ? '#fff' : 'var(--text-secondary)';
+    document.getElementById('cdTabOwn').style.background = isBuy ? 'none' : 'var(--blue)';
+    document.getElementById('cdTabOwn').style.color = isBuy ? 'var(--text-secondary)' : '#fff';
+  }
+
+  async function checkDomainAvailability() {
+    const domain = document.getElementById('cdSearchInput').value.trim();
+    if (!domain) return;
+    const el = document.getElementById('cdSearchResult');
+    el.innerHTML = '<span style="color:var(--text-dim)">Checking…</span>';
+    document.getElementById('cdBuySection').classList.add('hidden');
+    try {
+      const r = await adminFetch('/admin/domain-check', { domain });
+      _cdCheckResult = r;
+      if (r.available === true) {
+        el.innerHTML = `<span style="color:var(--green)">✓ ${r.domain} is available!</span>`;
+      } else if (r.available === false) {
+        el.innerHTML = `<span style="color:var(--red)">✗ ${r.domain} is already registered.</span>`;
+      } else {
+        el.innerHTML = `<span style="color:var(--amber)">⚠ Could not verify availability — verify before purchase.</span>`;
+      }
+      if (r.available !== false) {
+        document.getElementById('cdBuyDomain').textContent = r.domain;
+        document.getElementById('cdBuyAvail').innerHTML = r.available
+          ? `<span style="color:var(--green)">Available</span>`
+          : `<span style="color:var(--amber)">Availability unconfirmed</span>`;
+        document.getElementById('cdBuyPrice').textContent = r.price_marked_up_display;
+        document.getElementById('cdBuySection').classList.remove('hidden');
+      }
+    } catch(e) { el.innerHTML = `<span style="color:var(--red)">✗ ${e.message}</span>`; }
+  }
+
+  async function createDomainPaymentLink() {
+    if (!_cdCheckResult) return;
+    const email = document.getElementById('cdCustomerEmail').value.trim();
+    const el = document.getElementById('cdPaymentLinkResult');
+    const btn = document.getElementById('cdBuyBtn');
+    btn.disabled = true; btn.textContent = 'Creating…';
+    try {
+      const r = await adminFetch('/admin/create-checkout', {
+        domain: _cdCheckResult.domain,
+        amount_cents: _cdCheckResult.price_marked_up_cents,
+        slug: _cdBuild.slug,
+        customer_email: email || undefined,
+      });
+      const link = r.url;
+      el.innerHTML = `<div style="background:var(--bg-deep);border:1px solid rgba(52,211,153,.3);border-radius:8px;padding:10px">
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-bottom:6px">✓ Payment link created</div>
+        <a href="${link}" target="_blank" style="color:var(--blue-light);font-size:12px;word-break:break-all">${link}</a>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText('${link}');toast('Link copied!')">📋 Copy</button>
+          <a href="mailto:${email}?subject=Your custom domain payment&body=Payment link: ${link}" class="btn btn-ghost btn-sm" style="text-decoration:none;padding:8px 12px">✉ Email</a>
+        </div></div>`;
+    } catch(e) { el.innerHTML = `<span style="color:var(--red)">✗ ${e.message}</span>`; }
+    finally { btn.disabled = false; btn.textContent = '💳 Generate Payment Link →'; }
+  }
+
+  async function addByodDomain() {
+    const domain = document.getElementById('cdByodInput').value.trim();
+    if (!domain || !_cdBuild) return;
+    const el = document.getElementById('cdByodStatus');
+    el.style.color = 'var(--text-dim)'; el.textContent = 'Adding custom hostname…';
+    try {
+      const r = await adminFetch('/admin/custom-domain', { op: 'add', domain, slug: _cdBuild.slug });
+      builds = builds.map(b => b.slug === _cdBuild.slug
+        ? { ...b, custom_domain: domain, custom_domain_status: 'pending' } : b);
+      _cdBuild = { ..._cdBuild, custom_domain: domain, custom_domain_status: 'pending' };
+      await saveBuildsJson();
+      const ssl = r.ssl_verification;
+      const hint = ssl && ssl[0] ? `TXT: ${ssl[0].txt_name} → ${ssl[0].txt_value}` : '';
+      el.style.color = 'var(--green)';
+      el.innerHTML = `✓ Added! SSL certificate pending.<br><span style="color:var(--text-dim)">${hint || 'Check CF dashboard for verification records.'}</span>`;
+      document.getElementById('cdCurrentDomain').textContent = domain;
+      document.getElementById('cdCurrentStatus').textContent = '⏳ Pending';
+      document.getElementById('cdCurrentStatus').style.color = 'var(--amber)';
+      document.getElementById('cdCurrentSection').classList.remove('hidden');
+      toast('Custom domain added');
+    } catch(e) { el.style.color = 'var(--red)'; el.textContent = '✗ ' + e.message; }
+  }
+
+  async function removeCustomDomain() {
+    if (!_cdBuild?.custom_domain) return;
+    if (!confirm(`Remove custom domain "${_cdBuild.custom_domain}"?`)) return;
+    const el = document.getElementById('cdModalStatus');
+    el.textContent = 'Removing…';
+    try {
+      await adminFetch('/admin/custom-domain', { op: 'remove', domain: _cdBuild.custom_domain, slug: _cdBuild.slug });
+      builds = builds.map(b => b.slug === _cdBuild.slug
+        ? { ...b, custom_domain: null, custom_domain_status: null } : b);
+      _cdBuild = { ..._cdBuild, custom_domain: null, custom_domain_status: null };
+      await saveBuildsJson();
+      document.getElementById('cdCurrentSection').classList.add('hidden');
+      el.style.color = 'var(--green)'; el.textContent = '✓ Custom domain removed.';
+      toast('Custom domain removed');
+    } catch(e) { el.style.color = 'var(--red)'; el.textContent = '✗ ' + e.message; }
+  }
+
+  async function checkCustomDomainStatus() {
+    if (!_cdBuild?.custom_domain) return;
+    try {
+      const r = await adminFetch('/admin/custom-domain', { op: 'status', domain: _cdBuild.custom_domain, slug: _cdBuild.slug });
+      if (r.status === 'active') {
+        document.getElementById('cdCurrentStatus').textContent = '✓ Active';
+        document.getElementById('cdCurrentStatus').style.color = 'var(--green)';
+        document.getElementById('cdVerificationHint').textContent = '';
+        builds = builds.map(b => b.slug === _cdBuild.slug ? { ...b, custom_domain_status: 'active' } : b);
+        await saveBuildsJson();
+      } else if (r.ssl_verification) {
+        const v = r.ssl_verification;
+        if (v[0]?.txt_name) document.getElementById('cdVerificationHint').textContent = `TXT: ${v[0].txt_name} → ${v[0].txt_value}`;
+      }
+    } catch {}
+  }
+
+  // ── Admin fetch helper ─────────────────────────────────────────────────────
+  async function adminFetch(path, body) {
+    if (!adminSecret) throw new Error('Admin secret not set — click 🔑 first');
+    const r = await fetch(`https://worker.appsforhire.app${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminSecret}` },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
+    return d;
   }
 
   // ── Modal helpers ──

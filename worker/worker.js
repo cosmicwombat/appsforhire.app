@@ -59,14 +59,37 @@ function isAllowedOrigin(origin) {
 }
 
 function corsHeaders(origin) {
-  const allowed = isAllowedOrigin(origin) ? origin : "";
   return {
-    "Access-Control-Allow-Origin":  allowed,
+    "Access-Control-Allow-Origin":  origin || "",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age":       "86400",
   };
 }
+
+// ── Custom domain origin resolver ─────────────────────────────────────────────
+// Extends the sync isAllowedOrigin check with a KV lookup for custom hostnames.
+// Returns the origin string if allowed, or "" if blocked.
+async function resolveAllowedOrigin(origin, kv) {
+  if (!origin || origin === "null") return origin || "";
+  if (isAllowedOrigin(origin)) return origin;
+  if (kv) {
+    const host = origin.replace(/^https?:\/\//, "").split(":")[0];
+    const val  = await kv.get(`custom_host:${host}`);
+    if (val) return origin;
+  }
+  return "";
+}
+
+// ── Domain pricing table (our cost from CF Registrar — 20% markup applied) ───
+const TLD_PRICES_COST = {
+  com: 8.57,  net: 11.06, org: 11.06,  io: 39.00,  app: 14.00, dev: 14.00,
+  co:  25.00, us:   8.97, info: 12.00, biz: 14.00,  me: 20.00, shop: 25.00,
+  store: 39.00, online: 35.00, site: 25.00, website: 25.00, tech: 45.00,
+  cloud: 20.00, pro: 30.00, agency: 30.00, cafe: 30.00, restaurant: 35.00,
+  pizza: 35.00, bar: 30.00, pub: 30.00,
+};
+const DOMAIN_MARKUP = 0.20; // 20% markup on all domain sales
 
 function jsonResponse(data, status = 200, origin = "") {
   return new Response(JSON.stringify(data), {
@@ -777,6 +800,70 @@ async function handleCFProxy(request, env, origin) {
   }
 }
 
+// ── /admin/provision-extension ───────────────────────────────────────────────
+// Calls the agentic PBX HTTP interface to create a new WebRTC PJSIP extension.
+// Called by the admin portal when deploying a new WebRTC softphone app.
+//
+// Secrets required (set via: npx wrangler secret put <NAME>):
+//   PBX_AGENT_URL  — e.g. https://xxxx.trycloudflare.com  (Cloudflare Tunnel URL)
+//   PBX_AGENT_KEY  — the HTTP_API_KEY configured on the agentic PBX server
+//
+// Body: { name, extension?, email?, voicemail_pin?, client? }
+// Returns: { extension, sip_password, voicemail_pin, wss_url, domain, display_name }
+//   and optionally stores creds in CLIENT_CONFIG KV under client:${client}:pbx
+async function handleProvisionExtension(request, env, origin) {
+  if (!env.PBX_AGENT_URL || !env.PBX_AGENT_KEY) {
+    return jsonResponse({ error: "PBX_AGENT_URL / PBX_AGENT_KEY not configured in Worker secrets" }, 500, origin);
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return jsonResponse({ error: "Invalid JSON body" }, 400, origin); }
+
+  const { name, extension = "", email = "", voicemail_pin = "1234", client } = body;
+  if (!name) return jsonResponse({ error: "'name' is required" }, 400, origin);
+
+  try {
+    const pbxRes = await fetch(`${env.PBX_AGENT_URL}/extensions`, {
+      method:  "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key":    env.PBX_AGENT_KEY,
+      },
+      body: JSON.stringify({ name, extension, email, voicemail_pin, webrtc: true }),
+    });
+
+    const pbxData = await pbxRes.json();
+
+    if (!pbxRes.ok) {
+      return jsonResponse({ error: "PBX provisioning failed", detail: pbxData }, pbxRes.status, origin);
+    }
+
+    // Optionally store the SIP credentials in CLIENT_CONFIG KV so the app can
+    // fetch them at load time via /admin/get-client/:slug
+    if (client && env.CLIENT_CONFIG) {
+      const existing = await getClientConfig(env.CLIENT_CONFIG, client) || {};
+      await env.CLIENT_CONFIG.put(`client:${client}`, JSON.stringify({
+        ...existing,
+        pbx: {
+          extension:    pbxData.extension,
+          sip_password: pbxData.sip_password,
+          wss_url:      pbxData.wss_url,
+          domain:       pbxData.domain,
+          display_name: pbxData.display_name,
+          provisioned:  new Date().toISOString(),
+        },
+      }));
+    }
+
+    console.log(`[admin] provision-extension: ${pbxData.extension} (${name})`);
+    return jsonResponse({ ok: true, ...pbxData }, 200, origin);
+
+  } catch (e) {
+    return jsonResponse({ error: "PBX agent unreachable", detail: e.message }, 502, origin);
+  }
+}
+
 // ── /admin/reset-rate-limits ──────────────────────────────────────────────────
 // Deletes all demo_ai:* keys from the RATE_LIMIT KV namespace.
 // Resets every IP's call counter back to zero.
@@ -806,6 +893,220 @@ async function handleResetRateLimits(env, origin) {
   return jsonResponse({ ok: true, deleted }, 200, origin);
 }
 
+// ── /admin/custom-domain ──────────────────────────────────────────────────────
+// Manage custom hostnames for Pro clients via Cloudflare Custom Hostnames API.
+// Stores the domain→slug mapping in CLIENT_CONFIG KV for CORS resolution.
+//
+// Body: { op: "add"|"remove"|"status", domain, slug }
+//   add    → Creates CF Custom Hostname (SSL via TXT DV) + stores KV mapping
+//   remove → Deletes CF Custom Hostname + removes KV mapping
+//   status → Returns CF hostname status + SSL verification state
+async function handleCustomDomain(request, env, origin) {
+  if (!env.CF_API_TOKEN || !env.CF_ZONE_ID) {
+    return jsonResponse({ error: "CF_API_TOKEN / CF_ZONE_ID not configured" }, 500, origin);
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return jsonResponse({ error: "Invalid JSON" }, 400, origin); }
+
+  const { op, domain, slug } = body;
+  if (!domain) return jsonResponse({ error: "'domain' is required" }, 400, origin);
+
+  const clean = domain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const CF = "https://api.cloudflare.com/client/v4";
+  const headers = {
+    "Authorization": `Bearer ${env.CF_API_TOKEN}`,
+    "Content-Type":  "application/json",
+  };
+
+  if (op === "add") {
+    if (!slug) return jsonResponse({ error: "'slug' is required for add" }, 400, origin);
+
+    // Create CF Custom Hostname
+    const res  = await fetch(`${CF}/zones/${env.CF_ZONE_ID}/custom_hostnames`, {
+      method: "POST", headers,
+      body: JSON.stringify({
+        hostname: clean,
+        ssl: {
+          method: "txt", type: "dv",
+          settings: { http2: "on", min_tls_version: "1.2", tls_1_3: "on" },
+        },
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      const msg = data.errors?.[0]?.message || JSON.stringify(data.errors);
+      return jsonResponse({ error: `CF Custom Hostname failed: ${msg}` }, res.status, origin);
+    }
+
+    // Store mapping in CLIENT_CONFIG KV for CORS + routing
+    if (env.CLIENT_CONFIG) {
+      await env.CLIENT_CONFIG.put(`custom_host:${clean}`, slug);
+    }
+
+    console.log(`[custom-domain] added ${clean} → ${slug}`);
+    return jsonResponse({
+      ok: true,
+      domain: clean, slug,
+      cf_id:  data.result?.id,
+      status: data.result?.status,
+      ssl_verification: data.result?.ssl?.validation_records || data.result?.ssl?.pending_validation,
+    }, 200, origin);
+
+  } else if (op === "remove") {
+    // Find the CF custom hostname ID
+    const listRes  = await fetch(
+      `${CF}/zones/${env.CF_ZONE_ID}/custom_hostnames?hostname=${encodeURIComponent(clean)}`,
+      { headers }
+    );
+    const listData = await listRes.json();
+    const item     = listData.result?.[0];
+
+    if (item?.id) {
+      await fetch(`${CF}/zones/${env.CF_ZONE_ID}/custom_hostnames/${item.id}`, {
+        method: "DELETE", headers,
+      });
+    }
+
+    if (env.CLIENT_CONFIG) {
+      await env.CLIENT_CONFIG.delete(`custom_host:${clean}`);
+    }
+
+    console.log(`[custom-domain] removed ${clean}`);
+    return jsonResponse({ ok: true, domain: clean, removed: !!item?.id }, 200, origin);
+
+  } else if (op === "status") {
+    const listRes  = await fetch(
+      `${CF}/zones/${env.CF_ZONE_ID}/custom_hostnames?hostname=${encodeURIComponent(clean)}`,
+      { headers }
+    );
+    const listData = await listRes.json();
+    const item     = listData.result?.[0];
+    if (!item) return jsonResponse({ ok: true, status: "not_found" }, 200, origin);
+    return jsonResponse({
+      ok: true,
+      domain: clean,
+      cf_id:  item.id,
+      status: item.status,
+      ssl_status: item.ssl?.status,
+      ssl_verification: item.ssl?.validation_records || item.ssl?.pending_validation,
+    }, 200, origin);
+
+  } else {
+    return jsonResponse({ error: `Unknown op: ${op}` }, 400, origin);
+  }
+}
+
+// ── /admin/domain-check ───────────────────────────────────────────────────────
+// Check domain availability via RDAP + return marked-up price.
+// Body: { domain: "example.com" }
+// Returns: { domain, tld, available, price_retail_display, price_marked_up_display,
+//            price_marked_up_cents, price_retail_cents }
+async function handleDomainCheck(request, env, origin) {
+  let body;
+  try { body = await request.json(); }
+  catch { return jsonResponse({ error: "Invalid JSON" }, 400, origin); }
+
+  const { domain } = body;
+  if (!domain) return jsonResponse({ error: "'domain' is required" }, 400, origin);
+
+  // Clean and validate
+  const clean = domain.toLowerCase().trim()
+    .replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
+  const parts = clean.split(".");
+  if (parts.length < 2 || parts.some(p => !p)) {
+    return jsonResponse({ error: "Invalid domain format" }, 400, origin);
+  }
+
+  const tld  = parts.slice(1).join(".");
+  const cost = TLD_PRICES_COST[tld];
+  if (!cost) {
+    return jsonResponse({
+      error: `TLD .${tld} is not in our pricing table. Use BYOD (bring your own domain) option.`,
+      supported_tlds: Object.keys(TLD_PRICES_COST),
+    }, 400, origin);
+  }
+
+  const price_retail_cents     = Math.ceil(cost * 100);
+  const price_marked_up_cents  = Math.ceil(cost * (1 + DOMAIN_MARKUP) * 100);
+
+  // Check availability via RDAP — 404 = likely available, 200 = registered
+  let available = null;
+  try {
+    const rdap = await fetch(`https://rdap.cloudflare.com/domain/${clean}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined,
+    });
+    available = (rdap.status === 404);
+  } catch {
+    available = null; // network error → unknown
+  }
+
+  return jsonResponse({
+    domain: clean, tld, available,
+    price_retail_cents,
+    price_marked_up_cents,
+    price_retail_display:    `$${(price_retail_cents / 100).toFixed(2)}/yr`,
+    price_marked_up_display: `$${(price_marked_up_cents / 100).toFixed(2)}/yr`,
+  }, 200, origin);
+}
+
+// ── /admin/create-checkout ────────────────────────────────────────────────────
+// Creates a Stripe Checkout session for a domain purchase.
+// Returns a hosted payment URL to send to the customer.
+//
+// Requires: STRIPE_SECRET_KEY secret (set via: npx wrangler secret put STRIPE_SECRET_KEY)
+//
+// Body: { domain, amount_cents, slug, customer_email? }
+// Returns: { url, session_id }
+async function handleCreateCheckout(request, env, origin) {
+  if (!env.STRIPE_SECRET_KEY) {
+    return jsonResponse({ error: "STRIPE_SECRET_KEY not configured in Worker secrets" }, 500, origin);
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return jsonResponse({ error: "Invalid JSON" }, 400, origin); }
+
+  const { domain, amount_cents, slug, customer_email } = body;
+  if (!domain || !amount_cents) {
+    return jsonResponse({ error: "'domain' and 'amount_cents' are required" }, 400, origin);
+  }
+
+  const params = new URLSearchParams({
+    mode: "payment",
+    success_url: "https://admin.appsforhire.app?domain_paid=1",
+    cancel_url:  "https://admin.appsforhire.app",
+    "line_items[0][price_data][currency]":                     "usd",
+    "line_items[0][price_data][unit_amount]":                  String(amount_cents),
+    "line_items[0][price_data][product_data][name]":           `Domain: ${domain}`,
+    "line_items[0][price_data][product_data][description]":    `Annual domain registration + Cloudflare DNS setup for ${domain}.`,
+    "line_items[0][quantity]":                                 "1",
+    "metadata[domain]":                                        domain,
+    "metadata[slug]":                                          slug || "",
+    "metadata[type]":                                          "domain_purchase",
+  });
+  if (customer_email) params.set("customer_email", customer_email);
+
+  const res  = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}`,
+      "Content-Type":  "application/x-www-form-urlencoded",
+    },
+    body: params.toString(),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    return jsonResponse({ error: `Stripe error: ${data.error?.message}` }, 400, origin);
+  }
+
+  console.log(`[create-checkout] domain=${domain} amount=${amount_cents} session=${data.id}`);
+  return jsonResponse({ ok: true, url: data.url, session_id: data.id }, 200, origin);
+}
+
 // ── /health handler ───────────────────────────────────────────────────────────
 function handleHealth(env, origin) {
   return jsonResponse({
@@ -815,13 +1116,16 @@ function handleHealth(env, origin) {
       claude:        !!env.CLAUDE_API_KEY,
       gemini:        !!env.GEMINI_API_KEY,
       admin_secret:  !!env.ADMIN_SECRET,
-      stripe:        !!env.STRIPE_WEBHOOK_SECRET,
+      stripe_webhook: !!env.STRIPE_WEBHOOK_SECRET,
+      stripe_secret:  !!env.STRIPE_SECRET_KEY,
       resend:        !!env.RESEND_API_KEY,
       google_places: !!env.GOOGLE_PLACES_KEY,
       cf_token:      !!env.CF_API_TOKEN,
       cf_zone:       !!env.CF_ZONE_ID,
       cf_account:    !!env.CF_ACCOUNT_ID,
       github:        !!env.GITHUB_TOKEN,
+      pbx_agent_url: !!env.PBX_AGENT_URL,
+      pbx_agent_key: !!env.PBX_AGENT_KEY,
     },
     kv: {
       rate_limit:    !!env.RATE_LIMIT,
@@ -835,17 +1139,20 @@ export default {
   async fetch(request, env, ctx) {
     const url    = new URL(request.url);
     const path   = url.pathname;
-    const origin = request.headers.get("Origin") || "";
+    const rawOrigin    = request.headers.get("Origin") || "";
+    // Resolve allowed origin (async — handles custom domains stored in KV)
+    const allowedOrigin = await resolveAllowedOrigin(rawOrigin, env.CLIENT_CONFIG);
+    const origin = allowedOrigin; // use throughout for CORS headers
 
     // CORS preflight
     if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+      return new Response(null, { status: 204, headers: corsHeaders(allowedOrigin) });
     }
 
-    // Origin check — allow any *.appsforhire.app subdomain or localhost
+    // Origin check — allow any *.appsforhire.app subdomain, custom domains in KV, or localhost
     // Webhook from Stripe has no Origin header — that's fine, signature protects it
-    if (origin && !isAllowedOrigin(origin) && path !== "/webhook") {
-      return jsonResponse({ error: "Origin not allowed" }, 403, origin);
+    if (rawOrigin && !allowedOrigin && path !== "/webhook") {
+      return jsonResponse({ error: "Origin not allowed" }, 403, "");
     }
 
     // Admin endpoints — require ADMIN_SECRET bearer token
@@ -889,6 +1196,18 @@ export default {
 
       if (request.method === "POST" && path === "/admin/reset-rate-limits")
         return handleResetRateLimits(env, origin);
+
+      if (request.method === "POST" && path === "/admin/provision-extension")
+        return handleProvisionExtension(request, env, origin);
+
+      if (request.method === "POST" && path === "/admin/custom-domain")
+        return handleCustomDomain(request, env, origin);
+
+      if (request.method === "POST" && path === "/admin/domain-check")
+        return handleDomainCheck(request, env, origin);
+
+      if (request.method === "POST" && path === "/admin/create-checkout")
+        return handleCreateCheckout(request, env, origin);
 
       return jsonResponse({ error: "Not found" }, 404, origin);
 
