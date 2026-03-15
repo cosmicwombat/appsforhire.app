@@ -384,7 +384,10 @@ async function provisionExtension() {
     const data = await res.json();
 
     if (!res.ok) {
-      showMsg(msgEl, `Failed: ${data.detail || data.error || `HTTP ${res.status}`}`, 'error');
+      // Worker wraps PBX errors as {error:"...", detail:{detail:"..."}} — unwrap nested objects
+      let detail = data.detail || data.error || `HTTP ${res.status}`;
+      if (typeof detail === 'object') detail = detail.detail || JSON.stringify(detail);
+      showMsg(msgEl, `Failed: ${detail}`, 'error');
       return;
     }
 
