@@ -704,6 +704,35 @@ async function handleCFProxy(request, env, origin) {
   }
 }
 
+// ── /admin/reset-rate-limits ──────────────────────────────────────────────────
+// Deletes all demo_ai:* keys from the RATE_LIMIT KV namespace.
+// Resets every IP's call counter back to zero.
+async function handleResetRateLimits(env, origin) {
+  if (!env.RATE_LIMIT) {
+    return jsonResponse({ error: "RATE_LIMIT KV not bound" }, 500, origin);
+  }
+
+  let deleted = 0;
+  let cursor = null;
+
+  // KV list is paginated — loop until all keys are found and deleted
+  do {
+    const listOpts = { prefix: "demo_ai:", limit: 1000 };
+    if (cursor) listOpts.cursor = cursor;
+
+    const result = await env.RATE_LIMIT.list(listOpts);
+
+    for (const key of result.keys) {
+      await env.RATE_LIMIT.delete(key.name);
+      deleted++;
+    }
+
+    cursor = result.list_complete ? null : result.cursor;
+  } while (cursor);
+
+  return jsonResponse({ ok: true, deleted }, 200, origin);
+}
+
 // ── /health handler ───────────────────────────────────────────────────────────
 function handleHealth(env, origin) {
   return jsonResponse({
@@ -772,6 +801,9 @@ export default {
 
       if (request.method === "POST" && path === "/admin/cf-proxy")
         return handleCFProxy(request, env, origin);
+
+      if (request.method === "POST" && path === "/admin/reset-rate-limits")
+        return handleResetRateLimits(env, origin);
 
       return jsonResponse({ error: "Not found" }, 404, origin);
 
